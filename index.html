@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Makeup Mayoreo CDMX - Lotes de Maquillaje Importado EE.UU.</title>
+<meta name="description" content="Lotes mixtos de maquillaje importado de EE.UU. Paquetes de 10 a 500 piezas: e.l.f, NYX, Maybelline, LOreal y mas. Para revendedoras y consumidoras en Mexico.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#FAF6F0;--blush:#F2E0D8;--rose:#C9807A;--rose-dk:#9E5550;
+  --gold:#C9A96E;--gold-lt:#E8D5A8;--nude:#D4B8A8;--charcoal:#2C2420;
+  --text:#3A2E2A;--muted:#8A7068;--white:#FFFFFF;
+  --border:rgba(201,169,110,0.25);--shadow:0 2px 24px rgba(44,36,32,0.08);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:"Jost",sans-serif;background:var(--cream);color:var(--text);overflow-x:hidden}
+.serif{font-family:"Cormorant Garamond",serif}
+.topbar{background:var(--charcoal);color:var(--gold-lt);text-align:center;font-size:12px;letter-spacing:.1em;padding:8px 16px;font-weight:300}
+nav{position:sticky;top:0;z-index:100;background:rgba(250,246,240,0.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:64px}
+.nav-logo{font-family:"Cormorant Garamond",serif;font-size:20px;font-weight:500;color:var(--charcoal);letter-spacing:.03em;line-height:1.1}
+.nav-logo span{display:block;font-size:10px;font-family:"Jost",sans-serif;letter-spacing:.16em;color:var(--gold);font-weight:400;text-transform:uppercase}
+.nav-actions{display:flex;gap:10px;align-items:center}
+.nav-btn{background:var(--charcoal);color:var(--gold-lt);border:none;border-radius:2px;padding:9px 16px;font-family:"Jost",sans-serif;font-size:11px;letter-spacing:.1em;cursor:pointer;text-transform:uppercase;text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:background .2s}
+.nav-btn:hover{background:var(--rose-dk)}
+.nav-btn.wpp{background:transparent;border:1px solid var(--border);color:var(--text)}
+.nav-btn.wpp:hover{border-color:var(--gold);color:var(--gold)}
+.hero{min-height:85vh;display:grid;grid-template-columns:1fr 1fr;position:relative;overflow:hidden}
+.hero-left{display:flex;flex-direction:column;justify-content:center;padding:72px 48px 72px 40px;position:relative;z-index:2}
+.hero-eyebrow{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:400;display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.hero-eyebrow::before{content:"";display:block;width:28px;height:1px;background:var(--gold)}
+.hero-h1{font-family:"Cormorant Garamond",serif;font-size:clamp(40px,5.5vw,68px);font-weight:400;line-height:1.06;color:var(--charcoal);margin-bottom:20px}
+.hero-h1 em{color:var(--rose);font-style:italic}
+.hero-desc{font-size:15px;font-weight:300;line-height:1.7;color:var(--muted);max-width:400px;margin-bottom:36px}
+.hero-cta{display:flex;gap:12px;flex-wrap:wrap}
+.btn-primary{background:var(--charcoal);color:var(--gold-lt);padding:13px 28px;font-family:"Jost",sans-serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase;border:none;border-radius:2px;cursor:pointer;text-decoration:none;display:inline-block;transition:background .2s,transform .15s}
+.btn-primary:hover{background:var(--rose-dk);transform:translateY(-1px)}
+.btn-outline{background:transparent;color:var(--text);padding:13px 28px;font-family:"Jost",sans-serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--nude);border-radius:2px;cursor:pointer;text-decoration:none;display:inline-block;transition:border-color .2s,color .2s}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold)}
+.hero-stats{display:flex;gap:28px;margin-top:44px;padding-top:28px;border-top:1px solid var(--border)}
+.hero-stat-num{font-family:"Cormorant Garamond",serif;font-size:30px;font-weight:500;color:var(--charcoal);line-height:1}
+.hero-stat-label{font-size:11px;color:var(--muted);letter-spacing:.06em;margin-top:3px}
+.hero-right{position:relative;overflow:hidden;background:var(--blush)}
+.hero-right img{width:100%;height:100%;object-fit:cover;object-position:center}
+.hero-right-overlay{position:absolute;inset:0;background:linear-gradient(to right,rgba(250,246,240,0.15) 0%,transparent 30%)}
+.marcas-strip{background:var(--charcoal);padding:14px 24px;display:flex;align-items:center;justify-content:center;gap:28px;flex-wrap:wrap}
+.marca-tag{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-weight:400;opacity:.85}
+.marca-sep{color:rgba(201,169,110,0.3);font-size:14px}
+.section{padding:72px 20px}
+.section-header{text-align:center;max-width:580px;margin:0 auto 48px}
+.section-eyebrow{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:400;margin-bottom:10px}
+.section-title{font-family:"Cormorant Garamond",serif;font-size:clamp(30px,4.5vw,46px);font-weight:400;color:var(--charcoal);line-height:1.15}
+.section-title em{color:var(--rose);font-style:italic}
+.section-sub{font-size:14px;color:var(--muted);margin-top:10px;font-weight:300;line-height:1.6}
+.filters{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:36px}
+.filter-btn{padding:7px 18px;border:1px solid var(--border);border-radius:20px;background:transparent;font-family:"Jost",sans-serif;font-size:12px;letter-spacing:.05em;color:var(--muted);cursor:pointer;transition:all .2s}
+.filter-btn:hover,.filter-btn.active{background:var(--charcoal);color:var(--gold-lt);border-color:var(--charcoal)}
+.lotes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:18px;max-width:1080px;margin:0 auto}
+.lote-card{background:var(--white);border:1px solid var(--border);border-radius:4px;overflow:hidden;transition:box-shadow .25s,transform .25s;cursor:pointer}
+.lote-card:hover{box-shadow:0 12px 48px rgba(44,36,32,0.13);transform:translateY(-3px)}
+.lote-card-img{height:210px;position:relative;overflow:hidden;background:var(--blush)}
+.lote-card-img img{width:100%;height:100%;object-fit:cover;transition:transform .4s}
+.lote-card:hover .lote-card-img img{transform:scale(1.04)}
+.lote-img-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px}
+.lote-img-ph span{font-size:36px}
+.lote-img-ph p{font-size:12px;color:var(--muted);letter-spacing:.06em}
+.lote-badge{position:absolute;top:12px;left:12px;background:var(--charcoal);color:var(--gold-lt);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;border-radius:2px;font-family:"Jost",sans-serif}
+.lote-badge-r{position:absolute;top:12px;right:12px;font-size:10px;letter-spacing:.06em;padding:4px 10px;border-radius:2px;font-family:"Jost",sans-serif}
+.lote-card-body{padding:18px}
+.lote-card-tag{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:5px}
+.lote-card-name{font-family:"Cormorant Garamond",serif;font-size:22px;font-weight:500;color:var(--charcoal);line-height:1.2;margin-bottom:5px}
+.lote-card-desc{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:14px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.price-row{display:flex;align-items:baseline;gap:8px;margin-bottom:3px}
+.lote-price{font-family:"Cormorant Garamond",serif;font-size:30px;font-weight:500;color:var(--rose)}
+.lote-currency{font-size:12px;color:var(--muted)}
+.lote-per{font-size:12px;color:var(--gold);font-weight:500;margin-bottom:14px}
+.lote-btn{width:100%;padding:11px;background:var(--charcoal);color:var(--gold-lt);border:none;border-radius:2px;font-family:"Jost",sans-serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:background .2s}
+.lote-btn:hover{background:var(--rose-dk)}
+.lote-btn.wpp-only{background:transparent;border:1px solid var(--border);color:var(--text)}
+.lote-btn.wpp-only:hover{border-color:var(--gold);color:var(--gold)}
+.how-section{background:var(--charcoal);padding:72px 20px}
+.steps-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:2px;max-width:880px;margin:0 auto}
+.step{padding:28px 24px;border:1px solid rgba(201,169,110,0.12)}
+.step-num{font-family:"Cormorant Garamond",serif;font-size:52px;font-weight:300;color:rgba(201,169,110,0.2);line-height:1;margin-bottom:10px}
+.step-title{font-family:"Cormorant Garamond",serif;font-size:19px;font-weight:400;color:var(--gold-lt);margin-bottom:6px}
+.step-desc{font-size:13px;color:var(--nude);line-height:1.6;font-weight:300}
+.testi-section{padding:72px 20px;background:var(--blush)}
+.testi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;max-width:880px;margin:0 auto}
+.testi-card{background:var(--white);padding:22px;border-radius:4px;border:1px solid var(--border)}
+.testi-stars{color:var(--gold);font-size:13px;letter-spacing:2px;margin-bottom:10px}
+.testi-text{font-family:"Cormorant Garamond",serif;font-size:16px;font-style:italic;color:var(--charcoal);line-height:1.5;margin-bottom:14px}
+.testi-author{font-size:11px;color:var(--muted);letter-spacing:.07em}
+.banner-mayoreo{background:var(--rose-dk);padding:48px 24px;text-align:center}
+.banner-mayoreo h2{font-family:"Cormorant Garamond",serif;font-size:clamp(26px,4vw,40px);color:var(--gold-lt);font-weight:400;margin-bottom:8px}
+.banner-mayoreo p{font-size:14px;color:rgba(232,213,168,0.8);margin-bottom:24px;font-weight:300}
+.banner-btn{display:inline-flex;align-items:center;gap:8px;background:var(--gold-lt);color:var(--charcoal);padding:14px 32px;border-radius:2px;font-family:"Jost",sans-serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;transition:background .2s}
+.banner-btn:hover{background:var(--white)}
+.modal-overlay{position:fixed;inset:0;z-index:500;background:rgba(44,36,32,0.7);display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .3s;backdrop-filter:blur(4px)}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--cream);width:100%;max-width:520px;margin:0 auto;border-radius:8px 8px 0 0;padding:28px 20px 36px;transform:translateY(40px);transition:transform .35s cubic-bezier(.22,.6,.3,1);max-height:92vh;overflow-y:auto;position:relative}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-handle{width:36px;height:4px;background:var(--nude);border-radius:2px;margin:0 auto 20px}
+.modal-img{width:100%;height:160px;object-fit:cover;border-radius:4px;margin-bottom:16px}
+.modal-img-ph{width:100%;height:80px;background:var(--blush);border-radius:4px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;font-size:28px}
+.modal-tag{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:4px}
+.modal-title{font-family:"Cormorant Garamond",serif;font-size:26px;font-weight:500;color:var(--charcoal);margin-bottom:4px}
+.modal-price{font-family:"Cormorant Garamond",serif;font-size:32px;color:var(--rose);font-weight:500}
+.modal-per{font-size:12px;color:var(--gold);margin-bottom:16px}
+.modal-div{height:1px;background:var(--border);margin:16px 0}
+.modal-sec{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.modal-features{list-style:none}
+.modal-features li{font-size:13px;color:var(--text);padding:5px 0;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)}
+.modal-features li:last-child{border-bottom:none}
+.modal-features li::before{content:"checkmark";color:var(--gold);font-size:11px;flex-shrink:0;content:"✓"}
+.form-row{margin-bottom:12px}
+.form-label{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px}
+.form-input,.form-select{width:100%;padding:11px 13px;border:1px solid var(--border);border-radius:2px;background:var(--white);color:var(--text);font-family:"Jost",sans-serif;font-size:14px;outline:none;transition:border-color .2s;-webkit-appearance:none;appearance:none}
+.form-input:focus,.form-select:focus{border-color:var(--gold)}
+.total-box{background:var(--blush);border-radius:4px;padding:14px;margin:16px 0;display:flex;justify-content:space-between;align-items:center}
+.total-label{font-size:12px;color:var(--muted)}
+.total-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.total-val{font-family:"Cormorant Garamond",serif;font-size:28px;color:var(--charcoal);font-weight:500}
+.modal-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btn-mp{background:#009EE3;color:white;padding:13px;border:none;border-radius:2px;font-family:"Jost",sans-serif;font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:background .2s}
+.btn-mp:hover{background:#007AB8}
+.btn-wpp-m{background:#25D366;color:white;padding:13px;border:none;border-radius:2px;font-family:"Jost",sans-serif;font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:background .2s}
+.btn-wpp-m:hover{background:#1DA851}
+.btn-wpp-full{grid-column:1/-1;background:#25D366;color:white;padding:13px;border:none;border-radius:2px;font-family:"Jost",sans-serif;font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:background .2s}
+.btn-wpp-full:hover{background:#1DA851}
+.modal-close{position:absolute;top:14px;right:14px;background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:50%}
+.modal-close:hover{background:var(--blush)}
+footer{background:var(--charcoal);padding:44px 20px 20px;color:var(--nude)}
+.footer-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-bottom:32px;max-width:680px}
+.footer-brand{font-family:"Cormorant Garamond",serif;font-size:22px;color:var(--gold-lt);font-weight:400;margin-bottom:4px}
+.footer-brand-sub{font-size:10px;letter-spacing:.16em;color:var(--gold);text-transform:uppercase}
+.footer-desc{font-size:12px;color:rgba(212,184,168,0.7);line-height:1.6;margin-top:10px;font-weight:300}
+.footer-links-title{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:14px}
+.footer-links{list-style:none}
+.footer-links li{margin-bottom:7px}
+.footer-links a{font-size:13px;color:var(--nude);text-decoration:none;transition:color .2s}
+.footer-links a:hover{color:var(--gold)}
+.footer-bottom{border-top:1px solid rgba(201,169,110,0.12);padding-top:16px;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:rgba(212,184,168,0.45);flex-wrap:wrap;gap:6px}
+.wpp-float{position:fixed;bottom:22px;right:22px;z-index:999;background:#25D366;color:white;width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(37,211,102,0.4);cursor:pointer;text-decoration:none;transition:transform .2s,box-shadow .2s}
+.wpp-float:hover{transform:scale(1.08);box-shadow:0 8px 32px rgba(37,211,102,0.5)}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--charcoal);color:var(--gold-lt);padding:11px 22px;border-radius:2px;font-size:13px;letter-spacing:.04em;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;z-index:9999;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.hero-left>*{animation:fadeUp .65s ease both}
+.hero-left>*:nth-child(1){animation-delay:.1s}
+.hero-left>*:nth-child(2){animation-delay:.2s}
+.hero-left>*:nth-child(3){animation-delay:.3s}
+.hero-left>*:nth-child(4){animation-delay:.4s}
+.hero-left>*:nth-child(5){animation-delay:.5s}
+@media(max-width:768px){
+  .hero{grid-template-columns:1fr;min-height:auto}
+  .hero-left{padding:44px 20px 28px}
+  .hero-right{height:260px}
+  .footer-grid{grid-template-columns:1fr}
+  .modal-btns{grid-template-columns:1fr}
+  .marcas-strip{gap:16px;padding:12px}
+}
+
+.cart-fab{position:fixed;top:72px;right:20px;z-index:200;background:var(--charcoal);color:var(--gold-lt);border:none;border-radius:2px;padding:10px 16px;font-family:"Jost",sans-serif;font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transform:translateY(-8px);transition:all .3s}
+.cart-fab.visible{opacity:1;pointer-events:all;transform:translateY(0)}
+.cart-fab:hover{background:var(--rose-dk)}
+.cart-count{background:var(--rose);color:white;border-radius:50%;width:18px;height:18px;font-size:10px;display:flex;align-items:center;justify-content:center;font-weight:500}
+.lote-btn-row{display:grid;grid-template-columns:1fr auto;gap:8px}
+.lote-btn-cart{padding:11px 14px;background:var(--blush);color:var(--charcoal);border:none;border-radius:2px;font-size:16px;cursor:pointer;transition:background .2s}
+.lote-btn-cart:hover{background:var(--nude)}
+.cart-overlay{position:fixed;inset:0;z-index:400;background:rgba(44,36,32,0.6);opacity:0;pointer-events:none;transition:opacity .3s;backdrop-filter:blur(3px)}
+.cart-overlay.open{opacity:1;pointer-events:all}
+.cart-drawer{position:fixed;top:0;right:0;height:100vh;width:min(420px,100vw);background:var(--cream);z-index:401;transform:translateX(100%);transition:transform .35s cubic-bezier(.22,.6,.3,1);display:flex;flex-direction:column}
+.cart-drawer.open{transform:translateX(0)}
+.cart-header{padding:20px 20px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.cart-title{font-family:"Cormorant Garamond",serif;font-size:22px;font-weight:500;color:var(--charcoal)}
+.cart-close{background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%}
+.cart-close:hover{background:var(--blush)}
+.cart-items{flex:1;overflow-y:auto;padding:16px 20px}
+.cart-empty{text-align:center;padding:48px 20px;color:var(--muted)}
+.cart-empty-icon{font-size:40px;margin-bottom:12px}
+.cart-empty p{font-size:14px;line-height:1.6}
+.cart-item{display:grid;grid-template-columns:72px 1fr auto;gap:12px;padding:14px 0;border-bottom:1px solid var(--border);align-items:center}
+.cart-item:last-child{border-bottom:none}
+.cart-item-img{width:72px;height:72px;object-fit:cover;border-radius:4px;background:var(--blush)}
+.cart-item-img-ph{width:72px;height:72px;background:var(--blush);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:22px}
+.cart-item-name{font-family:"Cormorant Garamond",serif;font-size:15px;font-weight:500;color:var(--charcoal);margin-bottom:3px}
+.cart-item-price{font-size:13px;color:var(--rose);margin-bottom:8px}
+.cart-qty{display:flex;align-items:center;gap:8px}
+.cart-qty-btn{width:24px;height:24px;border:1px solid var(--border);border-radius:2px;background:transparent;color:var(--text);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.cart-qty-btn:hover{background:var(--charcoal);color:var(--gold-lt);border-color:var(--charcoal)}
+.cart-qty-num{font-size:14px;font-weight:500;min-width:20px;text-align:center}
+.cart-item-remove{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:4px;border-radius:4px;line-height:1}
+.cart-item-remove:hover{color:var(--rose);background:var(--blush)}
+.cart-footer{padding:16px 20px 24px;border-top:1px solid var(--border);flex-shrink:0}
+.cart-subtotal{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.cart-subtotal-label{font-size:13px;color:var(--muted)}
+.cart-subtotal-val{font-family:"Cormorant Garamond",serif;font-size:28px;font-weight:500;color:var(--charcoal)}
+.cart-checkout-mp{width:100%;padding:13px;background:#009EE3;color:white;border:none;border-radius:2px;font-family:"Jost",sans-serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;margin-bottom:8px;transition:background .2s}
+.cart-checkout-mp:hover{background:#007AB8}
+.cart-checkout-wpp{width:100%;padding:13px;background:#25D366;color:white;border:none;border-radius:2px;font-family:"Jost",sans-serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:background .2s}
+.cart-checkout-wpp:hover{background:#1DA851}
+.cart-note{font-size:11px;color:var(--muted);text-align:center;margin-top:10px}
+.modal-qty-row{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.modal-qty-label{font-size:12px;color:var(--muted)}
+.modal-qty-ctrl{display:flex;align-items:center;gap:8px}
+.modal-qty-btn{width:28px;height:28px;border:1px solid var(--border);border-radius:2px;background:transparent;color:var(--text);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.modal-qty-btn:hover{background:var(--charcoal);color:var(--gold-lt);border-color:var(--charcoal)}
+.modal-qty-num{font-size:16px;font-weight:500;min-width:28px;text-align:center}
+.btn-add-cart{width:100%;background:var(--charcoal);color:var(--gold-lt);padding:13px;border:none;border-radius:2px;font-family:"Jost",sans-serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:background .2s;margin-bottom:8px}
+.btn-add-cart:hover{background:var(--rose-dk)}
+</style>
+</head>
+<body>
+
+<div class="topbar">&#10022; &nbsp; Envios a toda la Republica &middot; Pago seguro &middot; Maquillaje importado EE.UU. &nbsp; &#10022;</div>
+
+<nav>
+  <div class="nav-logo">The Makeup Mayoreo<span>CDMX &middot; Importado EE.UU.</span></div>
+  <div class="nav-actions">
+    <a href="https://wa.me/5215543813568?text=Hola!%20Me%20interesa%20un%20lote%20de%20maquillaje" class="nav-btn wpp" target="_blank">WhatsApp</a>
+    <a href="#lotes" class="nav-btn">Ver Lotes</a>
+  </div>
+</nav>
+
+<button class="cart-fab" id="cart-fab" onclick="openCart()">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+  Carrito
+  <span class="cart-count" id="cart-count">0</span>
+</button>
+<div class="cart-overlay" id="cart-overlay" onclick="closeCart()"></div>
+<div class="cart-drawer" id="cart-drawer">
+  <div class="cart-header">
+    <div class="cart-title serif">Tu carrito</div>
+    <button class="cart-close" onclick="closeCart()">&#10005;</button>
+  </div>
+  <div class="cart-items" id="cart-items"></div>
+  <div class="cart-footer" id="cart-footer" style="display:none">
+    <div class="cart-subtotal">
+      <div class="cart-subtotal-label">Total</div>
+      <div class="cart-subtotal-val serif" id="cart-total-val">$0</div>
+    </div>
+    <button class="cart-checkout-mp" onclick="checkoutMP()">&#128179; Pagar con Mercado Pago</button>
+    <button class="cart-checkout-wpp" onclick="checkoutWPP()">&#128241; Pedir por WhatsApp</button>
+    <p class="cart-note">+ envio calculado al confirmar</p>
+  </div>
+</div>
+<section class="hero">
+  <div class="hero-left">
+    <div class="hero-eyebrow">Importado directamente de EE.UU.</div>
+    <h1 class="hero-h1">Maquillaje<br>de <em>primera</em><br>al mejor precio</h1>
+    <p class="hero-desc">Lotes de 10 a 500 piezas de marcas como e.l.f, NYX, Maybelline, L'Oreal y mas. Precios de mayoreo para revendedoras y consumidoras en toda Mexico.</p>
+    <div class="hero-cta">
+      <a href="#lotes" class="btn-primary">Ver lotes disponibles</a>
+      <a href="https://wa.me/5215543813568?text=Hola!%20Quiero%20informacion%20sobre%20los%20lotes" class="btn-outline" target="_blank">Preguntar por WhatsApp</a>
+    </div>
+    <div class="hero-stats">
+      <div><div class="hero-stat-num serif">9</div><div class="hero-stat-label">Tipos de lote</div></div>
+      <div><div class="hero-stat-num serif">100%</div><div class="hero-stat-label">Importado EE.UU.</div></div>
+      <div><div class="hero-stat-num serif">48h</div><div class="hero-stat-label">Entrega CDMX</div></div>
+    </div>
+  </div>
+  <div class="hero-right">
+    <img src="https://yekvehkmgunoafccwmyp.supabase.co/storage/v1/object/public/lotes-fotos/lote-50-mixto.png" alt="Lote de 50 piezas de maquillaje importado" loading="eager">
+    <div class="hero-right-overlay"></div>
+  </div>
+</section>
+
+<div class="marcas-strip">
+  <span class="marca-tag">e.l.f</span><span class="marca-sep">&middot;</span>
+  <span class="marca-tag">NYX</span><span class="marca-sep">&middot;</span>
+  <span class="marca-tag">Maybelline</span><span class="marca-sep">&middot;</span>
+  <span class="marca-tag">L'Oreal</span><span class="marca-sep">&middot;</span>
+  <span class="marca-tag">Pixi</span><span class="marca-sep">&middot;</span>
+  <span class="marca-tag">Starface</span><span class="marca-sep">&middot;</span>
+  <span class="marca-tag">Milani</span><span class="marca-sep">&middot;</span>
+  <span class="marca-tag">La Roche-Posay</span>
+</div>
+
+<section class="section" id="lotes">
+  <div class="section-header">
+    <div class="section-eyebrow">Inventario disponible</div>
+    <h2 class="section-title serif">Elige tu <em>lote ideal</em></h2>
+    <p class="section-sub">Todos los lotes son piezas importadas de EE.UU. El lote de 500 piezas y el lote de labiales se coordinan por WhatsApp.</p>
+  </div>
+  <div class="filters">
+    <button class="filter-btn active" onclick="filterLotes('todos',this)">Todos</button>
+    <button class="filter-btn" onclick="filterLotes('mixto',this)">Mixtos</button>
+    <button class="filter-btn" onclick="filterLotes('labiales',this)">Labiales</button>
+    <button class="filter-btn" onclick="filterLotes('grande',this)">100+ piezas</button>
+  </div>
+  <div class="lotes-grid" id="lotes-grid"></div>
+</section>
+
+<section class="how-section" id="como-funciona">
+  <div class="section-header">
+    <div class="section-eyebrow">Proceso simple</div>
+    <h2 class="section-title serif" style="color:var(--gold-lt)">Como <em style="color:var(--rose)">funciona</em>?</h2>
+    <p class="section-sub" style="color:var(--nude)">Comprar tu lote es rapido y sin complicaciones.</p>
+  </div>
+  <div class="st<button class="cart-fab" id="cart-fab" onclick="openCart()">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+  Carrito
+  <span class="cart-count" id="cart-count">0</span>
+</button>
+
+<!-- CARRITO DRAWER -->
+<div class="cart-overlay" id="cart-overlay" onclick="closeCart()"></div>
+<div class="cart-drawer" id="cart-drawer">
+  <div class="cart-header">
+    <div class="cart-title serif">Tu carrito</div>
+    <button class="cart-close" onclick="closeCart()">&#10005;</button>
+  </div>
+  <div class="cart-items" id="cart-items"></div>
+  <div class="cart-footer" id="cart-footer" style="display:none">
+    <div class="cart-subtotal">
+      <div class="cart-subtotal-label">Total</div>
+      <div class="cart-subtotal-val serif" id="cart-total-val">$0</div>
+    </div>
+    <button class="cart-checkout-mp" onclick="checkoutMP()">&#128179; Pagar con Mercado Pago</button>
+    <button class="cart-checkout-wpp" onclick="checkoutWPP()">&#128241; Pedir por WhatsApp</button>
+    <p class="cart-note">+ envio calculado al confirmar</p>
+  </div>
+</div>
+
+<script>
+var BASE="https://yekvehkmgunoafccwmyp.supabase.co/storage/v1/object/public/lotes-fotos";
+var WPP="5215543813568";
+var LOTES=[
+  {id:"mixto-10",   tag:"Lote Mixto - 10 piezas",    nombre:"Lote de 10 Piezas",   desc:"Lote mixto de maquillaje importado EE.UU. Marcas como e.l.f, NYX, Maybelline y mas.",         precio:1150,  piezas:10,  tipo:"mixto",    foto:BASE+"/lote-10-mixto.png",  popular:false,wppOnly:false,features:["10 piezas importadas EE.UU.","Marcas: e.l.f, NYX, Maybelline y mas","Surtido mixto: labiales, bases, sombras","Sin piezas repetidas","Empaque seguro incluido"]},
+  {id:"mixto-15",   tag:"Lote Mixto - 15 piezas",    nombre:"Lote de 15 Piezas",   desc:"Lote mixto con marcas premium. Gran variedad de categorias importadas de EE.UU.",             precio:1650,  piezas:15,  tipo:"mixto",    foto:BASE+"/lote-15-mixto.png",  popular:false,wppOnly:false,features:["15 piezas importadas EE.UU.","Marcas: e.l.f, NYX, Maybelline, LOreal","Variedad de categorias","Sin piezas repetidas","Empaque seguro incluido"]},
+  {id:"mixto-20",   tag:"Lote Mixto - 20 piezas",    nombre:"Lote de 20 Piezas",   desc:"Lote mixto con gran variedad: labiales, bases, sombras, primers y mas.",                      precio:2100,  piezas:20,  tipo:"mixto",    foto:BASE+"/lote-20-mixto.png",  popular:false,wppOnly:false,features:["20 piezas importadas EE.UU.","Surtido amplio de categorias","Marcas premium de importacion","Sin piezas repetidas","Empaque seguro incluido"]},
+  {id:"mixto-25",   tag:"Lote Mixto - 25 piezas",    nombre:"Lote de 25 Piezas",   desc:"Lote mixto para revendedoras. Marcas: e.l.f, NYX, Pixi, Starface, Maybelline y mas.",         precio:2600,  piezas:25,  tipo:"mixto",    foto:BASE+"/lote-25-mixto.png",  popular:false,wppOnly:false,features:["25 piezas importadas EE.UU.","Marcas: e.l.f, NYX, Pixi, Starface","Variedad garantizada","Sin piezas repetidas","Empaque + lista de contenido"]},
+  {id:"mixto-30",   tag:"Lote Mixto - 30 piezas",    nombre:"Lote de 30 Piezas",   desc:"Lote mixto completo: maquillaje, skincare y accesorios. Marcas premium de EE.UU.",            precio:3000,  piezas:30,  tipo:"mixto",    foto:BASE+"/lote-30-mixto.png",  popular:false,wppOnly:false,features:["30 piezas importadas EE.UU.","Maquillaje + skincare + accesorios","Marcas premium de EE.UU.","Sin piezas repetidas","Empaque reforzado + lista"]},
+  {id:"mixto-50",   tag:"El mas popular - 50 piezas", nombre:"Lote de 50 Piezas",  desc:"Nuestro lote favorito. Gran variedad de marcas y categorias. Mejor precio por pieza.",        precio:4850,  piezas:50,  tipo:"mixto",    foto:BASE+"/lote-50-mixto.png",  popular:true, wppOnly:false,features:["50 piezas importadas EE.UU.","Gran variedad de marcas y categorias","Incluye labiales, ojos, cutis y mas","Sin piezas repetidas","Empaque reforzado + lista detallada"]},
+  {id:"mixto-100",  tag:"Lote Pro - 100 piezas",      nombre:"Lote de 100 Piezas", desc:"Para revendedoras serias. Maquillaje + skincare + accesorios. El mejor precio unitario.",     precio:9300,  piezas:100, tipo:"grande",   foto:BASE+"/lote-100-mixto.png", popular:false,wppOnly:false,features:["100 piezas importadas EE.UU.","Maquillaje + skincare + accesorios","Mayor variedad de marcas premium","Lista detallada de contenido","Empaque reforzado"]},
+  {id:"mixto-500",  tag:"Mayorista - 500 piezas",     nombre:"Lote de 500 Piezas", desc:"Para distribuidoras. El precio por pieza mas bajo: $87 MXN. Solo por WhatsApp.",              precio:43500, piezas:500, tipo:"grande",   foto:null,                       popular:false,wppOnly:true, features:["500 piezas importadas EE.UU.","Precio mas bajo por pieza: $87 MXN","Coordinar envio especial","Lista completa de contenido","Atencion personalizada"]},
+  {id:"labiales-20",tag:"Especial Labiales - 20 pzs", nombre:"Lote de 20 Labiales",desc:"Lote especializado en labiales importados. Colores variados, mate y glossy. Solo WhatsApp.",  precio:1900,  piezas:20,  tipo:"labiales", foto:null,                       popular:false,wppOnly:true, features:["20 labiales importados EE.UU.","Colores variados mate y glossy","Marcas de importacion premium","Sin colores repetidos","Alta demanda en reventa"]}
+];
+var carrito=[];
+var loteActivo=null;
+var qtyActual=1;
+
+function fmx(n){return "$"+Number(n).toLocaleString("es-MX")}
+
+function renderLotes(filtro){
+  filtro=filtro||"todos";
+  var grid=document.getElementById("lotes-grid");
+  var lista=filtro==="todos"?LOTES:LOTES.filter(function(l){return l.tipo===filtro});
+  grid.innerHTML=lista.map(function(l){
+    var ppu=(l.precio/l.piezas).toFixed(2);
+    var imgHtml=l.foto
+      ?'<img src="'+l.foto+'" alt="'+l.nombre+'" loading="lazy">'
+      :'<div class="lote-img-ph"><span>&#128132;</span><p>Foto proximamente</p></div>';
+    var badgeR=l.popular
+      ?'<div class="lote-badge-r" style="background:var(--rose);color:white">Mas popular</div>'
+      :l.wppOnly?'<div class="lote-badge-r" style="background:var(--gold);color:var(--charcoal)">Solo WhatsApp</div>':"";
+    var btns=l.wppOnly
+      ?'<button class="lote-btn wpp-only" onclick="event.stopPropagation();openModal(''+l.id+'')">Pedir por WhatsApp</button>'
+      :'<div class="lote-btn-row">'
+        +'<button class="lote-btn" onclick="event.stopPropagation();openModal(''+l.id+'')">Ver detalle</button>'
+        +'<button class="lote-btn-cart" onclick="event.stopPropagation();addToCart(''+l.id+'',1)" title="Anadir al carrito">&#128722;</button>'
+        +'</div>';
+    return '<div class="lote-card" onclick="openModal(''+l.id+')">'
+      +'<div class="lote-card-img">'+imgHtml
+      +'<div class="lote-badge">'+l.piezas+' pzs</div>'+badgeR+'</div>'
+      +'<div class="lote-card-body">'
+      +'<div class="lote-card-tag">'+l.tag+'</div>'
+      +'<div class="lote-card-name serif">'+l.nombre+'</div>'
+      +'<p class="lote-card-desc">'+l.desc+'</p>'
+      +'<div class="price-row"><span class="lote-price serif">'+fmx(l.precio)+'</span><span class="lote-currency">MXN</span></div>'
+      +'<div class="lote-per">$'+ppu+' por pieza</div>'
+      +btns
+      +'</div></div>';
+  }).join("");
+}
+
+function filterLotes(f,btn){
+  document.querySelectorAll(".filter-btn").forEach(function(b){b.classList.remove("active")});
+  btn.classList.add("active");
+  renderLotes(f);
+}
+
+function openModal(id){
+  loteActivo=LOTES.find(function(l){return l.id===id});
+  if(!loteActivo)return;
+  qtyActual=1;
+  var l=loteActivo;
+  var ppu=(l.precio/l.piezas).toFixed(2);
+  document.getElementById("m-img-wrap").innerHTML=l.foto
+    ?'<img src="'+l.foto+'" alt="'+l.nombre+'" class="modal-img">'
+    :'<div class="modal-img-ph">&#128132;</div>';
+  document.getElementById("m-tag").innerHTML=l.tag;
+  document.getElementById("m-title").textContent=l.nombre;
+  document.getElementById("m-price").textContent=fmx(l.precio)+" MXN";
+  document.getElementById("m-per").textContent="$"+ppu+" por pieza - importado EE.UU.";
+  document.getElementById("m-qty").textContent="1";
+  document.getElementById("m-total").textContent=fmx(l.precio);
+  document.getElementById("m-features").innerHTML=l.features.map(function(f){return"<li>"+f+"</li>"}).join("");
+  var btns=document.getElementById("m-btns");
+  if(l.wppOnly){
+    btns.innerHTML='<div class="modal-btns"><button class="btn-wpp-full" onclick="pedirPorWPP()">Pedir por WhatsApp</button></div>';
+  } else {
+    btns.innerHTML='<button class="btn-add-cart" onclick="addToCartFromModal()">+ Anadir al carrito</button>'
+      +'<div class="modal-btns">'
+      +'<button class="btn-mp" onclick="pagarDirectoMP()">Mercado Pago</button>'
+      +'<button class="btn-wpp-m" onclick="pedirPorWPP()">WhatsApp</button>'
+      +'</div>';
+  }
+  document.getElementById("modal-overlay").classList.add("open");
+  document.body.style.overflow="hidden";
+}
+
+function changeQty(delta){
+  qtyActual=Math.max(1,qtyActual+delta);
+  document.getElementById("m-qty").textContent=qtyActual;
+  if(loteActivo)document.getElementById("m-total").textContent=fmx(loteActivo.precio*qtyActual);
+}
+function closeModal(){document.getElementById("modal-overlay").classList.remove("open");document.body.style.overflow=""}
+function handleOverlayClick(e){if(e.target===document.getElementById("modal-overlay"))closeModal()}
+
+function addToCart(id,qty){
+  var l=LOTES.find(function(x){return x.id===id});
+  if(!l)return;
+  qty=qty||1;
+  var ex=carrito.find(function(i){return i.id===id});
+  if(ex){ex.qty+=qty}else{carrito.push({id:l.id,nombre:l.nombre,precio:l.precio,foto:l.foto,qty:qty})}
+  updateCartUI();
+  showToast(l.nombre+" anadido al carrito");
+}
+function addToCartFromModal(){if(!loteActivo)return;addToCart(loteActivo.id,qtyActual);closeModal()}
+function removeFromCart(id){carrito=carrito.filter(function(i){return i.id!==id});updateCartUI();renderCartItems()}
+function changeCartQty(id,delta){
+  var item=carrito.find(function(i){return i.id===id});
+  if(!item)return;
+  item.qty=Math.max(0,item.qty+delta);
+  if(item.qty===0){removeFromCart(id);return}
+  updateCartUI();renderCartItems();
+}
+function updateCartUI(){
+  var total=carrito.reduce(function(s,i){return s+i.precio*i.qty},0);
+  var count=carrito.reduce(function(s,i){return s+i.qty},0);
+  document.getElementById("cart-count").textContent=count;
+  document.getElementById("cart-total-val").textContent=fmx(total);
+  var fab=document.getElementById("cart-fab");
+  if(count>0)fab.classList.add("visible");else fab.classList.remove("visible");
+  document.getElementById("cart-footer").style.display=count>0?"block":"none";
+}
+function renderCartItems(){
+  var el=document.getElementById("cart-items");
+  if(carrito.length===0){
+    el.innerHTML='<div class="cart-empty"><div class="cart-empty-icon">&#128128;</div><p>Tu carrito esta vacio.<br>Agrega alguno de nuestros lotes.</p></div>';
+    return;
+  }
+  el.innerHTML=carrito.map(function(item){
+    var imgHtml=item.foto
+      ?'<img src="'+item.foto+'" alt="'+item.nombre+'" class="cart-item-img">'
+      :'<div class="cart-item-img-ph">&#128132;</div>';
+    return '<div class="cart-item">'
+      +imgHtml
+      +'<div>'
+        +'<div class="cart-item-name serif">'+item.nombre+'</div>'
+        +'<div class="cart-item-price">'+fmx(item.precio)+' MXN</div>'
+        +'<div class="cart-qty">'
+          +'<button class="cart-qty-btn" onclick="changeCartQty(''+item.id+'',-1)">-</button>'
+          +'<span class="cart-qty-num">'+item.qty+'</span>'
+          +'<button class="cart-qty-btn" onclick="changeCartQty(''+item.id+'',1)">+</button>'
+        +'</div>'
+      +'</div>'
+      +'<button class="cart-item-remove" onclick="removeFromCart(''+item.id+'')" title="Quitar">&#215;</button>'
+      +'</div>';
+  }).join("");
+}
+function openCart(){renderCartItems();document.getElementById("cart-drawer").classList.add("open");document.getElementById("cart-overlay").classList.add("open");document.body.style.overflow="hidden"}
+function closeCart(){document.getElementById("cart-drawer").classList.remove("open");document.getElementById("cart-overlay").classList.remove("open");document.body.style.overflow=""}
+
+function buildWPPMsg(){
+  var lines=carrito.map(function(i){return "- "+i.nombre+" x"+i.qty+" = "+fmx(i.precio*i.qty)+" MXN"});
+  var total=carrito.reduce(function(s,i){return s+i.precio*i.qty},0);
+  return "Hola! Quiero hacer el siguiente pedido:\n\n"+lines.join("\n")+"\n\nTotal: "+fmx(total)+" MXN\n\nPodria confirmar disponibilidad y datos de pago?";
+}
+function checkoutWPP(){
+  if(carrito.length===0){showToast("Tu carrito esta vacio");return}
+  window.open("https://wa.me/"+WPP+"?text="+encodeURIComponent(buildWPPMsg()),"_blank");
+  closeCart();
+}
+function checkoutMP(){showToast("Mercado Pago se integra en la siguiente fase")}
+function pagarDirectoMP(){showToast("Mercado Pago se integra en la siguiente fase")}
+function pedirPorWPP(){
+  if(!loteActivo)return;
+  var l=loteActivo;
+  var ppu=(l.precio/l.piezas).toFixed(2);
+  var msg="Hola! Quiero pedir:\n\n- "+l.nombre+" x"+qtyActual+" = "+fmx(l.precio*qtyActual)+" MXN ($"+ppu+"/pieza)\n\nPodria confirmar disponibilidad?";
+  window.open("https://wa.me/"+WPP+"?text="+encodeURIComponent(msg),"_blank");
+  closeModal();
+}
+function showToast(msg){var t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(function(){t.classList.remove("show")},3000)}
+
+renderLotes();
+updateCartUI();
+</script>
+</body>
+</html>
