@@ -5,8 +5,21 @@ import { useEffect, useState } from "react";
 import { useCart } from "../lib/cart";
 import { ENVIO_GRATIS_DESDE, fmx } from "../lib/lotes";
 
-export default function SiteHeader() {
+type Variante = "landing" | "mayoreo" | "amarea";
+
+export default function SiteHeader({
+  variant = "mayoreo",
+}: {
+  variant?: Variante;
+}) {
   const { count, openCart, showToast } = useCart();
+
+  // Identidad y navegación según la sección
+  const esAmarea = variant === "amarea";
+  const logoHref =
+    variant === "amarea" ? "/amarea" : variant === "mayoreo" ? "/mayoreo" : "/";
+  const logoNombre = esAmarea ? "AMAREA" : "The Makeup Mayoreo";
+  const logoSub = esAmarea ? "Belleza por pieza" : null;
 
   // C.P. (estilo DAX)
   const [cp, setCp] = useState("");
@@ -107,16 +120,37 @@ export default function SiteHeader() {
       {/* NAV */}
       <nav>
         <div className="nav-inner">
-          <Link href="/" className="nav-logo">
-            The Makeup Mayoreo<span>CDMX · Marcas americanas</span>
+          <Link
+            href={logoHref}
+            className={"nav-logo" + (esAmarea ? " nav-logo-amarea" : "")}
+          >
+            {logoNombre}
+            {logoSub && <span>{logoSub}</span>}
           </Link>
           <div className="nav-cats">
-            <Link href="/#lotes">Lotes</Link>
-            <Link href="/shop" className="nav-amarea">
-              AMAREA · Productos
-            </Link>
-            <Link href="/#como-funciona">Cómo funciona</Link>
-            <Link href="/#opiniones">Opiniones</Link>
+            {variant === "amarea" ? (
+              <>
+                <Link href="/amarea">Productos</Link>
+                <Link href="/amarea#categorias">Categorías</Link>
+                <Link href="/mayoreo">Mayoreo · Lotes</Link>
+              </>
+            ) : variant === "mayoreo" ? (
+              <>
+                <Link href="/mayoreo#lotes">Lotes</Link>
+                <Link href="/amarea" className="nav-amarea">
+                  AMAREA · Productos
+                </Link>
+                <Link href="/mayoreo#como-funciona">Cómo funciona</Link>
+                <Link href="/mayoreo#opiniones">Opiniones</Link>
+              </>
+            ) : (
+              <>
+                <Link href="/mayoreo">Mayoreo · Lotes</Link>
+                <Link href="/amarea" className="nav-amarea">
+                  AMAREA · Productos
+                </Link>
+              </>
+            )}
           </div>
           <div className="nav-actions">
             <a

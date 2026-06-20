@@ -9,6 +9,13 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      // La tienda AMAREA se movió de /shop a /amarea (mantener links indexados)
+      { source: "/shop", destination: "/amarea", permanent: true },
+      { source: "/shop/:sku", destination: "/amarea/:sku", permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;

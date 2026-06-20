@@ -1,19 +1,21 @@
 import type { Metadata } from "next";
 import { fetchProductosTienda, ordenarCategorias } from "../lib/productos";
+import { SITE_URL } from "../lib/site";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
-import ShopClient from "./ShopClient";
+import AmareaClient from "./AmareaClient";
 
 export const metadata: Metadata = {
   title: "AMAREA · Maquillaje por pieza | The Makeup Mayoreo CDMX",
   description:
     "Compra tus marcas de beauty favoritas por pieza: e.l.f, NYX, Maybelline, L'Oréal y más. Envío a todo México.",
+  alternates: { canonical: `${SITE_URL}/amarea` },
 };
 
 // El stock cambia, así que no cacheamos la página.
 export const dynamic = "force-dynamic";
 
-export default async function ShopPage() {
+export default async function AmareaPage() {
   const { productos, error } = await fetchProductosTienda();
 
   const categorias = ordenarCategorias([
@@ -25,8 +27,8 @@ export default async function ShopPage() {
 
   return (
     <>
-      <SiteHeader />
-      <ShopClient
+      <SiteHeader variant="amarea" />
+      <AmareaClient
         productos={productos}
         categorias={categorias}
         marcas={marcas}

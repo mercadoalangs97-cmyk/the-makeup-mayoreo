@@ -15,7 +15,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   const fichas: MetadataRoute.Sitemap = productos.map((p) => ({
-    url: `${SITE_URL}/shop/${p.sku}`,
+    url: `${SITE_URL}/amarea/${p.sku}`,
     lastModified: now,
     changeFrequency: "weekly",
     priority: 0.7,
@@ -24,7 +24,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     { url: SITE_URL, lastModified: now, changeFrequency: "weekly", priority: 1 },
     {
-      url: `${SITE_URL}/shop`,
+      url: `${SITE_URL}/mayoreo`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.9,
+    },
+    {
+      url: `${SITE_URL}/amarea`,
       lastModified: now,
       changeFrequency: "daily",
       priority: 0.9,

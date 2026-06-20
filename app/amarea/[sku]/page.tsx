@@ -39,7 +39,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
       "comprar " + (producto.categoria ?? "maquillaje") + " México",
       producto.marcaNorm + " México",
     ],
-    alternates: { canonical: `${SITE_URL}/shop/${producto.sku}` },
+    alternates: { canonical: `${SITE_URL}/amarea/${producto.sku}` },
     openGraph: {
       title: `${nombre} | AMAREA`,
       description: desc,
@@ -75,7 +75,7 @@ export default async function ProductoPage({ params }: Params) {
     category: producto.categoria ?? undefined,
     offers: {
       "@type": "Offer",
-      url: `${SITE_URL}/shop/${producto.sku}`,
+      url: `${SITE_URL}/amarea/${producto.sku}`,
       priceCurrency: "MXN",
       price: producto.precio_mxn ?? 0,
       availability:
@@ -92,7 +92,7 @@ export default async function ProductoPage({ params }: Params) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <SiteHeader />
+      <SiteHeader variant="amarea" />
       <ProductoDetalle producto={producto} variantes={variantes} />
 
       <div className="pd-extras">

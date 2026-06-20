@@ -142,7 +142,7 @@ export default function ProductoDetalle({
       <nav className="pd-breadcrumb">
         <Link href="/">Inicio</Link>
         <span>/</span>
-        <Link href="/shop">AMAREA</Link>
+        <Link href="/amarea">AMAREA</Link>
         <span>/</span>
         <span className="pd-bc-current">{nombre}</span>
       </nav>
@@ -205,7 +205,7 @@ export default function ProductoDetalle({
                   return (
                     <Link
                       key={v.sku}
-                      href={`/shop/${v.sku}`}
+                      href={`/amarea/${v.sku}`}
                       className={"tono-swatch" + (activo ? " active" : "")}
                       title={v.variante || nombreDisplay(v)}
                       aria-label={"Tono " + (v.variante || "")}
@@ -301,7 +301,7 @@ export default function ProductoDetalle({
       </div>
 
       <div className="pd-back">
-        <Link href="/shop" className="pd-back-link">
+        <Link href="/amarea" className="pd-back-link">
           ← Volver al catálogo
         </Link>
       </div>

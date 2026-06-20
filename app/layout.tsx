@@ -6,10 +6,9 @@ import Toast from "./components/Toast";
 import WppFloat from "./components/WppFloat";
 
 export const metadata: Metadata = {
-  title:
-    "The Makeup Mayoreo CDMX - Lotes de Maquillaje · e.l.f, NYX, Maybelline",
+  title: "The Makeup Mayoreo CDMX · Maquillaje al mayoreo y por pieza",
   description:
-    "Lotes de maquillaje de las mejores marcas de beauty: e.l.f, NYX, Maybelline, L'Oréal y más. Paquetes de 10 a 500 piezas. Para revendedoras en México.",
+    "Las mejores marcas de beauty: e.l.f, NYX, Maybelline, L'Oréal y más. Lotes al mayoreo y productos por pieza (AMAREA). Envío a todo México.",
   keywords: [
     "lotes maquillaje",
     "maquillaje mayoreo",

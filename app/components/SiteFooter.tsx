@@ -7,7 +7,7 @@ export default function SiteFooter() {
         <div className="footer-grid">
           <div>
             <div className="footer-brand serif">The Makeup Mayoreo</div>
-            <div className="footer-brand-sub">CDMX · Marcas americanas</div>
+            <div className="footer-brand-sub">CDMX</div>
             <p className="footer-desc">
               Las mejores marcas de beauty para revendedoras y consumidoras:
               e.l.f, NYX, Maybelline, L&apos;Oréal, Pixi y más.
@@ -17,16 +17,16 @@ export default function SiteFooter() {
             <div className="footer-links-title">Tienda</div>
             <ul className="footer-links">
               <li>
-                <Link href="/#lotes">Lotes de mayoreo</Link>
+                <Link href="/mayoreo">Lotes de mayoreo</Link>
               </li>
               <li>
-                <Link href="/shop">AMAREA · Productos</Link>
+                <Link href="/amarea">AMAREA · Productos</Link>
               </li>
               <li>
-                <Link href="/#como-funciona">Cómo funciona</Link>
+                <Link href="/mayoreo#como-funciona">Cómo funciona</Link>
               </li>
               <li>
-                <Link href="/#opiniones">Opiniones</Link>
+                <Link href="/mayoreo#opiniones">Opiniones</Link>
               </li>
             </ul>
           </div>

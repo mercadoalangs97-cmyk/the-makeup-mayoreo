@@ -127,7 +127,7 @@ export default function ShopClient({
                 const nombre = nombreDisplay(p);
                 return (
                   <div key={p.sku} className="prod-card">
-                    <Link href={`/shop/${p.sku}`} className="prod-link">
+                    <Link href={`/amarea/${p.sku}`} className="prod-link">
                       <div className="prod-img">
                         {p.foto ? (
                           // eslint-disable-next-line @next/next/no-img-element
