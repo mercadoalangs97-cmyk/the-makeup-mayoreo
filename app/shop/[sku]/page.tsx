@@ -4,6 +4,7 @@ import {
   fetchProductoPorSku,
   fetchProductosTienda,
   extrasFicha,
+  variantesDe,
   nombreDisplay,
 } from "../../lib/productos";
 import { SITE_URL, SITE_NAME } from "../../lib/site";
@@ -53,8 +54,9 @@ export default async function ProductoPage({ params }: Params) {
   const { producto } = await fetchProductoPorSku(decodeURIComponent(sku));
   if (!producto) notFound();
 
-  // Pool para relacionados / completa tu look
+  // Pool para variantes / relacionados / completa tu look
   const { productos: pool } = await fetchProductosTienda();
+  const variantes = variantesDe(pool, producto);
   const { relacionados, completaTuLook } = extrasFicha(pool, producto);
 
   const nombre = nombreDisplay(producto);
@@ -91,7 +93,7 @@ export default async function ProductoPage({ params }: Params) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <SiteHeader />
-      <ProductoDetalle producto={producto} />
+      <ProductoDetalle producto={producto} variantes={variantes} />
 
       <div className="pd-extras">
         <FilaProductos

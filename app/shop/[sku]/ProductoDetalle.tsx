@@ -47,7 +47,13 @@ function Seccion({
   );
 }
 
-export default function ProductoDetalle({ producto }: { producto: Producto }) {
+export default function ProductoDetalle({
+  producto,
+  variantes = [],
+}: {
+  producto: Producto;
+  variantes?: Producto[];
+}) {
   const { add, openCart } = useCart();
   const [stock, setStock] = useState(producto.stock);
   const [qty, setQty] = useState(1);
@@ -183,6 +189,41 @@ export default function ProductoDetalle({ producto }: { producto: Producto }) {
               <span className="pd-stock-ok">● Disponible</span>
             )}
           </div>
+
+          {/* Selector de tonos (estilo Sephora) */}
+          {variantes.length > 1 && (
+            <div className="tonos-wrap">
+              <div className="tonos-label">
+                Tono: <b>{producto.variante || "Único"}</b>
+                <span className="tonos-count">
+                  {variantes.length} tonos disponibles
+                </span>
+              </div>
+              <div className="tonos-row">
+                {variantes.map((v) => {
+                  const activo = v.sku === producto.sku;
+                  return (
+                    <Link
+                      key={v.sku}
+                      href={`/shop/${v.sku}`}
+                      className={"tono-swatch" + (activo ? " active" : "")}
+                      title={v.variante || nombreDisplay(v)}
+                      aria-label={"Tono " + (v.variante || "")}
+                      aria-current={activo ? "true" : undefined}
+                      scroll
+                    >
+                      {v.foto ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={v.foto} alt={v.variante || nombreDisplay(v)} />
+                      ) : (
+                        <span className="tono-ph">💄</span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Cantidad + agregar */}
           {!agotado && (

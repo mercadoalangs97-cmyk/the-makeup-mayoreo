@@ -105,6 +105,41 @@ export async function fetchProductoPorSku(
   return { producto: { ...data, marcaNorm: normalizaMarca(data.marca) }, error: null };
 }
 
+// ---- Agrupación de variantes (tonos del MISMO producto) ----
+// Clave = marca normalizada + nombre base (sin marca, sin acentos, sin
+// espacios/puntuación). Conservador: no mezcla productos distintos.
+function quitarMarcaDelNombre(s: string): string {
+  return s
+    .replace(/e\.?l\.?f\.?\s*(cosmetics|skin)?/g, " ")
+    .replace(/l'?oreal(\s+paris)?/g, " ")
+    .replace(/maybelline(\s+new\s+york)?/g, " ")
+    .replace(/nyx(\s+professional\s+makeup)?/g, " ")
+    .replace(/pixi(\s+by\s+petra)?/g, " ")
+    .replace(/neutrogena/g, " ")
+    .replace(/starface/g, " ")
+    .replace(/hero\s+cosmetics/g, " ");
+}
+
+export function claveVariante(p: {
+  nombre: string;
+  marcaNorm: string;
+}): string {
+  let s = (p.nombre || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "");
+  s = quitarMarcaDelNombre(s).replace(/[^a-z0-9]/g, "");
+  return (p.marcaNorm || "") + "|" + s;
+}
+
+// Tonos del mismo producto disponibles (el pool ya viene filtrado a stock > 0).
+export function variantesDe(pool: Producto[], producto: Producto): Producto[] {
+  const k = claveVariante(producto);
+  return pool
+    .filter((p) => claveVariante(p) === k)
+    .sort((a, b) => (a.variante || "").localeCompare(b.variante || "", "es"));
+}
+
 // Categorias complementarias para "Completa tu look"
 const COMPLEMENTOS: Record<string, string[]> = {
   Labios: ["Rostro", "Ojos", "Base"],
@@ -120,16 +155,31 @@ export function extrasFicha(
   pool: Producto[],
   producto: Producto
 ): { relacionados: Producto[]; completaTuLook: Producto[] } {
+  const claveActual = claveVariante(producto);
   const otros = pool.filter((p) => p.sku !== producto.sku);
 
-  // Relacionados: misma categoria o misma marca (priorizando ambos)
-  const score = (p: Producto) =>
-    (p.categoria === producto.categoria ? 2 : 0) +
-    (p.marcaNorm === producto.marcaNorm ? 1 : 0);
-  const relacionados = otros
-    .filter((p) => score(p) > 0)
-    .sort((a, b) => score(b) - score(a))
-    .slice(0, 4);
+  // Relacionados: MISMA categoria, excluyendo los tonos del mismo producto
+  // (esos ya aparecen en el selector). Mostramos UN producto por grupo de
+  // variantes (no varios tonos del mismo), priorizando la misma marca.
+  const candidatos = otros
+    .filter(
+      (p) =>
+        p.categoria === producto.categoria && claveVariante(p) !== claveActual
+    )
+    .sort(
+      (a, b) =>
+        (b.marcaNorm === producto.marcaNorm ? 1 : 0) -
+        (a.marcaNorm === producto.marcaNorm ? 1 : 0)
+    );
+  const relacionados: Producto[] = [];
+  const clavesVistas = new Set<string>();
+  for (const p of candidatos) {
+    const k = claveVariante(p);
+    if (clavesVistas.has(k)) continue; // un solo tono por producto
+    clavesVistas.add(k);
+    relacionados.push(p);
+    if (relacionados.length >= 4) break;
+  }
 
   // Completa tu look: categorias complementarias, variando categoria
   const usados = new Set(relacionados.map((p) => p.sku));
