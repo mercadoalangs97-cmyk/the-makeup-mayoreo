@@ -1,14 +1,19 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { CartProvider } from "./lib/cart";
+import CartDrawer from "./components/CartDrawer";
+import Toast from "./components/Toast";
+import WppFloat from "./components/WppFloat";
 
 export const metadata: Metadata = {
-  title: "The Makeup Mayoreo CDMX - Lotes de Maquillaje Importado EE.UU.",
+  title:
+    "The Makeup Mayoreo CDMX - Lotes de Maquillaje · e.l.f, NYX, Maybelline",
   description:
-    "Lotes de maquillaje importado de EE.UU. Paquetes de 10 a 500 piezas. Marcas: e.l.f, NYX, Maybelline y mas. Para revendedoras en Mexico.",
+    "Lotes de maquillaje de las mejores marcas de beauty: e.l.f, NYX, Maybelline, L'Oréal y más. Paquetes de 10 a 500 piezas. Para revendedoras en México.",
   keywords: [
     "lotes maquillaje",
     "maquillaje mayoreo",
-    "maquillaje importado",
+    "marcas de maquillaje",
     "revendedoras Mexico",
     "e.l.f",
     "NYX",
@@ -16,9 +21,10 @@ export const metadata: Metadata = {
     "CDMX",
   ],
   openGraph: {
-    title: "The Makeup Mayoreo CDMX - Lotes de Maquillaje Importado EE.UU.",
+    title:
+      "The Makeup Mayoreo CDMX - Lotes de Maquillaje · e.l.f, NYX, Maybelline",
     description:
-      "Lotes de maquillaje importado de EE.UU. Paquetes de 10 a 500 piezas. Para revendedoras en Mexico.",
+      "Lotes de las mejores marcas de beauty. Paquetes de 10 a 500 piezas. Para revendedoras en México.",
     locale: "es_MX",
     type: "website",
   },
@@ -48,7 +54,14 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <CartProvider>
+          {children}
+          <CartDrawer />
+          <WppFloat />
+          <Toast />
+        </CartProvider>
+      </body>
     </html>
   );
 }
