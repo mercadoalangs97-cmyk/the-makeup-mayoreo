@@ -153,14 +153,17 @@ export default function SiteHeader({
             )}
           </div>
           <div className="nav-actions">
-            <a
-              href="https://wa.me/5215543813568?text=Hola!%20Me%20interesa%20un%20producto"
-              className="nav-btn wpp"
-              target="_blank"
-              rel="noreferrer"
-            >
-              WhatsApp
-            </a>
+            {/* AMAREA es solo Mercado Pago: sin botón de WhatsApp en su header */}
+            {!esAmarea && (
+              <a
+                href="https://wa.me/5215543813568?text=Hola!%20Me%20interesa%20un%20producto"
+                className="nav-btn wpp"
+                target="_blank"
+                rel="noreferrer"
+              >
+                WhatsApp
+              </a>
+            )}
             <button
               className="nav-cart"
               onClick={openCart}
