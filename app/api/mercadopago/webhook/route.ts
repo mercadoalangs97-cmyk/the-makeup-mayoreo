@@ -3,6 +3,7 @@ import { Payment } from "mercadopago";
 import { createAdminSupabase } from "../../../lib/supabase";
 import { mpClient, mpConfigurado } from "../../../lib/mercadopago";
 import { enviarCorreosVenta, type OrdenCorreo } from "../../../lib/email";
+import { LOTES } from "../../../lib/lotes";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -132,10 +133,33 @@ async function manejar(req: Request): Promise<NextResponse> {
     try {
       const { data: orden } = await supabase
         .from("ordenes_web")
-        .select("id,items,total,envio,cliente,email")
+        .select("id,items,total,envio,cliente,email,mp_fee,mp_neto")
         .eq("id", ordenId)
         .single();
-      if (orden) await enviarCorreosVenta(orden as OrdenCorreo);
+      if (orden) {
+        // Enriquecer cada ítem con su foto para los correos
+        const items = (orden.items || []) as Array<{
+          tipo: string;
+          ref: string;
+          foto?: string | null;
+        }>;
+        const skus = items.filter((i) => i.tipo === "producto").map((i) => i.ref);
+        const fotos = new Map<string, string | null>();
+        if (skus.length > 0) {
+          const { data: prods } = await supabase
+            .from("productos")
+            .select("sku,foto")
+            .in("sku", skus);
+          (prods || []).forEach((p) => fotos.set(p.sku, p.foto));
+        }
+        for (const it of items) {
+          it.foto =
+            it.tipo === "lote"
+              ? LOTES.find((l) => l.id === it.ref)?.foto ?? null
+              : fotos.get(it.ref) ?? null;
+        }
+        await enviarCorreosVenta(orden as OrdenCorreo);
+      }
     } catch (e) {
       console.error("[webhook] error enviando correos:", e);
     }
