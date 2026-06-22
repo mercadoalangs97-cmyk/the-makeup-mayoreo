@@ -162,29 +162,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setIsOpen(false);
   }, [items, total, showToast]);
 
-  const checkoutMP = useCallback(async () => {
+  // Lleva a la página de datos de envío (/checkout); el pago a MP se inicia ahí.
+  const checkoutMP = useCallback(() => {
     if (items.length === 0) {
       showToast("Tu carrito está vacío");
       return;
     }
-    showToast("Redirigiendo a Mercado Pago…");
-    try {
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          items: items.map((it) => ({ id: it.id, qty: it.qty })),
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.init_point) {
-        showToast(data.error || "No se pudo iniciar el pago");
-        return;
-      }
-      window.location.href = data.init_point;
-    } catch {
-      showToast("Error de conexión al iniciar el pago");
-    }
+    setIsOpen(false);
+    window.location.href = "/checkout";
   }, [items, showToast]);
 
   const value: CartCtx = {

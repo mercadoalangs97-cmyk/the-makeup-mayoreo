@@ -97,13 +97,24 @@ async function manejar(req: Request): Promise<NextResponse> {
     .eq("id", ordenId)
     .eq("inventario_descontado", false);
 
+  // Comisión REAL y neto recibido (de Mercado Pago, no estimado)
+  const comision = (pago.fee_details || [])
+    .filter((f) => f.fee_payer === "collector")
+    .reduce((s, f) => s + (Number(f.amount) || 0), 0);
+  const neto =
+    pago.transaction_details?.net_received_amount ??
+    (pago.transaction_amount || 0) - comision;
+
   // Procesamiento transaccional e IDEMPOTENTE en una función SQL:
-  // - productos: descuenta SKU + registra movimiento
+  // - productos: descuenta SKU + registra movimiento + crea nota de venta
   // - lotes: NO toca inventario; deja la orden "pagado - pendiente de preparar"
+  // - comisión de MP: se registra como gasto (utilidades reales)
   const { data: resultado, error } = await supabase.rpc("procesar_pago_web", {
     p_orden_id: ordenId,
     p_payment_id: String(pago.id),
     p_mp_status: status,
+    p_comision: Number(comision.toFixed(2)),
+    p_neto: Number(Number(neto).toFixed(2)),
   });
 
   if (error) {

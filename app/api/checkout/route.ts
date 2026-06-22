@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     );
   }
 
-  let body: { items?: ItemEntrada[] };
+  let body: { items?: ItemEntrada[]; envio?: Record<string, string> };
   try {
     body = await req.json();
   } catch {
@@ -42,6 +42,37 @@ export async function POST(req: Request) {
   );
   if (entradas.length === 0) {
     return NextResponse.json({ error: "Carrito vacío" }, { status: 400 });
+  }
+
+  // ---- Validar datos de envío (server-side) ----
+  const e = body.envio || {};
+  const envio = {
+    nombre: (e.nombre || "").trim(),
+    telefono: (e.telefono || "").replace(/\D/g, ""),
+    email: (e.email || "").trim(),
+    calle: (e.calle || "").trim(),
+    numero: (e.numero || "").trim(),
+    colonia: (e.colonia || "").trim(),
+    cp: (e.cp || "").replace(/\D/g, ""),
+    ciudad: (e.ciudad || "").trim(),
+    estado: (e.estado || "").trim(),
+    referencias: (e.referencias || "").trim(),
+  };
+  const faltan: string[] = [];
+  if (envio.nombre.length < 3) faltan.push("nombre");
+  if (envio.telefono.length !== 10) faltan.push("WhatsApp (10 dígitos)");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(envio.email)) faltan.push("correo");
+  if (!envio.calle) faltan.push("calle");
+  if (!envio.numero) faltan.push("número");
+  if (!envio.colonia) faltan.push("colonia");
+  if (envio.cp.length !== 5) faltan.push("C.P. (5 dígitos)");
+  if (!envio.ciudad) faltan.push("ciudad");
+  if (!envio.estado) faltan.push("estado");
+  if (faltan.length > 0) {
+    return NextResponse.json(
+      { error: "Faltan o son inválidos: " + faltan.join(", ") },
+      { status: 400 }
+    );
   }
 
   const supabase = createAdminSupabase();
@@ -163,6 +194,10 @@ export async function POST(req: Request) {
     canal: "web",
     inventario_descontado: false,
     creado_en: ahora,
+    envio,
+    cliente: envio.nombre,
+    email: envio.email,
+    wpp: envio.telefono,
   });
   if (insErr) {
     return NextResponse.json(
@@ -185,6 +220,11 @@ export async function POST(req: Request) {
         })),
         external_reference: ordenId,
         metadata: { orden_id: ordenId },
+        payer: {
+          name: envio.nombre,
+          email: envio.email,
+          phone: { area_code: "", number: envio.telefono },
+        },
         back_urls: {
           success: `${SITE_URL}/checkout/exito`,
           pending: `${SITE_URL}/checkout/pendiente`,
