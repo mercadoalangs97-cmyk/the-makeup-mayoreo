@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { Payment } from "mercadopago";
 import { createAdminSupabase } from "../../../lib/supabase";
 import { mpClient, mpConfigurado } from "../../../lib/mercadopago";
+import { enviarCorreosVenta, type OrdenCorreo } from "../../../lib/email";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -122,6 +123,22 @@ async function manejar(req: Request): Promise<NextResponse> {
       { ok: false, reason: "error_procesar", msg: error.message },
       { status: 500 }
     );
+  }
+
+  // Correos de confirmación SOLO en el primer procesamiento (idempotente):
+  // si MP reenvía el webhook, la función SQL devuelve 'ya_procesada' y no
+  // volvemos a enviar. Best-effort: si el correo falla, no rompe el webhook.
+  if (resultado === "ok") {
+    try {
+      const { data: orden } = await supabase
+        .from("ordenes_web")
+        .select("id,items,total,envio,cliente,email")
+        .eq("id", ordenId)
+        .single();
+      if (orden) await enviarCorreosVenta(orden as OrdenCorreo);
+    } catch (e) {
+      console.error("[webhook] error enviando correos:", e);
+    }
   }
 
   return NextResponse.json({ ok: true, orden: ordenId, resultado });
