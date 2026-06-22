@@ -1,7 +1,12 @@
 import { Resend } from "resend";
 import { fmx } from "./lotes";
 
+// Remitente (debe ser del dominio verificado en Resend)
 export const EMAIL_NEGOCIO = "ventas@themakeup.com.mx";
+// A dónde llega el aviso interno de "¡Nueva venta!" (un correo que SÍ revisas).
+// Se puede sobreescribir en Vercel con la variable EMAIL_AVISOS_VENTAS.
+export const EMAIL_AVISOS =
+  process.env.EMAIL_AVISOS_VENTAS || "mercadoalangs97@gmail.com";
 
 export function emailConfigurado(): boolean {
   const k = process.env.RESEND_API_KEY || "";
@@ -147,7 +152,7 @@ export async function enviarCorreosVenta(o: OrdenCorreo): Promise<void> {
   try {
     await resend.emails.send({
       from,
-      to: EMAIL_NEGOCIO,
+      to: EMAIL_AVISOS,
       replyTo: o.email || undefined,
       subject: `🛍️ ¡Nueva venta! ${fmx(o.total)} · ${marca}`,
       html: envoltura(marca, "¡Nueva venta!", cuerpoNegocio),
