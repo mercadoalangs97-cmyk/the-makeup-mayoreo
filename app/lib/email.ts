@@ -3,10 +3,10 @@ import { fmx } from "./lotes";
 
 // Remitente (debe ser del dominio verificado en Resend)
 export const EMAIL_NEGOCIO = "ventas@themakeup.com.mx";
-// A dónde llega el aviso interno de "¡Nueva venta!" (un correo que SÍ revisas).
+// A dónde llega el aviso interno de "¡Nueva venta!" (buzón Titan ventas@).
 // Se puede sobreescribir en Vercel con la variable EMAIL_AVISOS_VENTAS.
 export const EMAIL_AVISOS =
-  process.env.EMAIL_AVISOS_VENTAS || "mercadoalangs97@gmail.com";
+  process.env.EMAIL_AVISOS_VENTAS || EMAIL_NEGOCIO;
 
 export function emailConfigurado(): boolean {
   const k = process.env.RESEND_API_KEY || "";
