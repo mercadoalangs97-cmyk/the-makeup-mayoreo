@@ -18,6 +18,18 @@ export function createServerSupabase(): SupabaseClient {
   });
 }
 
+// Cliente ADMIN (service role key) — SOLO server-side (API routes / webhooks).
+// NUNCA importar desde componentes de cliente. Bypassa RLS y escribe inventario.
+export function createAdminSupabase(): SupabaseClient {
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!URL || !serviceKey) {
+    throw new Error("Falta NEXT_PUBLIC_SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY");
+  }
+  return createClient(URL, serviceKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
+
 // Singleton para el navegador (realtime de stock en la ficha de producto).
 let browserClient: SupabaseClient | null = null;
 export function getBrowserSupabase(): SupabaseClient {

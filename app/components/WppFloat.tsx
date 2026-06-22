@@ -1,7 +1,15 @@
+"use client";
+
+import { usePathname } from "next/navigation";
+
 export default function WppFloat() {
+  const pathname = usePathname();
+  // AMAREA es solo Mercado Pago: ocultar la burbuja de WhatsApp ahí.
+  if (pathname && pathname.startsWith("/amarea")) return null;
+
   return (
     <a
-      href="https://wa.me/5215543813568?text=Hola!%20Me%20interesa%20un%20producto%20de%20maquillaje"
+      href="https://wa.me/5215543813568?text=Hola!%20Me%20interesa%20un%20lote%20de%20maquillaje"
       className="wpp-float"
       target="_blank"
       rel="noreferrer"

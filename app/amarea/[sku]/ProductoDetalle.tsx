@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { fmx, WPP } from "../../lib/lotes";
+import { fmx } from "../../lib/lotes";
 import { useCart } from "../../lib/cart";
 import { getBrowserSupabase, supabasePublicConfigurado } from "../../lib/supabase";
 import { nombreDisplay, type Producto } from "../../lib/productos";
@@ -109,23 +109,6 @@ export default function ProductoDetalle({
       qty
     );
     openCart();
-  }
-
-  function comprarWPP() {
-    const msg =
-      "¡Hola! Me interesa este producto:\n\n- " +
-      nombre +
-      " (" +
-      producto.marcaNorm +
-      ") x" +
-      qty +
-      " = " +
-      fmx(precio * qty) +
-      " MXN\n\n¿Está disponible?";
-    window.open(
-      "https://wa.me/" + WPP + "?text=" + encodeURIComponent(msg),
-      "_blank"
-    );
   }
 
   const descripcion =
@@ -256,10 +239,6 @@ export default function ProductoDetalle({
               Agotado
             </button>
           )}
-
-          <button className="pd-wpp" onClick={comprarWPP}>
-            Preguntar por WhatsApp
-          </button>
 
           {/* Sellos de confianza */}
           <div className="pd-trust">

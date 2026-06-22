@@ -19,6 +19,9 @@ export default function CartDrawer() {
     checkoutMP,
   } = useCart();
 
+  // ¿El carrito incluye algún lote? (los lotes sí ofrecen WhatsApp)
+  const hayLote = items.some((it) => it.tipo === "lote");
+
   return (
     <>
       <div
@@ -116,9 +119,12 @@ export default function CartDrawer() {
             <button className="btn-mp" onClick={checkoutMP}>
               Pagar con Mercado Pago
             </button>
-            <button className="btn-wpp-checkout" onClick={checkoutWPP}>
-              Pedir por WhatsApp
-            </button>
+            {/* WhatsApp solo si el carrito incluye al menos un lote */}
+            {hayLote && (
+              <button className="btn-wpp-checkout" onClick={checkoutWPP}>
+                Pedir lote por WhatsApp
+              </button>
+            )}
             <p className="cart-note">
               {tieneEnvioGratis
                 ? "✓ Envío gratis incluido"
