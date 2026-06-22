@@ -85,17 +85,17 @@ async function manejar(req: Request): Promise<NextResponse> {
     return NextResponse.json({ ok: true, status });
   }
 
-  // Aprobado: guardamos datos del comprador antes de procesar (para el movimiento)
-  const payer = pago.payer || {};
-  const nombre = [payer.first_name, payer.last_name].filter(Boolean).join(" ");
-  await supabase
-    .from("ordenes_web")
-    .update({
-      cliente: nombre || null,
-      email: payer.email || null,
-    })
-    .eq("id", ordenId)
-    .eq("inventario_descontado", false);
+  // NOTA: el cliente/email/wpp ya se capturaron en /checkout (fuente de verdad
+  // para el envío). NO los sobrescribimos con el payer de MP (que en pruebas
+  // viene vacío). Solo guardamos el email del payer si la orden no tuviera uno.
+  const payerEmail = pago.payer?.email;
+  if (payerEmail) {
+    await supabase
+      .from("ordenes_web")
+      .update({ email: payerEmail })
+      .eq("id", ordenId)
+      .is("email", null);
+  }
 
   // Comisión REAL y neto recibido (de Mercado Pago, no estimado)
   const comision = (pago.fee_details || [])

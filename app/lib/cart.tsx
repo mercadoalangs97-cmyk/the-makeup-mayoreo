@@ -33,6 +33,7 @@ type CartCtx = {
   changeQty: (id: string, delta: number) => void;
   remove: (id: string) => void;
   clear: () => void;
+  hydrated: boolean;
   isOpen: boolean;
   openCart: () => void;
   closeCart: () => void;
@@ -183,6 +184,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     changeQty,
     remove,
     clear,
+    hydrated,
     isOpen,
     openCart,
     closeCart,

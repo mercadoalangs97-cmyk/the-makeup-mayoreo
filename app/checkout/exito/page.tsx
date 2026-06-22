@@ -7,11 +7,12 @@ import SiteFooter from "../../components/SiteFooter";
 import { useCart } from "../../lib/cart";
 
 export default function CheckoutExito() {
-  const { clear } = useCart();
-  // El pago se aprobó: vaciamos el carrito local.
+  const { clear, hydrated } = useCart();
+  // El pago se aprobó: vaciamos el carrito local DESPUÉS de que cargó
+  // (si no, la carga desde localStorage lo volvería a llenar).
   useEffect(() => {
-    clear();
-  }, [clear]);
+    if (hydrated) clear();
+  }, [hydrated, clear]);
 
   return (
     <>

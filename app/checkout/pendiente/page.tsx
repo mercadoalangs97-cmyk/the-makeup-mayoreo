@@ -7,11 +7,11 @@ import SiteFooter from "../../components/SiteFooter";
 import { useCart } from "../../lib/cart";
 
 export default function CheckoutPendiente() {
-  const { clear } = useCart();
-  // La orden quedó registrada; vaciamos el carrito local.
+  const { clear, hydrated } = useCart();
+  // La orden quedó registrada; vaciamos el carrito local después de que cargó.
   useEffect(() => {
-    clear();
-  }, [clear]);
+    if (hydrated) clear();
+  }, [hydrated, clear]);
 
   return (
     <>
