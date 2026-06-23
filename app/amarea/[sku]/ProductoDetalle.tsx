@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { fmx } from "../../lib/lotes";
+import { fmx, ENVIO_AMAREA_GRATIS_DESDE, ENVIO_AMAREA_TARIFA } from "../../lib/lotes";
 import { useCart } from "../../lib/cart";
 import { getBrowserSupabase, supabasePublicConfigurado } from "../../lib/supabase";
 import { nombreDisplay, type Producto } from "../../lib/productos";
@@ -270,7 +270,7 @@ export default function ProductoDetalle({
             >
               <ul className="pd-list">
                 <li>Envío a toda la República. 48 h en CDMX, 2–4 días al resto del país.</li>
-                <li>Envío GRATIS en compras mayores a {fmx(2500)} MXN.</li>
+                <li>Envío GRATIS en compras desde {fmx(ENVIO_AMAREA_GRATIS_DESDE)} MXN. Debajo, {fmx(ENVIO_AMAREA_TARIFA)} fijo.</li>
                 <li>Empaque discreto y seguro. Factura disponible a petición.</li>
                 <li>Cambios y aclaraciones por WhatsApp dentro de los primeros 7 días.</li>
               </ul>

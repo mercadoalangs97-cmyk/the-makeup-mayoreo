@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useCart } from "../lib/cart";
-import { ENVIO_GRATIS_DESDE, fmx } from "../lib/lotes";
+import { ENVIO_AMAREA_GRATIS_DESDE, fmx } from "../lib/lotes";
 
 type Variante = "landing" | "mayoreo" | "amarea";
 
@@ -103,8 +103,16 @@ export default function SiteHeader({
         <div className="offer-inner">
           <span className="offer-bolt">⚡</span>
           <span className="offer-text">
-            <b>OFERTA DE HOY</b> · Envío GRATIS en compras desde{" "}
-            {fmx(ENVIO_GRATIS_DESDE)}
+            {variant === "mayoreo" ? (
+              <>
+                <b>OFERTA DE HOY</b> · Envío por paquetería, calculado en el pago
+              </>
+            ) : (
+              <>
+                <b>OFERTA DE HOY</b> · Envío GRATIS en compras desde{" "}
+                {fmx(ENVIO_AMAREA_GRATIS_DESDE)}
+              </>
+            )}
           </span>
           <span className="countdown">
             Termina en

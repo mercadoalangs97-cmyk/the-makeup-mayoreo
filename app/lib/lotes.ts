@@ -6,8 +6,26 @@ export const BASE =
   "https://yekvehkmgunoafccwmyp.supabase.co/storage/v1/object/public/lotes-fotos";
 export const WPP = "5215543813568";
 
-// Umbral de envio gratis (MXN) — usado en hero, barra y carrito.
+// Umbral de envio gratis MAYOREO (MXN) — hero de /mayoreo (lotes grandes).
 export const ENVIO_GRATIS_DESDE = 2500;
+
+// Envío AMAREA (consumidor): GRATIS desde $599, si no $99 fijo.
+// El cliente NO ve la tarifa real de Skydropx; eso se usa internamente.
+export const ENVIO_AMAREA_GRATIS_DESDE = 599;
+export const ENVIO_AMAREA_TARIFA = 129;
+
+// Calcula el envío que VE y PAGA el cliente (NO el costo real de Skydropx).
+//  - Si el carrito tiene algún lote de mayoreo → se coordina por WhatsApp
+//    (devuelve null, no se cobra tarifa fija).
+//  - Solo productos AMAREA → gratis desde $599, si no $99 fijo.
+export function calcularEnvio(
+  items: { tipo: "lote" | "producto"; precio: number; qty: number }[]
+): number | null {
+  if (items.some((it) => it.tipo === "lote")) return null; // coordinar WhatsApp
+  const sub = items.reduce((s, it) => s + it.precio * it.qty, 0);
+  if (sub <= 0) return 0;
+  return sub >= ENVIO_AMAREA_GRATIS_DESDE ? 0 : ENVIO_AMAREA_TARIFA;
+}
 
 // Precio de referencia por pieza (el lote mas chico, 10 pzs = $115/pieza).
 // Se usa para mostrar el ahorro por volumen en cada lote.
@@ -203,4 +221,60 @@ export const LOTES: Lote[] = [
 
 export function fmx(n: number): string {
   return "$" + Number(n).toLocaleString("es-MX");
+}
+
+// ---- Envío de LOTES (se cotiza con Skydropx según peso/medidas de la caja) ----
+export type Paquete = { length: number; width: number; height: number; weight: number };
+
+// Caja típica por lote (cm + kg). null = no aplica cotización automática
+// (el lote de 500 pz pesa ~35 kg → flete especial, se coordina por WhatsApp).
+export function parcelDeLote(piezas: number): Paquete | null {
+  if (piezas <= 10) return { length: 25, width: 20, height: 10, weight: 0.9 };
+  if (piezas <= 15) return { length: 30, width: 22, height: 12, weight: 1.2 };
+  if (piezas <= 20) return { length: 30, width: 22, height: 12, weight: 1.6 };
+  if (piezas <= 25) return { length: 30, width: 25, height: 15, weight: 2.0 };
+  if (piezas <= 30) return { length: 30, width: 25, height: 15, weight: 2.3 };
+  if (piezas <= 50) return { length: 35, width: 30, height: 20, weight: 3.7 };
+  if (piezas <= 100) return { length: 40, width: 35, height: 30, weight: 7.2 };
+  return null; // 500 pz → coordinar por WhatsApp
+}
+
+export function loteDeItemId(id: string): Lote | undefined {
+  return id.startsWith("lote:") ? LOTES.find((l) => l.id === id.slice(5)) : undefined;
+}
+
+// Modo de envío del carrito:
+//  - "amarea"    : solo productos → regla fija ($599 gratis / $99)
+//  - "cotizar"   : tiene lotes → se cotiza con Skydropx según peso
+//  - "coordinar" : tiene un lote sin cotización automática (500 pz) → WhatsApp
+export function modoEnvio(
+  items: { tipo: "lote" | "producto"; id: string }[]
+): "amarea" | "cotizar" | "coordinar" {
+  const lotes = items.filter((i) => i.tipo === "lote");
+  if (lotes.length === 0) return "amarea";
+  for (const it of lotes) {
+    const l = loteDeItemId(it.id);
+    if (!l || parcelDeLote(l.piezas) === null) return "coordinar";
+  }
+  return "cotizar";
+}
+
+// Construye la lista de cajas (parcels) para cotizar un carrito con lotes.
+// Cada unidad de lote = una caja; los productos sueltos van en una caja default.
+export function parcelsDeItems(
+  items: { tipo: "lote" | "producto"; id: string; qty: number; piezas?: number }[]
+): Paquete[] {
+  const parcels: Paquete[] = [];
+  let hayProducto = false;
+  for (const it of items) {
+    if (it.tipo === "lote") {
+      const piezas = it.piezas ?? loteDeItemId(it.id)?.piezas ?? 0;
+      const caja = parcelDeLote(piezas);
+      if (caja) for (let i = 0; i < it.qty; i++) parcels.push(caja);
+    } else {
+      hayProducto = true;
+    }
+  }
+  if (hayProducto) parcels.push({ length: 20, width: 15, height: 10, weight: 0.5 });
+  return parcels;
 }

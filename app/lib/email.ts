@@ -25,6 +25,8 @@ type Envio = {
   nombre?: string; telefono?: string; email?: string; calle?: string;
   numero?: string; colonia?: string; cp?: string; ciudad?: string;
   estado?: string; referencias?: string;
+  costo_cobrado?: number; // envío cobrado al cliente (0 = gratis)
+  modo?: "amarea" | "coordinar"; // amarea = tarifa fija/gratis; coordinar = lotes
 };
 export type OrdenCorreo = {
   id: string;
@@ -116,16 +118,27 @@ function totalRow(label: string, valor: string, fuerte = false): string {
 export function htmlCliente(o: OrdenCorreo): string {
   const marca = o.items.some((i) => i.tipo === "lote") ? "The Makeup Mayoreo" : "AMAREA";
   const nombre = o.cliente || o.envio?.nombre || "";
+  const coordinar = o.envio?.modo === "coordinar";
+  const envioCobrado = o.envio?.costo_cobrado ?? 0;
+  const granTotal = o.total + (coordinar ? 0 : envioCobrado);
+  const filaEnvio = coordinar
+    ? totalRow("Envío", "Se coordina por WhatsApp")
+    : totalRow("Envío", envioCobrado === 0 ? "Gratis" : fmx(envioCobrado));
+  const mensajeEnvio = coordinar
+    ? `📲 <b>Te contactaremos por WhatsApp</b> para coordinar el envío y su costo. Si algún dato de arriba está mal, respóndenos este correo.`
+    : `📦 <b>Preparamos y enviamos tu pedido en 24–48 h.</b> Te avisaremos por WhatsApp con tu número de guía. Si algún dato de arriba está mal, respóndenos este correo.`;
   const cuerpo = `
     <p style="color:${C.text};font-size:15px;margin:0 0 16px">¡Hola ${nombre}! Recibimos tu pago y tu pedido está confirmado. 💄</p>
     ${tablaItems(o.items)}
     <table role="presentation" style="width:100%;border-collapse:collapse;margin-top:6px">
-      ${totalRow("Total pagado", fmx(o.total), true)}
+      ${totalRow("Subtotal", fmx(o.total))}
+      ${filaEnvio}
+      ${totalRow("Total pagado", fmx(granTotal), true)}
     </table>
     <h3 style="color:${C.charcoal};font-size:15px;margin:22px 0 6px">📦 Tus datos de envío</h3>
     ${bloqueEnvio(o.envio)}
     <p style="color:${C.text};font-size:14px;margin:16px 0 0;background:${C.cream};padding:12px 14px;border-radius:10px">
-      📲 <b>Te contactaremos por WhatsApp</b> para coordinar el envío y su costo. Si algún dato de arriba está mal, respóndenos este correo.
+      ${mensajeEnvio}
     </p>
     <p style="text-align:center;margin:20px 0 0">
       <a href="https://wa.me/${WPP}" style="display:inline-block;background:#1DA851;color:#fff;text-decoration:none;padding:12px 24px;border-radius:999px;font-size:14px;font-weight:bold">Escríbenos por WhatsApp</a>
@@ -137,11 +150,17 @@ export function htmlCliente(o: OrdenCorreo): string {
 export function htmlNegocio(o: OrdenCorreo): string {
   const hayLote = o.items.some((i) => i.tipo === "lote");
   const marca = hayLote ? "The Makeup Mayoreo" : "AMAREA";
+  const coordinar = o.envio?.modo === "coordinar";
+  const envioCobrado = o.envio?.costo_cobrado ?? 0;
+  const filaEnvio = coordinar
+    ? totalRow("Envío", "Coordinar por WhatsApp")
+    : totalRow("Envío cobrado", envioCobrado === 0 ? "Gratis" : fmx(envioCobrado));
   const cuerpo = `
     <p style="color:${C.text};font-size:15px;margin:0 0 16px">Entró una venta web. Prepárala para envío:</p>
     ${tablaItems(o.items)}
     <table role="presentation" style="width:100%;border-collapse:collapse;margin-top:6px">
-      ${totalRow("Total cobrado", fmx(o.total), true)}
+      ${totalRow("Productos", fmx(o.total))}
+      ${filaEnvio}
       ${o.mp_fee != null ? totalRow("Comisión Mercado Pago", "− " + fmx(o.mp_fee)) : ""}
       ${o.mp_neto != null ? totalRow("Neto recibido", fmx(o.mp_neto), true) : ""}
     </table>

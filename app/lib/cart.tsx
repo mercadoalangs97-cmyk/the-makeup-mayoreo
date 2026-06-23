@@ -9,7 +9,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { WPP, fmx, ENVIO_GRATIS_DESDE } from "./lotes";
+import { WPP, fmx, ENVIO_AMAREA_GRATIS_DESDE, calcularEnvio } from "./lotes";
 
 export type CartItem = {
   id: string; // "lote:mixto-50" | "prod:EL-040"
@@ -26,6 +26,8 @@ type CartCtx = {
   items: CartItem[];
   count: number;
   total: number;
+  hayLotes: boolean;
+  envioCobrado: number | null;
   faltaEnvioGratis: number;
   tieneEnvioGratis: boolean;
   progresoEnvio: number;
@@ -131,9 +133,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     () => items.reduce((a, it) => a + it.precio * it.qty, 0),
     [items]
   );
-  const faltaEnvioGratis = Math.max(0, ENVIO_GRATIS_DESDE - total);
-  const tieneEnvioGratis = total >= ENVIO_GRATIS_DESDE && total > 0;
-  const progresoEnvio = Math.min(100, (total / ENVIO_GRATIS_DESDE) * 100);
+  const hayLotes = useMemo(() => items.some((it) => it.tipo === "lote"), [items]);
+  const envioCobrado = useMemo(() => calcularEnvio(items), [items]);
+  // Mecánica de "envío gratis" del carrito (umbral AMAREA $599 para el consumidor).
+  const faltaEnvioGratis = Math.max(0, ENVIO_AMAREA_GRATIS_DESDE - total);
+  const tieneEnvioGratis = total >= ENVIO_AMAREA_GRATIS_DESDE && total > 0;
+  const progresoEnvio = Math.min(100, (total / ENVIO_AMAREA_GRATIS_DESDE) * 100);
 
   const checkoutWPP = useCallback(() => {
     if (items.length === 0) {
@@ -177,6 +182,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     items,
     count,
     total,
+    hayLotes,
+    envioCobrado,
     faltaEnvioGratis,
     tieneEnvioGratis,
     progresoEnvio,

@@ -1,11 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 import { useCart } from "../lib/cart";
-import { fmx, ENVIO_GRATIS_DESDE } from "../lib/lotes";
+import { fmx, ENVIO_AMAREA_GRATIS_DESDE, calcularEnvio, modoEnvio } from "../lib/lotes";
+
+type OpcionEnvio = {
+  proveedor: string;
+  servicio: string;
+  servicioCode: string;
+  total: number;
+  dias: number | null;
+};
 
 const ESTADOS_MX = [
   "Aguascalientes","Baja California","Baja California Sur","Campeche","Chiapas",
@@ -26,8 +34,72 @@ export default function CheckoutPage() {
   const [error, setError] = useState("");
   const [enviando, setEnviando] = useState(false);
 
+  // Modo de envío del carrito:
+  //  - "amarea":   regla fija ($599 gratis / $129)
+  //  - "cotizar":  lotes → cotización Skydropx (el cliente elige paquetería)
+  //  - "coordinar": lote especial (500 pz) → por WhatsApp
+  const modo = modoEnvio(items);
+
+  // Estado de cotización de lotes
+  const [opciones, setOpciones] = useState<OpcionEnvio[] | null>(null);
+  const [envioSel, setEnvioSel] = useState<string>(""); // servicioCode elegido
+  const [cotizando, setCotizando] = useState(false);
+  const [cotizaError, setCotizaError] = useState("");
+
+  // Si cambian C.P./colonia/ciudad/estado o el carrito, invalidamos la cotización
+  useEffect(() => {
+    setOpciones(null);
+    setEnvioSel("");
+    setCotizaError("");
+  }, [f.cp, f.colonia, f.ciudad, f.estado, items]);
+
+  const opcionElegida = opciones?.find((o) => o.servicioCode === envioSel) || null;
+
+  // Envío que se cobra según el modo
+  const envioMonto =
+    modo === "amarea"
+      ? calcularEnvio(items) ?? 0
+      : modo === "cotizar"
+      ? opcionElegida?.total ?? null // null = aún no elige
+      : 0; // coordinar
+  const totalPagar = total + (envioMonto ?? 0);
+
   function set(campo: string, valor: string) {
     setF((prev) => ({ ...prev, [campo]: valor }));
+  }
+
+  async function cotizar() {
+    if (f.cp.replace(/\D/g, "").length !== 5) {
+      setCotizaError("Escribe un C.P. de 5 dígitos.");
+      return;
+    }
+    if (!f.colonia.trim() || !f.ciudad.trim() || !f.estado) {
+      setCotizaError("Completa colonia, ciudad y estado para cotizar.");
+      return;
+    }
+    setCotizaError("");
+    setCotizando(true);
+    try {
+      const res = await fetch("/api/envio/cotizar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: items.map((it) => ({ id: it.id, qty: it.qty })),
+          destino: { cp: f.cp, estado: f.estado, ciudad: f.ciudad, colonia: f.colonia },
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.opciones) {
+        setCotizaError(data.error || "No se pudo cotizar. Intenta de nuevo.");
+        setCotizando(false);
+        return;
+      }
+      setOpciones(data.opciones as OpcionEnvio[]);
+      setCotizando(false);
+    } catch {
+      setCotizaError("Error de conexión al cotizar. Intenta de nuevo.");
+      setCotizando(false);
+    }
   }
 
   function validar(): string | null {
@@ -52,6 +124,10 @@ export default function CheckoutPage() {
       setError(err);
       return;
     }
+    if (modo === "cotizar" && !envioSel) {
+      setError("Cotiza y elige una opción de envío antes de pagar.");
+      return;
+    }
     setError("");
     setEnviando(true);
     try {
@@ -61,6 +137,7 @@ export default function CheckoutPage() {
         body: JSON.stringify({
           items: items.map((it) => ({ id: it.id, qty: it.qty })),
           envio: f,
+          envioServicio: envioSel || undefined,
         }),
       });
       const data = await res.json();
@@ -91,8 +168,11 @@ export default function CheckoutPage() {
           <>
             <h1 className="co-titulo serif">Datos de envío</h1>
             <p className="co-sub">
-              Con estos datos preparamos y enviamos tu pedido. El costo de envío
-              se coordina por WhatsApp después de tu compra.
+              {modo === "coordinar"
+                ? "Con estos datos preparamos tu pedido de mayoreo. El costo de envío se coordina por WhatsApp después de tu compra."
+                : modo === "cotizar"
+                ? "Llena tu dirección y cotiza el envío: elige la paquetería que prefieras y se suma a tu total."
+                : "Con estos datos preparamos y enviamos tu pedido. El envío ya está incluido en tu total."}
             </p>
 
             <div className="co-grid">
@@ -158,8 +238,16 @@ export default function CheckoutPage() {
 
                 {error && <div className="co-error">{error}</div>}
 
-                <button className="co-pagar" type="submit" disabled={enviando}>
-                  {enviando ? "Redirigiendo a Mercado Pago…" : `Ir a pagar · ${fmx(total)}`}
+                <button
+                  className="co-pagar"
+                  type="submit"
+                  disabled={enviando || (modo === "cotizar" && !envioSel)}
+                >
+                  {enviando
+                    ? "Redirigiendo a Mercado Pago…"
+                    : modo === "cotizar" && !envioSel
+                    ? "Cotiza y elige tu envío"
+                    : `Ir a pagar · ${fmx(totalPagar)}`}
                 </button>
                 <p className="co-nota">🔒 Pago seguro con Mercado Pago · tarjeta, SPEI u OXXO</p>
               </form>
@@ -179,15 +267,84 @@ export default function CheckoutPage() {
                     </div>
                   ))}
                 </div>
+                <div className="co-subtotal-row">
+                  <span>Subtotal</span>
+                  <span>{fmx(total)}</span>
+                </div>
+
+                {modo === "cotizar" && (
+                  <div className="co-cotiza">
+                    <button
+                      type="button"
+                      className="co-cotizar-btn"
+                      onClick={cotizar}
+                      disabled={cotizando}
+                    >
+                      {cotizando
+                        ? "Cotizando envío…"
+                        : opciones
+                        ? "Volver a cotizar"
+                        : "📦 Cotizar envío"}
+                    </button>
+                    {cotizaError && <div className="co-error">{cotizaError}</div>}
+                    {opciones && opciones.length > 0 && (
+                      <div className="co-opciones">
+                        {opciones.map((o) => (
+                          <label
+                            key={o.servicioCode}
+                            className={
+                              "co-opcion" + (envioSel === o.servicioCode ? " sel" : "")
+                            }
+                          >
+                            <input
+                              type="radio"
+                              name="envio"
+                              value={o.servicioCode}
+                              checked={envioSel === o.servicioCode}
+                              onChange={() => setEnvioSel(o.servicioCode)}
+                            />
+                            <span className="co-opcion-info">
+                              <span className="co-opcion-nom">
+                                {o.proveedor} · {o.servicio}
+                              </span>
+                              <span className="co-opcion-dias">
+                                {o.dias != null ? `${o.dias} día(s) hábiles` : "Tiempo variable"}
+                              </span>
+                            </span>
+                            <span className="co-opcion-precio">{fmx(o.total)}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="co-subtotal-row">
+                  <span>Envío</span>
+                  <span>
+                    {modo === "coordinar"
+                      ? "Se coordina por WhatsApp"
+                      : modo === "cotizar"
+                      ? opcionElegida
+                        ? fmx(opcionElegida.total)
+                        : "Por calcular"
+                      : envioMonto === 0
+                      ? "¡Gratis! 🎉"
+                      : fmx(envioMonto ?? 0)}
+                  </span>
+                </div>
                 <div className="co-total-row">
                   <span>Total</span>
-                  <span className="co-total">{fmx(total)}</span>
+                  <span className="co-total">{fmx(totalPagar)}</span>
                 </div>
                 <p className="co-envio-nota">
-                  + envío (se coordina por WhatsApp).{" "}
-                  {total >= ENVIO_GRATIS_DESDE
+                  {modo === "coordinar"
+                    ? "El envío de mayoreo se coordina por WhatsApp tras tu compra."
+                    : modo === "cotizar"
+                    ? "El envío se calcula según tu C.P. y el peso del lote. Elige la paquetería que prefieras."
+                    : envioMonto === 0
                     ? "¡Tienes envío gratis! 🎉"
-                    : `Envío gratis desde ${fmx(ENVIO_GRATIS_DESDE)}.`}
+                    : `Envío gratis en compras desde ${fmx(ENVIO_AMAREA_GRATIS_DESDE)}.`}
                 </p>
               </aside>
             </div>

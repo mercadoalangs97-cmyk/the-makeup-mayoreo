@@ -5,7 +5,6 @@ import {
   LOTES,
   WPP,
   fmx,
-  ENVIO_GRATIS_DESDE,
   PPU_REFERENCIA,
   type Lote,
 } from "../lib/lotes";
@@ -139,8 +138,7 @@ export default function Home() {
               revendedoras de toda Mexico.
             </p>
             <div className="hero-ship">
-              🚚 <span>Envío GRATIS</span> en compras mayores a{" "}
-              <b>{fmx(ENVIO_GRATIS_DESDE)} MXN</b>
+              🚚 <span>Envío por paquetería</span> calculado según tu ubicación
             </div>
             <div className="hero-cta">
               <a href="#lotes" className="btn-primary">
@@ -263,8 +261,7 @@ export default function Home() {
         <div className="freeship-bar">
           <span className="fs-ico">🚚</span>
           <span className="fs-main">
-            <b>ENVÍO GRATIS</b> en todas las compras mayores a{" "}
-            <b>{fmx(ENVIO_GRATIS_DESDE)} MXN</b>
+            <b>ENVÍO POR PAQUETERÍA</b> · se calcula según tu ubicación al pagar
           </span>
         </div>
 

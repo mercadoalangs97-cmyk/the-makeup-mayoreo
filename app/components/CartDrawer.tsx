@@ -1,7 +1,7 @@
 "use client";
 
 import { useCart } from "../lib/cart";
-import { fmx, ENVIO_GRATIS_DESDE } from "../lib/lotes";
+import { fmx, ENVIO_AMAREA_GRATIS_DESDE, ENVIO_AMAREA_TARIFA, modoEnvio } from "../lib/lotes";
 
 export default function CartDrawer() {
   const {
@@ -21,6 +21,7 @@ export default function CartDrawer() {
 
   // ¿El carrito incluye algún lote? (los lotes sí ofrecen WhatsApp)
   const hayLote = items.some((it) => it.tipo === "lote");
+  const modo = modoEnvio(items); // "amarea" | "cotizar" | "coordinar"
 
   return (
     <>
@@ -36,7 +37,8 @@ export default function CartDrawer() {
           </button>
         </div>
 
-        {count > 0 && (
+        {/* Barra de envío gratis: solo para carritos AMAREA (sin lotes) */}
+        {count > 0 && !hayLote && (
           <div className="fs-progress">
             {tieneEnvioGratis ? (
               <p>
@@ -126,9 +128,13 @@ export default function CartDrawer() {
               </button>
             )}
             <p className="cart-note">
-              {tieneEnvioGratis
+              {modo === "coordinar"
+                ? "Envío de mayoreo: se coordina por WhatsApp"
+                : modo === "cotizar"
+                ? "Envío por paquetería: se calcula al pagar"
+                : tieneEnvioGratis
                 ? "✓ Envío gratis incluido"
-                : `Envío gratis desde ${fmx(ENVIO_GRATIS_DESDE)} · + envío al confirmar`}
+                : `Envío gratis desde ${fmx(ENVIO_AMAREA_GRATIS_DESDE)} · si no, ${fmx(ENVIO_AMAREA_TARIFA)} fijo`}
             </p>
           </div>
         )}

@@ -3,7 +3,13 @@ import { randomUUID } from "node:crypto";
 import { Preference } from "mercadopago";
 import { createAdminSupabase } from "../../lib/supabase";
 import { mpClient, mpConfigurado } from "../../lib/mercadopago";
-import { LOTES } from "../../lib/lotes";
+import {
+  LOTES,
+  calcularEnvio,
+  modoEnvio,
+  parcelsDeItems,
+} from "../../lib/lotes";
+import { cotizarEnvioReal, filtrarPaqueterias } from "../../lib/skydropx";
 import { SITE_URL } from "../../lib/site";
 
 export const runtime = "nodejs";
@@ -30,7 +36,11 @@ export async function POST(req: Request) {
     );
   }
 
-  let body: { items?: ItemEntrada[]; envio?: Record<string, string> };
+  let body: {
+    items?: ItemEntrada[];
+    envio?: Record<string, string>;
+    envioServicio?: string; // servicioCode elegido (modo cotizar/lotes)
+  };
   try {
     body = await req.json();
   } catch {
@@ -182,6 +192,62 @@ export async function POST(req: Request) {
   }
 
   const total = itemsOrden.reduce((s, it) => s + it.precio * it.qty, 0);
+
+  // ---- Envío que paga el cliente ----
+  // NOTA: `total` se queda como subtotal de PRODUCTOS (la nota/contabilidad lo
+  // usa así). El envío va como línea aparte en MP y guardado en `envio`.
+  const itemsParaModo = itemsOrden.map((it) => ({
+    tipo: it.tipo,
+    id: it.tipo === "lote" ? "lote:" + it.ref : "prod:" + it.ref,
+    qty: it.qty,
+    piezas: it.piezas,
+  }));
+  const modo = modoEnvio(itemsParaModo);
+
+  let envioMonto = 0;
+  const envioExtra: Record<string, unknown> = { modo };
+
+  if (modo === "amarea") {
+    // Regla fija: gratis desde $599, si no $99
+    envioMonto = calcularEnvio(itemsOrden) ?? 0;
+  } else if (modo === "cotizar") {
+    // LOTES: re-cotizamos en el servidor y validamos el servicio elegido
+    if (!body.envioServicio) {
+      return NextResponse.json(
+        { error: "Elige una opción de envío antes de pagar." },
+        { status: 400 }
+      );
+    }
+    let rates;
+    try {
+      const todas = await cotizarEnvioReal(
+        { cp: envio.cp, estado: envio.estado, ciudad: envio.ciudad, colonia: envio.colonia },
+        parcelsDeItems(itemsParaModo)
+      );
+      rates = filtrarPaqueterias(todas); // mismas paqueterías que vio el cliente
+    } catch {
+      return NextResponse.json(
+        { error: "No se pudo confirmar el envío. Vuelve a cotizar." },
+        { status: 502 }
+      );
+    }
+    const elegida = rates.find((r) => r.servicioCode === body.envioServicio);
+    if (!elegida) {
+      return NextResponse.json(
+        { error: "La opción de envío ya no está disponible. Vuelve a cotizar." },
+        { status: 409 }
+      );
+    }
+    envioMonto = Math.round(elegida.total);
+    envioExtra.paqueteria = elegida.proveedor;
+    envioExtra.servicio = elegida.servicio;
+    envioExtra.servicio_code = elegida.servicioCode;
+    envioExtra.dias = elegida.dias;
+  }
+  // modo === "coordinar" → envioMonto 0 (se acuerda por WhatsApp)
+
+  const envioConDatos = { ...envio, ...envioExtra, costo_cobrado: envioMonto };
+
   const ordenId = randomUUID();
   const ahora = Date.now();
 
@@ -194,7 +260,7 @@ export async function POST(req: Request) {
     canal: "web",
     inventario_descontado: false,
     creado_en: ahora,
-    envio,
+    envio: envioConDatos,
     cliente: envio.nombre,
     email: envio.email,
     wpp: envio.telefono,
@@ -208,16 +274,28 @@ export async function POST(req: Request) {
 
   // ---- Crear preferencia de Mercado Pago ----
   try {
+    const mpItems = itemsOrden.map((it) => ({
+      id: it.ref,
+      title: it.nombre,
+      quantity: it.qty,
+      unit_price: it.precio,
+      currency_id: "MXN",
+    }));
+    // Cobrar el envío como una línea más (solo AMAREA con tarifa > 0)
+    if (envioMonto > 0) {
+      mpItems.push({
+        id: "envio",
+        title: "Envío",
+        quantity: 1,
+        unit_price: envioMonto,
+        currency_id: "MXN",
+      });
+    }
+
     const pref = new Preference(mpClient());
     const result = await pref.create({
       body: {
-        items: itemsOrden.map((it) => ({
-          id: it.ref,
-          title: it.nombre,
-          quantity: it.qty,
-          unit_price: it.precio,
-          currency_id: "MXN",
-        })),
+        items: mpItems,
         external_reference: ordenId,
         metadata: { orden_id: ordenId },
         payer: {
