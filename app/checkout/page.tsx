@@ -46,12 +46,63 @@ export default function CheckoutPage() {
   const [cotizando, setCotizando] = useState(false);
   const [cotizaError, setCotizaError] = useState("");
 
+  // Validación por C.P. (autocompleta estado/municipio + colonias)
+  const [colonias, setColonias] = useState<string[] | null>(null);
+  const [coloniaManual, setColoniaManual] = useState(false);
+  const [cpLoading, setCpLoading] = useState(false);
+  const [cpMsg, setCpMsg] = useState("");
+
   // Si cambian C.P./colonia/ciudad/estado o el carrito, invalidamos la cotización
   useEffect(() => {
     setOpciones(null);
     setEnvioSel("");
     setCotizaError("");
   }, [f.cp, f.colonia, f.ciudad, f.estado, items]);
+
+  // Al escribir 5 dígitos de C.P., consultamos el catálogo SEPOMEX
+  useEffect(() => {
+    const cp = f.cp.replace(/\D/g, "");
+    if (cp.length !== 5) {
+      setColonias(null);
+      setColoniaManual(false);
+      setCpMsg("");
+      return;
+    }
+    let cancel = false;
+    setCpLoading(true);
+    setCpMsg("");
+    fetch("/api/cp/" + cp)
+      .then((r) => r.json())
+      .then((d) => {
+        if (cancel) return;
+        setCpLoading(false);
+        if (d && d.found) {
+          setColonias(d.colonias || []);
+          setColoniaManual(false);
+          setF((prev) => ({
+            ...prev,
+            estado: d.estado || prev.estado,
+            ciudad: d.municipio || d.ciudad || prev.ciudad,
+            colonia: "",
+          }));
+          setCpMsg("✓ " + [d.municipio, d.estado].filter(Boolean).join(", "));
+        } else {
+          setColonias(null);
+          setColoniaManual(true);
+          setCpMsg("No encontramos ese C.P.; escribe tu dirección a mano.");
+        }
+      })
+      .catch(() => {
+        if (cancel) return;
+        setCpLoading(false);
+        setColonias(null);
+        setColoniaManual(true);
+        setCpMsg("");
+      });
+    return () => {
+      cancel = true;
+    };
+  }, [f.cp]);
 
   const opcionElegida = opciones?.find((o) => o.servicioCode === envioSel) || null;
 
@@ -203,19 +254,44 @@ export default function CheckoutPage() {
                   <input value={f.numero} onChange={(e) => set("numero", e.target.value)} />
                 </label>
                 <label className="co-field">
-                  <span>Colonia *</span>
-                  <input value={f.colonia} onChange={(e) => set("colonia", e.target.value)} />
-                </label>
-                <label className="co-field">
                   <span>C.P. (5 dígitos) *</span>
                   <input
                     value={f.cp} inputMode="numeric" maxLength={5}
                     onChange={(e) => set("cp", e.target.value.replace(/\D/g, "").slice(0, 5))}
                     autoComplete="postal-code"
                   />
+                  {(cpLoading || cpMsg) && (
+                    <small className="co-cp-msg">{cpLoading ? "Buscando C.P.…" : cpMsg}</small>
+                  )}
                 </label>
                 <label className="co-field">
-                  <span>Ciudad *</span>
+                  <span>Colonia *</span>
+                  {colonias && colonias.length > 0 && !coloniaManual ? (
+                    <select
+                      value={f.colonia}
+                      onChange={(e) => {
+                        if (e.target.value === "__otra__") {
+                          setColoniaManual(true);
+                          set("colonia", "");
+                        } else set("colonia", e.target.value);
+                      }}
+                    >
+                      <option value="">Selecciona tu colonia…</option>
+                      {colonias.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                      <option value="__otra__">Otra (escribir)…</option>
+                    </select>
+                  ) : (
+                    <input
+                      value={f.colonia}
+                      placeholder={coloniaManual ? "Escribe tu colonia" : ""}
+                      onChange={(e) => set("colonia", e.target.value)}
+                    />
+                  )}
+                </label>
+                <label className="co-field">
+                  <span>Ciudad / Municipio *</span>
                   <input value={f.ciudad} onChange={(e) => set("ciudad", e.target.value)} />
                 </label>
                 <label className="co-field">
