@@ -72,6 +72,8 @@ export async function POST(req: Request) {
     accion?: "opciones" | "crear" | "cancelar";
     servicioCode?: string;
     token?: string;
+    paquete?: { length: number; width: number; height: number; weight: number };
+    claveSat?: string;
   };
   try { body = await req.json(); } catch { return json({ error: "JSON inválido" }, 400); }
 
@@ -95,9 +97,13 @@ export async function POST(req: Request) {
     piezas: Number(it.piezas) || 0,
   }));
   const hayLote = itemsModo.some((i) => i.tipo === "lote");
-  const parcels = hayLote
+  // El usuario puede elegir el tamaño de paquete en el modal; si lo manda, manda.
+  const parcels = body.paquete
+    ? [body.paquete]
+    : hayLote
     ? parcelsDeItems(itemsModo)
     : [{ length: 20, width: 15, height: 10, weight: 0.5 }];
+  const claveSat = (body.claveSat || "53131619").trim(); // Cosméticos (SAT Anexo 20 v4.0)
 
   // ---- OPCIONES: cotiza (GRATIS) y devuelve paqueterías + recomendada ----
   if (body.accion === "opciones") {
@@ -151,7 +157,7 @@ export async function POST(req: Request) {
           reference: env.referencias || "",
         },
         packages: parcels.map((p) => ({
-          ...p, consignment_note: "53131600", package_type: "my_own_box",
+          ...p, consignment_note: claveSat, package_type: "my_own_box",
         })),
       },
     };
