@@ -188,7 +188,7 @@ export const LOTES: Lote[] = [
     tipo: "grande",
     popular: false,
     wppOnly: true,
-    foto: null,
+    foto: BASE + "/lote-500-mixto.jpg",
     desc: "Para distribuidoras. El precio por pieza mas bajo: $87 MXN. Solo por WhatsApp.",
     features: [
       "500 piezas de marcas premium",
@@ -207,7 +207,7 @@ export const LOTES: Lote[] = [
     tipo: "labiales",
     popular: false,
     wppOnly: true,
-    foto: null,
+    foto: BASE + "/lote-20-labiales.jpg",
     desc: "Lote especializado en labiales de marcas premium. Colores variados, mate y glossy. Solo por WhatsApp.",
     features: [
       "20 labiales de marcas premium",
