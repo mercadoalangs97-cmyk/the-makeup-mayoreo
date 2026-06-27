@@ -420,7 +420,7 @@ export default function CheckoutPage() {
                     ? "El envío se calcula según tu C.P. y el peso del lote. Elige la paquetería que prefieras."
                     : envioMonto === 0
                     ? "¡Tienes envío gratis! 🎉"
-                    : `Envío gratis en compras desde ${fmx(ENVIO_AMAREA_GRATIS_DESDE)}.`}
+                    : `Envío gratis desde ${fmx(ENVIO_AMAREA_GRATIS_DESDE)} en productos individuales.`}
                 </p>
               </aside>
             </div>

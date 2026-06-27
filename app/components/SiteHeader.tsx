@@ -109,8 +109,8 @@ export default function SiteHeader({
               </>
             ) : (
               <>
-                <b>OFERTA DE HOY</b> · Envío GRATIS en compras desde{" "}
-                {fmx(ENVIO_AMAREA_GRATIS_DESDE)}
+                <b>OFERTA DE HOY</b> · Envío GRATIS desde{" "}
+                {fmx(ENVIO_AMAREA_GRATIS_DESDE)} en productos individuales
               </>
             )}
           </span>

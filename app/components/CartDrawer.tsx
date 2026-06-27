@@ -47,7 +47,7 @@ export default function CartDrawer() {
             ) : (
               <p>
                 🚚 Te faltan <b>&nbsp;{fmx(faltaEnvioGratis)}&nbsp;</b> para
-                envío gratis
+                envío gratis en productos individuales
               </p>
             )}
             <div className="fs-track">
@@ -134,7 +134,7 @@ export default function CartDrawer() {
                 ? "Envío por paquetería: se calcula al pagar"
                 : tieneEnvioGratis
                 ? "✓ Envío gratis incluido"
-                : `Envío gratis desde ${fmx(ENVIO_AMAREA_GRATIS_DESDE)} · si no, ${fmx(ENVIO_AMAREA_TARIFA)} fijo`}
+                : `Envío gratis desde ${fmx(ENVIO_AMAREA_GRATIS_DESDE)} en productos individuales · si no, ${fmx(ENVIO_AMAREA_TARIFA)} fijo`}
             </p>
           </div>
         )}
