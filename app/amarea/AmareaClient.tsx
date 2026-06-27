@@ -6,6 +6,17 @@ import { fmx } from "../lib/lotes";
 import { useCart } from "../lib/cart";
 import { nombreDisplay, type Producto } from "../lib/productos";
 
+// Normaliza para búsqueda tolerante: minúsculas, sin acentos, signos → espacio.
+// "L'Oréal" → "l oreal", "e.l.f." → "e l f".
+function norm(s: string): string {
+  return (s || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
 export default function ShopClient({
   productos,
   categorias,
@@ -23,22 +34,46 @@ export default function ShopClient({
   const [query, setQuery] = useState<string>("");
   const [filtrosOpen, setFiltrosOpen] = useState<boolean>(false);
 
-  const q = query.trim().toLowerCase();
+  // Índice de búsqueda: un texto normalizado por producto (con y sin espacios).
+  const indice = useMemo(
+    () =>
+      productos.map((p) => {
+        const spaced = norm(
+          [
+            nombreDisplay(p),
+            p.nombre,
+            p.marca,
+            p.marcaNorm,
+            p.variante,
+            p.categoria,
+            p.sku,
+          ]
+            .filter(Boolean)
+            .join(" ")
+        );
+        return { p, spaced, compact: spaced.replace(/ /g, "") };
+      }),
+    [productos]
+  );
+
+  const qn = norm(query);
   const filtrados = useMemo(() => {
-    return productos.filter((p) => {
-      const okCat = cat === "Todas" || p.categoria === cat;
-      const okMarca = marca === "Todas" || p.marcaNorm === marca;
-      const okQ =
-        !q ||
-        nombreDisplay(p).toLowerCase().includes(q) ||
-        (p.nombre || "").toLowerCase().includes(q) ||
-        (p.marcaNorm || "").toLowerCase().includes(q) ||
-        (p.marca || "").toLowerCase().includes(q) ||
-        (p.variante || "").toLowerCase().includes(q) ||
-        (p.sku || "").toLowerCase().includes(q);
-      return okCat && okMarca && okQ;
-    });
-  }, [productos, cat, marca, q]);
+    let toks = qn ? qn.split(" ").filter((t) => t.length >= 2) : [];
+    // Si solo quedaron letras sueltas (ej. "e.l.f"), usa la versión sin espacios.
+    if (qn && toks.length === 0) toks = [qn.replace(/ /g, "")];
+    return indice
+      .filter(({ p, spaced, compact }) => {
+        const okCat = cat === "Todas" || p.categoria === cat;
+        const okMarca = marca === "Todas" || p.marcaNorm === marca;
+        // Cada palabra de la búsqueda debe aparecer en algún campo del producto
+        // (orden libre); con o sin espacios para casos como "elf" → "e.l.f".
+        const okQ =
+          toks.length === 0 ||
+          toks.every((t) => spaced.includes(t) || compact.includes(t));
+        return okCat && okMarca && okQ;
+      })
+      .map((x) => x.p);
+  }, [indice, cat, marca, qn]);
 
   const activos = (cat !== "Todas" ? 1 : 0) + (marca !== "Todas" ? 1 : 0);
   const limpiarFiltros = () => {
