@@ -20,14 +20,31 @@ export default function ShopClient({
   const { add } = useCart();
   const [cat, setCat] = useState<string>("Todas");
   const [marca, setMarca] = useState<string>("Todas");
+  const [query, setQuery] = useState<string>("");
+  const [filtrosOpen, setFiltrosOpen] = useState<boolean>(false);
 
+  const q = query.trim().toLowerCase();
   const filtrados = useMemo(() => {
-    return productos.filter(
-      (p) =>
-        (cat === "Todas" || p.categoria === cat) &&
-        (marca === "Todas" || p.marcaNorm === marca)
-    );
-  }, [productos, cat, marca]);
+    return productos.filter((p) => {
+      const okCat = cat === "Todas" || p.categoria === cat;
+      const okMarca = marca === "Todas" || p.marcaNorm === marca;
+      const okQ =
+        !q ||
+        nombreDisplay(p).toLowerCase().includes(q) ||
+        (p.nombre || "").toLowerCase().includes(q) ||
+        (p.marcaNorm || "").toLowerCase().includes(q) ||
+        (p.marca || "").toLowerCase().includes(q) ||
+        (p.variante || "").toLowerCase().includes(q) ||
+        (p.sku || "").toLowerCase().includes(q);
+      return okCat && okMarca && okQ;
+    });
+  }, [productos, cat, marca, q]);
+
+  const activos = (cat !== "Todas" ? 1 : 0) + (marca !== "Todas" ? 1 : 0);
+  const limpiarFiltros = () => {
+    setCat("Todas");
+    setMarca("Todas");
+  };
 
   function agregar(p: Producto) {
     add(
@@ -72,49 +89,127 @@ export default function ShopClient({
           </div>
         ) : (
           <>
-            {/* FILTROS */}
-            <div className="shop-filters">
-              <div className="filter-group">
-                <span className="filter-label">Categoría</span>
-                <div className="filters">
+            {/* TOOLBAR: buscador + botón de filtros */}
+            <div className="shop-toolbar">
+              <div className="shop-search">
+                <span className="shop-search-ico" aria-hidden="true">
+                  🔍
+                </span>
+                <input
+                  type="search"
+                  className="shop-search-input"
+                  placeholder="Buscar producto o marca…"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  aria-label="Buscar productos"
+                />
+                {query && (
                   <button
-                    className={"filter-btn" + (cat === "Todas" ? " active" : "")}
-                    onClick={() => setCat("Todas")}
+                    className="shop-search-clear"
+                    onClick={() => setQuery("")}
+                    aria-label="Limpiar búsqueda"
                   >
-                    Todas
+                    ✕
                   </button>
-                  {categorias.map((c) => (
-                    <button
-                      key={c}
-                      className={"filter-btn" + (cat === c ? " active" : "")}
-                      onClick={() => setCat(c)}
-                    >
-                      {c}
-                    </button>
-                  ))}
-                </div>
+                )}
               </div>
-              <div className="filter-group">
-                <span className="filter-label">Marca</span>
-                <div className="filters">
+              <button
+                className={"shop-filtros-btn" + (filtrosOpen ? " open" : "")}
+                onClick={() => setFiltrosOpen((v) => !v)}
+                aria-expanded={filtrosOpen}
+              >
+                <span aria-hidden="true">⚙</span> Filtros
+                {activos > 0 && (
+                  <span className="shop-filtros-count">{activos}</span>
+                )}
+              </button>
+            </div>
+
+            {/* Chips de filtros activos */}
+            {activos > 0 && (
+              <div className="shop-chips">
+                {cat !== "Todas" && (
+                  <button className="shop-chip" onClick={() => setCat("Todas")}>
+                    {cat} <span aria-hidden="true">✕</span>
+                  </button>
+                )}
+                {marca !== "Todas" && (
                   <button
-                    className={"filter-btn" + (marca === "Todas" ? " active" : "")}
+                    className="shop-chip"
                     onClick={() => setMarca("Todas")}
                   >
-                    Todas
+                    {marca} <span aria-hidden="true">✕</span>
                   </button>
-                  {marcas.map((m) => (
+                )}
+                <button className="shop-chip-clear" onClick={limpiarFiltros}>
+                  Limpiar
+                </button>
+              </div>
+            )}
+
+            {/* Panel de filtros (colapsado por defecto, en móvil y escritorio) */}
+            {filtrosOpen && (
+              <div className="shop-filtros-panel">
+                <div className="filter-group">
+                  <span className="filter-label">Categoría</span>
+                  <div className="filters">
                     <button
-                      key={m}
-                      className={"filter-btn" + (marca === m ? " active" : "")}
-                      onClick={() => setMarca(m)}
+                      className={
+                        "filter-btn" + (cat === "Todas" ? " active" : "")
+                      }
+                      onClick={() => setCat("Todas")}
                     >
-                      {m}
+                      Todas
                     </button>
-                  ))}
+                    {categorias.map((c) => (
+                      <button
+                        key={c}
+                        className={"filter-btn" + (cat === c ? " active" : "")}
+                        onClick={() => setCat(c)}
+                      >
+                        {c}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="filter-group">
+                  <span className="filter-label">Marca</span>
+                  <div className="filters">
+                    <button
+                      className={
+                        "filter-btn" + (marca === "Todas" ? " active" : "")
+                      }
+                      onClick={() => setMarca("Todas")}
+                    >
+                      Todas
+                    </button>
+                    {marcas.map((m) => (
+                      <button
+                        key={m}
+                        className={"filter-btn" + (marca === m ? " active" : "")}
+                        onClick={() => setMarca(m)}
+                      >
+                        {m}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="shop-filtros-actions">
+                  <button
+                    className="shop-filtros-limpiar"
+                    onClick={limpiarFiltros}
+                  >
+                    Limpiar
+                  </button>
+                  <button
+                    className="shop-filtros-ver"
+                    onClick={() => setFiltrosOpen(false)}
+                  >
+                    Ver {filtrados.length} productos
+                  </button>
                 </div>
               </div>
-            </div>
+            )}
 
             <p className="shop-count">
               {filtrados.length}{" "}
@@ -158,7 +253,8 @@ export default function ShopClient({
 
             {filtrados.length === 0 && (
               <p className="shop-empty">
-                No hay productos con esos filtros. Prueba con otra combinación.
+                No encontramos productos con esa búsqueda o filtros. Prueba con
+                otra palabra o quita algún filtro.
               </p>
             )}
           </>
