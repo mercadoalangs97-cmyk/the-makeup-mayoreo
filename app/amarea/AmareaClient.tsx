@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { fmx } from "../lib/lotes";
 import { useCart } from "../lib/cart";
+import { imgOpt } from "../lib/img";
 import { nombreDisplay, type Producto } from "../lib/productos";
 
 // Normaliza para búsqueda tolerante: minúsculas, sin acentos, signos → espacio.
@@ -88,7 +89,7 @@ export default function ShopClient({
         tipo: "producto",
         nombre: nombreDisplay(p),
         precio: p.precio_mxn ?? 0,
-        foto: p.foto,
+        foto: imgOpt(p.foto, 200) ?? p.foto,
         max: p.stock,
         sub: p.marcaNorm,
       },
@@ -261,7 +262,12 @@ export default function ShopClient({
                       <div className="prod-img">
                         {p.foto ? (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img src={p.foto} alt={nombre} loading="lazy" />
+                          <img
+                            src={imgOpt(p.foto, 420)}
+                            alt={nombre}
+                            loading="lazy"
+                            decoding="async"
+                          />
                         ) : (
                           <div className="prod-img-ph">💄</div>
                         )}

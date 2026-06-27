@@ -9,6 +9,7 @@ import {
   type Lote,
 } from "../lib/lotes";
 import { useCart } from "../lib/cart";
+import { imgOpt } from "../lib/img";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 
@@ -74,7 +75,7 @@ export default function Home() {
         tipo: "lote",
         nombre: l.nombre,
         precio: l.precio,
-        foto: l.foto,
+        foto: imgOpt(l.foto, 240) ?? l.foto,
         sub: l.piezas + " piezas",
       },
       qty
@@ -166,7 +167,10 @@ export default function Home() {
           <div className="hero-right">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="https://yekvehkmgunoafccwmyp.supabase.co/storage/v1/object/public/lotes-fotos/lote-50-mixto.png"
+              src={imgOpt(
+                "https://yekvehkmgunoafccwmyp.supabase.co/storage/v1/object/public/lotes-fotos/lote-50-mixto.png",
+                760
+              )}
               alt="Lote de 50 piezas con marcas como e.l.f, NYX y Maybelline"
               loading="eager"
             />
@@ -297,7 +301,12 @@ export default function Home() {
                 <div className="lote-card-img">
                   {l.foto ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={l.foto} alt={l.nombre} loading="lazy" />
+                    <img
+                      src={imgOpt(l.foto, 520)}
+                      alt={l.nombre}
+                      loading="lazy"
+                      decoding="async"
+                    />
                   ) : (
                     <div className="lote-img-ph">
                       <div className="ph-emoji">💄</div>
@@ -510,7 +519,7 @@ export default function Home() {
                 {loteActivo.foto ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={loteActivo.foto}
+                    src={imgOpt(loteActivo.foto, 900)}
                     alt={loteActivo.nombre}
                     className="modal-img"
                   />

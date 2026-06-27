@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SITE_URL } from "./lib/site";
+import { imgOpt } from "./lib/img";
 import SiteHeader from "./components/SiteHeader";
 import SiteFooter from "./components/SiteFooter";
 
@@ -40,7 +41,7 @@ export default function Landing() {
         <Link href="/mayoreo" className="store-card">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={`${BASE_LOTES}/lote-50-mixto.png`}
+            src={imgOpt(`${BASE_LOTES}/lote-50-mixto.png`, 760)}
             alt="Lotes de maquillaje al mayoreo"
             loading="eager"
           />
@@ -65,7 +66,7 @@ export default function Landing() {
               "EL-COPP-088-1.png",
             ].map((f) => (
               // eslint-disable-next-line @next/next/no-img-element
-              <img key={f} src={`${BASE_PROD}/${f}`} alt="" loading="eager" />
+              <img key={f} src={imgOpt(`${BASE_PROD}/${f}`, 420)} alt="" loading="eager" />
             ))}
           </div>
           <div className="store-card-overlay">

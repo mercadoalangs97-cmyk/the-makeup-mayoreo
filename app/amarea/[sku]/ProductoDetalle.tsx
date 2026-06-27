@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { fmx, ENVIO_AMAREA_GRATIS_DESDE, ENVIO_AMAREA_TARIFA } from "../../lib/lotes";
 import { useCart } from "../../lib/cart";
+import { imgOpt } from "../../lib/img";
 import { getBrowserSupabase, supabasePublicConfigurado } from "../../lib/supabase";
 import { nombreDisplay, type Producto } from "../../lib/productos";
 
@@ -102,7 +103,7 @@ export default function ProductoDetalle({
         tipo: "producto",
         nombre: nombre,
         precio,
-        foto: producto.foto,
+        foto: imgOpt(producto.foto, 200) ?? producto.foto,
         max: stock,
         sub: producto.marcaNorm,
       },
@@ -136,7 +137,7 @@ export default function ProductoDetalle({
           <div className="pd-img">
             {producto.foto ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={producto.foto} alt={nombre} />
+              <img src={imgOpt(producto.foto, 820)} alt={nombre} />
             ) : (
               <div className="pd-img-ph">💄</div>
             )}
@@ -197,7 +198,11 @@ export default function ProductoDetalle({
                     >
                       {v.foto ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={v.foto} alt={v.variante || nombreDisplay(v)} />
+                        <img
+                          src={imgOpt(v.foto, 150)}
+                          alt={v.variante || nombreDisplay(v)}
+                          loading="lazy"
+                        />
                       ) : (
                         <span className="tono-ph">💄</span>
                       )}
