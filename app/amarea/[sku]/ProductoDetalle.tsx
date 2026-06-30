@@ -6,7 +6,7 @@ import { fmx, ENVIO_AMAREA_GRATIS_DESDE, ENVIO_AMAREA_TARIFA } from "../../lib/l
 import { useCart } from "../../lib/cart";
 import { imgOpt } from "../../lib/img";
 import { getBrowserSupabase, supabasePublicConfigurado } from "../../lib/supabase";
-import { nombreDisplay, type Producto } from "../../lib/productos";
+import { nombreDisplay, nombreCorto, type Producto } from "../../lib/productos";
 
 // Modo de uso generico segun categoria
 function modoDeUso(categoria: string | null): string {
@@ -101,7 +101,7 @@ export default function ProductoDetalle({
       {
         id: "prod:" + producto.sku,
         tipo: "producto",
-        nombre: nombre,
+        nombre: nombreCorto(producto),
         precio,
         foto: imgOpt(producto.foto, 200) ?? producto.foto,
         max: stock,

@@ -23,6 +23,15 @@ export function nombreDisplay(p: {
   return p.nombre_seo && p.nombre_seo.trim() ? p.nombre_seo.trim() : p.nombre;
 }
 
+// Nombre CORTO (catálogo y carrito): nombre original + variante/tono, sin el
+// SEO largo. El nombre SEO sigue en la ficha y en el HTML para Google.
+export function nombreCorto(p: {
+  nombre: string;
+  variante?: string | null;
+}): string {
+  return [p.nombre, p.variante].filter((x) => x && String(x).trim()).join(" · ");
+}
+
 const COLS =
   "sku,nombre,nombre_seo,marca,categoria,variante,precio_mxn,stock,stock_min,foto,notas";
 

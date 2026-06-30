@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { fmx } from "../lib/lotes";
 import { useCart } from "../lib/cart";
 import { imgOpt } from "../lib/img";
-import { nombreDisplay, type Producto } from "../lib/productos";
+import { nombreDisplay, nombreCorto, type Producto } from "../lib/productos";
 
 // Normaliza para búsqueda tolerante: minúsculas, sin acentos, signos → espacio.
 // "L'Oréal" → "l oreal", "e.l.f." → "e l f".
@@ -87,7 +87,7 @@ export default function ShopClient({
       {
         id: "prod:" + p.sku,
         tipo: "producto",
-        nombre: nombreDisplay(p),
+        nombre: nombreCorto(p),
         precio: p.precio_mxn ?? 0,
         foto: imgOpt(p.foto, 200) ?? p.foto,
         max: p.stock,
@@ -256,6 +256,7 @@ export default function ShopClient({
             <div className="prod-grid">
               {filtrados.map((p) => {
                 const nombre = nombreDisplay(p);
+                const corto = nombreCorto(p);
                 return (
                   <div key={p.sku} className="prod-card">
                     <Link href={`/amarea/${p.sku}`} className="prod-link">
@@ -273,7 +274,11 @@ export default function ShopClient({
                         )}
                       </div>
                       <div className="prod-marca">{p.marcaNorm}</div>
-                      <div className="prod-nombre">{nombre}</div>
+                      <div className="prod-nombre" title={nombre}>
+                        {corto}
+                      </div>
+                      {/* Nombre SEO completo en el HTML para Google (no visible) */}
+                      <span className="seo-only">{nombre}</span>
                     </Link>
                     <div className="prod-bottom">
                       <div className="prod-precio serif">
