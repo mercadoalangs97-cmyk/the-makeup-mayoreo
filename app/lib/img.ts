@@ -14,5 +14,7 @@ export function imgOpt(
     "/storage/v1/render/image/public/"
   );
   const sep = base.includes("?") ? "&" : "?";
-  return `${base}${sep}width=${width}&quality=${quality}`;
+  // resize=contain es CLAVE: sin él, Supabase deja el alto original y deforma la
+  // imagen (ej. 420x1254 en vez de 420x420). Con contain escala proporcional.
+  return `${base}${sep}width=${width}&quality=${quality}&resize=contain`;
 }
