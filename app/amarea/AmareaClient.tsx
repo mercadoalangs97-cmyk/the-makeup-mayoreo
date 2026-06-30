@@ -97,6 +97,12 @@ export default function ShopClient({
     setMarca("Todas");
   };
 
+  // Sugerencias del buscador (#5): marcas que coinciden con lo que se teclea.
+  const sugMarcas = useMemo(() => {
+    if (!qn) return [] as string[];
+    return [...new Set(filtrados.map((p) => p.marcaNorm))].slice(0, 5);
+  }, [filtrados, qn]);
+
   function agregar(p: Producto) {
     add(
       {
@@ -165,6 +171,58 @@ export default function ShopClient({
                 >
                   ✕
                 </button>
+              </div>
+            )}
+
+            {/* Sugerencias del buscador (#5) */}
+            {buscarOpen && query.trim() && (
+              <div className="shop-suggest">
+                {sugMarcas.length > 0 && (
+                  <div className="shop-suggest-marcas">
+                    <span className="shop-suggest-lbl">Marcas:</span>
+                    {sugMarcas.map((m) => (
+                      <button
+                        key={m}
+                        className="shop-chip"
+                        onClick={() => {
+                          setMarca(m);
+                          setQuery("");
+                        }}
+                      >
+                        {m}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {filtrados.slice(0, 5).map((p) => (
+                  <Link
+                    key={p.sku}
+                    href={`/amarea/${p.sku}`}
+                    className="shop-suggest-item"
+                    onClick={() => setBuscarOpen(false)}
+                  >
+                    <div className="shop-suggest-thumb">
+                      {p.foto ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={imgOpt(p.foto, 80)} alt="" loading="lazy" />
+                      ) : (
+                        "💄"
+                      )}
+                    </div>
+                    <div className="shop-suggest-info">
+                      <div className="shop-suggest-name">{nombreCorto(p)}</div>
+                      <div className="shop-suggest-meta">{p.marcaNorm}</div>
+                    </div>
+                    <div className="shop-suggest-price serif">
+                      {p.precio_mxn ? fmx(p.precio_mxn) : ""}
+                    </div>
+                  </Link>
+                ))}
+                {filtrados.length === 0 && (
+                  <div className="shop-suggest-empty">
+                    Sin coincidencias para “{query.trim()}”.
+                  </div>
+                )}
               </div>
             )}
 
