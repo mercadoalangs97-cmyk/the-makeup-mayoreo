@@ -206,9 +206,9 @@ export const LOTES: Lote[] = [
     precio: 1900,
     tipo: "labiales",
     popular: false,
-    wppOnly: true,
+    wppOnly: false,
     foto: BASE + "/lote-20-labiales.jpg",
-    desc: "Lote especializado en labiales de marcas premium. Colores variados, mate y glossy. Solo por WhatsApp.",
+    desc: "Lote especializado en labiales de marcas premium. Colores variados, mate y glossy.",
     features: [
       "20 labiales de marcas premium",
       "Colores variados mate y glossy",
