@@ -172,6 +172,27 @@ export default function SiteHeader({
                 WhatsApp
               </a>
             )}
+            {esAmarea && (
+              <button
+                className="nav-cart"
+                onClick={() =>
+                  window.dispatchEvent(new Event("amarea-toggle-search"))
+                }
+                aria-label="Buscar productos"
+              >
+                <svg
+                  width="19"
+                  height="19"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <circle cx="11" cy="11" r="7" />
+                  <path d="M21 21l-4.35-4.35" />
+                </svg>
+              </button>
+            )}
             <button
               className="nav-cart"
               onClick={openCart}

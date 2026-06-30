@@ -371,7 +371,25 @@ footer{background:var(--charcoal);padding:48px 16px 22px;color:var(--nude)}
 .shop-count{max-width:var(--maxw);margin:0 auto 18px;font-size:13px;color:var(--muted)}
 
 /* BUSCADOR + FILTROS COMPACTOS */
-.shop-toolbar{max-width:var(--maxw);margin:0 auto 12px;display:flex;gap:10px;align-items:center}
+.shop-toolbar{max-width:var(--maxw);margin:0 auto 12px;display:flex;gap:10px;align-items:center;justify-content:space-between}
+.shop-searchbar{max-width:var(--maxw);margin:0 auto 12px;display:flex;align-items:center;gap:9px;background:#fff;border:1px solid rgba(201,169,110,0.45);border-radius:var(--radius-pill);padding:11px 16px;box-shadow:var(--shadow-sm)}
+.shop-searchbar .shop-search-input{flex:1;border:none;outline:none;background:none;font-family:inherit;font-size:14px;color:var(--text);min-width:0}
+.shop-searchbar .shop-search-input::placeholder{color:#A89A8C}
+.shop-searchbar .shop-search-input::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none}
+/* Drawer lateral de filtros */
+.shop-filtros-overlay{position:fixed;inset:0;z-index:450;background:rgba(44,36,32,0.5);opacity:0;pointer-events:none;transition:opacity .3s;backdrop-filter:blur(3px)}
+.shop-filtros-overlay.open{opacity:1;pointer-events:all}
+.shop-filtros-drawer{position:fixed;top:0;right:0;height:100vh;height:100dvh;width:min(360px,86vw);background:var(--cream);z-index:451;transform:translateX(100%);transition:transform .35s cubic-bezier(.22,.6,.3,1);display:flex;flex-direction:column}
+.shop-filtros-drawer.open{transform:translateX(0)}
+.shop-filtros-drawer-head{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.shop-filtros-drawer-head .serif{font-family:"Cormorant Garamond",serif;font-size:22px;color:var(--charcoal);font-weight:600}
+.shop-filtros-x{background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer;line-height:1}
+.shop-filtros-drawer-body{flex:1;overflow-y:auto;padding:18px 20px;display:flex;flex-direction:column;gap:22px}
+.shop-filtros-drawer-body .filter-group{flex-direction:column;align-items:stretch;gap:9px}
+.shop-filtros-drawer-body .filter-label{min-width:0;padding-top:0}
+.shop-filtros-drawer-foot{flex-shrink:0;border-top:1px solid var(--border);padding:16px 20px max(20px,env(safe-area-inset-bottom));display:flex;gap:10px;background:#fff}
+.shop-filtros-drawer-foot .shop-filtros-limpiar{flex:1}
+.shop-filtros-drawer-foot .shop-filtros-ver{flex:1.4}
 .shop-search{flex:1;display:flex;align-items:center;gap:9px;background:#fff;border:1px solid rgba(201,169,110,0.35);border-radius:var(--radius-pill);padding:11px 16px;transition:border-color .2s;min-width:0}
 .shop-search:focus-within{border-color:var(--gold)}
 .shop-search-ico{font-size:14px;color:var(--muted);flex-shrink:0}

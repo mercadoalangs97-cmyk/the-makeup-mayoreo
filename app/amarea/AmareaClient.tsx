@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { fmx } from "../lib/lotes";
 import { useCart } from "../lib/cart";
 import { imgOpt } from "../lib/img";
@@ -33,7 +33,22 @@ export default function ShopClient({
   const [cat, setCat] = useState<string>("Todas");
   const [marca, setMarca] = useState<string>("Todas");
   const [query, setQuery] = useState<string>("");
-  const [filtrosOpen, setFiltrosOpen] = useState<boolean>(false);
+  const [buscarOpen, setBuscarOpen] = useState<boolean>(false);
+  const [filtrosDrawerOpen, setFiltrosDrawerOpen] = useState<boolean>(false);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  // El botón 🔍 del encabezado (SiteHeader) abre/cierra esta barra de búsqueda.
+  useEffect(() => {
+    function onToggle() {
+      setBuscarOpen((v) => {
+        const nv = !v;
+        if (nv) setTimeout(() => searchRef.current?.focus(), 60);
+        return nv;
+      });
+    }
+    window.addEventListener("amarea-toggle-search", onToggle);
+    return () => window.removeEventListener("amarea-toggle-search", onToggle);
+  }, []);
 
   // Índice de búsqueda: un texto normalizado por producto (con y sin espacios).
   const indice = useMemo(
@@ -125,13 +140,14 @@ export default function ShopClient({
           </div>
         ) : (
           <>
-            {/* TOOLBAR: buscador + botón de filtros */}
-            <div className="shop-toolbar">
-              <div className="shop-search">
+            {/* BUSCADOR (se abre desde el 🔍 del encabezado) */}
+            {buscarOpen && (
+              <div className="shop-searchbar">
                 <span className="shop-search-ico" aria-hidden="true">
                   🔍
                 </span>
                 <input
+                  ref={searchRef}
                   type="search"
                   className="shop-search-input"
                   placeholder="Buscar producto o marca…"
@@ -139,31 +155,58 @@ export default function ShopClient({
                   onChange={(e) => setQuery(e.target.value)}
                   aria-label="Buscar productos"
                 />
-                {query && (
-                  <button
-                    className="shop-search-clear"
-                    onClick={() => setQuery("")}
-                    aria-label="Limpiar búsqueda"
-                  >
-                    ✕
-                  </button>
-                )}
+                <button
+                  className="shop-search-clear"
+                  onClick={() => {
+                    setQuery("");
+                    setBuscarOpen(false);
+                  }}
+                  aria-label="Cerrar búsqueda"
+                >
+                  ✕
+                </button>
               </div>
+            )}
+
+            {/* TOOLBAR: ☰ filtros + conteo */}
+            <div className="shop-toolbar">
               <button
-                className={"shop-filtros-btn" + (filtrosOpen ? " open" : "")}
-                onClick={() => setFiltrosOpen((v) => !v)}
-                aria-expanded={filtrosOpen}
+                className="shop-filtros-btn"
+                onClick={() => setFiltrosDrawerOpen(true)}
+                aria-label="Abrir filtros"
               >
-                <span aria-hidden="true">⚙</span> Filtros
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                >
+                  <line x1="3" y1="6" x2="21" y2="6" />
+                  <line x1="3" y1="12" x2="21" y2="12" />
+                  <line x1="3" y1="18" x2="21" y2="18" />
+                </svg>
+                Filtros
                 {activos > 0 && (
                   <span className="shop-filtros-count">{activos}</span>
                 )}
               </button>
+              <span className="shop-count" style={{ margin: 0 }}>
+                {filtrados.length}{" "}
+                {filtrados.length === 1 ? "producto" : "productos"}
+              </span>
             </div>
 
-            {/* Chips de filtros activos */}
-            {activos > 0 && (
+            {/* Chips de filtros / búsqueda activos */}
+            {(activos > 0 || query.trim()) && (
               <div className="shop-chips">
+                {query.trim() && (
+                  <button className="shop-chip" onClick={() => setQuery("")}>
+                    “{query.trim()}” <span aria-hidden="true">✕</span>
+                  </button>
+                )}
                 {cat !== "Todas" && (
                   <button className="shop-chip" onClick={() => setCat("Todas")}>
                     {cat} <span aria-hidden="true">✕</span>
@@ -177,15 +220,41 @@ export default function ShopClient({
                     {marca} <span aria-hidden="true">✕</span>
                   </button>
                 )}
-                <button className="shop-chip-clear" onClick={limpiarFiltros}>
+                <button
+                  className="shop-chip-clear"
+                  onClick={() => {
+                    limpiarFiltros();
+                    setQuery("");
+                  }}
+                >
                   Limpiar
                 </button>
               </div>
             )}
 
-            {/* Panel de filtros (colapsado por defecto, en móvil y escritorio) */}
-            {filtrosOpen && (
-              <div className="shop-filtros-panel">
+            {/* DRAWER lateral de filtros (al tocar ☰) */}
+            <div
+              className={
+                "shop-filtros-overlay" + (filtrosDrawerOpen ? " open" : "")
+              }
+              onClick={() => setFiltrosDrawerOpen(false)}
+            ></div>
+            <aside
+              className={
+                "shop-filtros-drawer" + (filtrosDrawerOpen ? " open" : "")
+              }
+            >
+              <div className="shop-filtros-drawer-head">
+                <span className="serif">Filtros</span>
+                <button
+                  className="shop-filtros-x"
+                  onClick={() => setFiltrosDrawerOpen(false)}
+                  aria-label="Cerrar filtros"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="shop-filtros-drawer-body">
                 <div className="filter-group">
                   <span className="filter-label">Categoría</span>
                   <div className="filters">
@@ -230,27 +299,22 @@ export default function ShopClient({
                     ))}
                   </div>
                 </div>
-                <div className="shop-filtros-actions">
-                  <button
-                    className="shop-filtros-limpiar"
-                    onClick={limpiarFiltros}
-                  >
-                    Limpiar
-                  </button>
-                  <button
-                    className="shop-filtros-ver"
-                    onClick={() => setFiltrosOpen(false)}
-                  >
-                    Ver {filtrados.length} productos
-                  </button>
-                </div>
               </div>
-            )}
-
-            <p className="shop-count">
-              {filtrados.length}{" "}
-              {filtrados.length === 1 ? "producto" : "productos"}
-            </p>
+              <div className="shop-filtros-drawer-foot">
+                <button
+                  className="shop-filtros-limpiar"
+                  onClick={limpiarFiltros}
+                >
+                  Limpiar
+                </button>
+                <button
+                  className="shop-filtros-ver"
+                  onClick={() => setFiltrosDrawerOpen(false)}
+                >
+                  Ver {filtrados.length} productos
+                </button>
+              </div>
+            </aside>
 
             {/* GRID */}
             <div className="prod-grid">
