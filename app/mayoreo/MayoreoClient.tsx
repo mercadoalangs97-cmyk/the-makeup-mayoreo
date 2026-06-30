@@ -50,9 +50,10 @@ const CATEGORIAS = [
   { emoji: "✨", nombre: "Rostro", sub: "Bases · rubores · primers" },
 ];
 
-function ahorroPorLote(l: Lote): number {
+// % de descuento del lote vs. comprar las piezas a precio individual promedio.
+function descuentoPorLote(l: Lote): number {
   const ppu = l.precio / l.piezas;
-  return Math.round((PPU_REFERENCIA - ppu) * l.piezas);
+  return Math.max(0, Math.round((1 - ppu / PPU_REFERENCIA) * 100));
 }
 
 export default function Home() {
@@ -291,7 +292,7 @@ export default function Home() {
         <div className="lotes-grid">
           {lotesFiltrados.map((l) => {
             const ppu = (l.precio / l.piezas).toFixed(0);
-            const ahorro = ahorroPorLote(l);
+            const ahorro = descuentoPorLote(l);
             return (
               <div
                 key={l.id}
@@ -320,7 +321,7 @@ export default function Home() {
                     <div className="badge-tr badge-wpp">Solo WhatsApp</div>
                   ) : ahorro > 0 ? (
                     <div className="badge-tr badge-save-img">
-                      Ahorras {fmx(ahorro)}
+                      −{ahorro}%
                     </div>
                   ) : null}
                 </div>
@@ -338,7 +339,7 @@ export default function Home() {
                     </div>
                     {ahorro > 0 && (
                       <div className="save-line">
-                        ✓ Ahorras {fmx(ahorro)} vs. precio menudeo
+                        ✓ Ahorras {ahorro}% vs. comprar individual
                       </div>
                     )}
                     {l.wppOnly ? (
@@ -538,9 +539,9 @@ export default function Home() {
                   pieza
                 </span>
               </div>
-              {ahorroPorLote(loteActivo) > 0 && (
+              {descuentoPorLote(loteActivo) > 0 && (
                 <div className="modal-save">
-                  ✓ Ahorras {fmx(ahorroPorLote(loteActivo))} comprando este lote
+                  ✓ Ahorras {descuentoPorLote(loteActivo)}% comprando por pieza
                 </div>
               )}
               <div className="modal-div"></div>

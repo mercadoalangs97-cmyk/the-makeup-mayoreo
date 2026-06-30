@@ -28,8 +28,9 @@ export function calcularEnvio(
 }
 
 // Precio de referencia por pieza (el lote mas chico, 10 pzs = $115/pieza).
-// Se usa para mostrar el ahorro por volumen en cada lote.
-export const PPU_REFERENCIA = 115;
+// Precio promedio REAL de venta individual (~275 productos AMAREA; promedio
+// $232, mediana $230). Base para calcular el % de descuento por volumen del lote.
+export const PPU_REFERENCIA = 230;
 
 export type Lote = {
   id: string;
