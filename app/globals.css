@@ -135,7 +135,7 @@ nav{position:sticky;top:0;z-index:100;background:rgba(250,246,240,0.94);backdrop
 .lote-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-4px)}
 .lote-card.is-popular{border-color:var(--rose);box-shadow:0 0 0 1px var(--rose),var(--shadow)}
 .lote-card-img{height:220px;position:relative;overflow:hidden;background:linear-gradient(145deg,var(--rose-soft),var(--blush))}
-.lote-card-img img{width:100%;height:100%;object-fit:cover;transition:transform .4s;display:block}
+.lote-card-img img{width:100%;height:100%;object-fit:contain;transition:transform .4s;display:block}
 .lote-card:hover .lote-card-img img{transform:scale(1.05)}
 .lote-img-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px}
 .lote-img-ph .ph-emoji{font-size:34px}
@@ -271,7 +271,7 @@ footer{background:var(--charcoal);padding:48px 16px 22px;color:var(--nude)}
 .modal{background:var(--cream);width:100%;max-width:540px;margin:0 auto;border-radius:var(--radius) var(--radius) 0 0;padding:28px 22px max(36px,env(safe-area-inset-bottom));transform:translateY(40px);transition:transform .35s cubic-bezier(.22,.6,.3,1);max-height:92vh;max-height:92dvh;overflow-y:auto;position:relative}
 .modal-overlay.open .modal{transform:translateY(0)}
 .modal-handle{width:40px;height:4px;background:var(--nude);border-radius:2px;margin:0 auto 20px}
-.modal-img{width:100%;height:200px;object-fit:cover;border-radius:var(--radius-sm);margin-bottom:16px;display:block}
+.modal-img{width:100%;height:220px;object-fit:contain;background:var(--blush);border-radius:var(--radius-sm);margin-bottom:16px;display:block}
 .modal-img-ph{width:100%;height:90px;background:var(--blush);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;margin-bottom:16px;font-size:30px}
 .modal-etiq{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:5px;font-weight:600}
 .modal-nombre{font-family:"Cormorant Garamond",serif;font-size:28px;font-weight:600;color:var(--charcoal);margin-bottom:6px}
