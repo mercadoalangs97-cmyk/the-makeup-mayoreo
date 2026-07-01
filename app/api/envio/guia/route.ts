@@ -145,7 +145,8 @@ export async function POST(req: Request) {
           area_level1: ORIGEN.area_level1, area_level2: ORIGEN.area_level2, area_level3: ORIGEN.area_level3,
           name: ORIGEN.nombre, company: ORIGEN.nombre,
           street1: ORIGEN.calle + " " + ORIGEN.numero,
-          phone: ORIGEN.telefono, email: "ventas@themakeup.com.mx", reference: "",
+          phone: ORIGEN.telefono, email: "ventas@themakeup.com.mx",
+          reference: ORIGEN.referencia, // Skydropx exige reference no vacío
         },
         address_to: {
           country_code: "MX", postal_code: env.cp,
@@ -154,10 +155,13 @@ export async function POST(req: Request) {
           street1: (env.calle || "") + " " + (env.numero || ""),
           phone: orden.wpp || env.telefono || "",
           email: orden.email || env.email || "ventas@themakeup.com.mx",
-          reference: env.referencias || "",
+          reference: env.referencias || "Sin referencia", // no puede ir vacío
         },
-        packages: parcels.map((p) => ({
-          ...p, consignment_note: claveSat, package_type: "my_own_box",
+        // package_number debe coincidir con el de la cotización (1, 2, 3… por orden).
+        // package_type "4G" = caja de cartón corrugado (código SAT que Skydropx acepta;
+        // "my_own_box" quedó fuera de su lista).
+        packages: parcels.map((p, i) => ({
+          ...p, package_number: i + 1, consignment_note: claveSat, package_type: "4G",
         })),
       },
     };

@@ -58,6 +58,9 @@ export const ORIGEN = {
   area_level1: "Estado de México",
   area_level2: "Nezahualcóyotl",
   area_level3: "Bosques de Aragón",
+  // Referencia visible para el repartidor al recoger en el origen.
+  // (Ajustable: Alan puede afinarla con calles/puntos de referencia reales.)
+  referencia: "Casa habitación, Bosques de Aragón. Llamar al 55 4381 3568 al llegar.",
 };
 
 // Paquete típico de un pedido AMAREA (ajustable después).
