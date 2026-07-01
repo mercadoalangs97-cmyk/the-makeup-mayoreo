@@ -22,7 +22,7 @@ export default function CheckoutExito() {
         <h1 className="ce-titulo serif">¡Gracias por tu compra!</h1>
         <p className="ce-texto">
           Tu pago fue aprobado. Te enviaremos la confirmación y los datos de
-          envío por WhatsApp. ¡Pronto recibirás tu pedido!
+          envío por correo electrónico. ¡Pronto recibirás tu pedido!
         </p>
         <div className="ce-acciones">
           <Link href="/amarea" className="btn-primary">
