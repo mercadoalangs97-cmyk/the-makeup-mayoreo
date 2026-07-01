@@ -244,23 +244,17 @@ export async function POST(req: Request) {
     });
   }
 
-  // ---- CANCELAR: solicita la cancelación de la guía ----
+  // ---- CANCELAR: la API de Skydropx Pro NO expone cancelación (rutas 404).
+  // La cancelación + reembolso se hacen en el panel de Skydropx. Este endpoint
+  // ya NO llama a Skydropx (antes tronaba con HTML 404 → "Error de conexión").
+  // La app muestra instrucciones y abre el panel.
   if (body.accion === "cancelar") {
-    const shipmentId = String(env.guia_shipment_id || "");
-    if (!shipmentId) return json({ error: "Este pedido no tiene guía para cancelar." }, 400);
-    const res = await skydropxFetch("/cancellations", {
-      method: "POST",
-      body: JSON.stringify({ cancellation: { shipment_ids: [shipmentId], reason: "no_usada" } }),
+    return json({
+      ok: false,
+      cancelar_en_panel: true,
+      mensaje:
+        "La cancelación se realiza en el panel de Skydropx: Envíos → localiza la guía → botón verde → Cancelar guía.",
     });
-    const j = await res.json();
-    if (!res.ok) {
-      return json({ error: "No se pudo solicitar la cancelación.", detalle: j.errors || j.message || j }, 502);
-    }
-    await supabase.from("ordenes_web").update({
-      guia_url: null, guia_tracking: null,
-      envio: { ...env, guia_cancelada: true },
-    }).eq("id", body.ordenId);
-    return json({ ok: true, mensaje: "Cancelación solicitada. El reembolso lo procesa Skydropx (puede tardar).", raw: j });
   }
 
   return json({ error: "Acción no válida" }, 400);
