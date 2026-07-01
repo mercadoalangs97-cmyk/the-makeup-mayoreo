@@ -146,7 +146,8 @@ export async function POST(req: Request) {
           name: ORIGEN.nombre, company: ORIGEN.nombre,
           street1: ORIGEN.calle + " " + ORIGEN.numero,
           phone: ORIGEN.telefono, email: "ventas@themakeup.com.mx",
-          reference: ORIGEN.referencia, // Skydropx exige reference no vacío
+          // Skydropx exige reference: no vacío y MÁX 30 caracteres.
+          reference: ORIGEN.referencia.slice(0, 30),
         },
         address_to: {
           country_code: "MX", postal_code: env.cp,
@@ -155,7 +156,8 @@ export async function POST(req: Request) {
           street1: (env.calle || "") + " " + (env.numero || ""),
           phone: orden.wpp || env.telefono || "",
           email: orden.email || env.email || "ventas@themakeup.com.mx",
-          reference: env.referencias || "Sin referencia", // no puede ir vacío
+          // no vacío y MÁX 30 caracteres
+          reference: (env.referencias || "Sin referencia").slice(0, 30),
         },
         // package_number debe coincidir con el de la cotización (1, 2, 3… por orden).
         // package_type "4G" = caja de cartón corrugado (código SAT que Skydropx acepta;
