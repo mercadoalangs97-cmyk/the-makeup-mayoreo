@@ -201,3 +201,52 @@ export async function enviarCorreosVenta(o: OrdenCorreo): Promise<void> {
     console.error("[email] negocio falló:", err);
   }
 }
+
+// ---- Correo al CLIENTE cuando se genera la GUÍA (mejora B) ----
+export type DatosGuia = {
+  tracking: string;
+  trackingUrl: string | null;
+  paqueteria: string; // ej. "estafeta"
+};
+
+function htmlGuiaCliente(o: OrdenCorreo, g: DatosGuia): string {
+  const marca = o.items.some((i) => i.tipo === "lote") ? "The Makeup Mayoreo" : "AMAREA";
+  const nombre = o.cliente || o.envio?.nombre || "";
+  const paq = g.paqueteria ? g.paqueteria.charAt(0).toUpperCase() + g.paqueteria.slice(1) : "la paquetería";
+  const botonRastreo = g.trackingUrl
+    ? `<p style="text-align:center;margin:20px 0 4px">
+         <a href="${g.trackingUrl}" style="display:inline-block;background:${C.charcoal};color:#fff;text-decoration:none;padding:12px 28px;border-radius:999px;font-size:14px;font-weight:bold">📍 Rastrear mi envío</a>
+       </p>`
+    : `<p style="text-align:center;color:${C.muted};font-size:13px;margin:16px 0 0">Rastrea tu envío en el sitio de ${paq} con tu número de guía.</p>`;
+  const cuerpo = `
+    <p style="color:${C.text};font-size:15px;margin:0 0 16px">¡Hola ${nombre}! Tu pedido ya está en camino. 🚚</p>
+    <table role="presentation" style="width:100%;border-collapse:collapse;background:${C.cream};border-radius:10px">
+      <tr><td style="padding:14px 16px">
+        <div style="color:${C.muted};font-size:12px">Paquetería</div>
+        <div style="color:${C.charcoal};font-size:16px;font-weight:bold;margin-bottom:8px">${paq}</div>
+        <div style="color:${C.muted};font-size:12px">Número de guía</div>
+        <div style="color:${C.charcoal};font-size:16px;font-weight:bold;font-family:monospace">${g.tracking || "—"}</div>
+      </td></tr>
+    </table>
+    ${botonRastreo}
+    <h3 style="color:${C.charcoal};font-size:15px;margin:22px 0 6px">📦 Se envía a</h3>
+    ${bloqueEnvio(o.envio)}
+    <p style="color:${C.muted};font-size:12px;margin-top:16px">Si algún dato es incorrecto, respóndenos este correo lo antes posible.</p>`;
+  return envoltura(marca, "🚚 ¡Tu pedido va en camino!", `Pedido ${pedidoNum(o.id)}`, cuerpo);
+}
+
+export async function enviarCorreoGuia(o: OrdenCorreo, g: DatosGuia): Promise<void> {
+  if (!emailConfigurado() || !o.email) return;
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  const marca = o.items.some((i) => i.tipo === "lote") ? "The Makeup Mayoreo" : "AMAREA";
+  try {
+    await resend.emails.send({
+      from: `${marca} <${EMAIL_NEGOCIO}>`,
+      to: o.email,
+      subject: `🚚 Tu pedido ${pedidoNum(o.id)} va en camino · ${marca}`,
+      html: htmlGuiaCliente(o, g),
+    });
+  } catch (err) {
+    console.error("[email] guía cliente falló:", err);
+  }
+}

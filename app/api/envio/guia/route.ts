@@ -8,6 +8,7 @@ import {
   ORIGEN,
 } from "../../../lib/skydropx";
 import { parcelsDeItems } from "../../../lib/lotes";
+import { enviarCorreoGuia, type OrdenCorreo } from "../../../lib/email";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,28 +27,48 @@ export async function OPTIONS() {
   return new NextResponse(null, { status: 204, headers: CORS });
 }
 
-// Busca recursivamente una URL de etiqueta (PDF) en la respuesta de Skydropx
-function buscarLabelUrl(obj: unknown): string | null {
-  if (!obj) return null;
-  if (typeof obj === "string") {
-    return /^https?:\/\/\S+\.(pdf|png)/i.test(obj) || /label/i.test(obj) ? obj : null;
-  }
-  if (Array.isArray(obj)) {
-    for (const v of obj) { const r = buscarLabelUrl(v); if (r) return r; }
-    return null;
-  }
-  if (typeof obj === "object") {
-    for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
-      if (/label.*url|url.*label|label_url/i.test(k) && typeof v === "string") return v;
-      const r = buscarLabelUrl(v); if (r) return r;
+// La API de Skydropx Pro responde en formato JSON:API:
+//   { data:{ id, attributes:{ carrier_name, workflow_status, total, master_tracking_number } },
+//     included:[{ type:"package", attributes:{ label_url, tracking_number, tracking_url_provider } }] }
+// Además la ETIQUETA se genera de forma ASÍNCRONA: hay que esperar workflow_status "success".
+type DatosGuiaSky = {
+  workflow_status: string;
+  shipmentId: string;
+  label_url: string | null;
+  tracking: string;
+  tracking_url: string | null;
+  carrier: string;
+  total: number | null;
+};
+function extraerDatosGuia(j: Record<string, unknown>): DatosGuiaSky {
+  const data = (j?.data ?? j) as Record<string, unknown>;
+  const attrs = (data?.attributes ?? {}) as Record<string, unknown>;
+  const included = (j?.included ?? []) as Array<Record<string, unknown>>;
+  const pkg = (included.find((i) => i.type === "package")?.attributes ??
+    {}) as Record<string, unknown>;
+  return {
+    workflow_status: String(attrs.workflow_status ?? ""),
+    shipmentId: String(data?.id ?? ""),
+    label_url: (pkg.label_url as string) || null,
+    tracking: String(pkg.tracking_number || attrs.master_tracking_number || ""),
+    tracking_url: (pkg.tracking_url_provider as string) || null,
+    carrier: String(attrs.carrier_name ?? ""),
+    total: attrs.total != null ? Number(attrs.total) : null,
+  };
+}
+// Polling hasta que la etiqueta esté lista (máx ~15s). Solo lectura → NO cuesta.
+async function esperarGuiaLista(shipmentId: string): Promise<DatosGuiaSky | null> {
+  for (let i = 0; i < 8; i++) {
+    await new Promise((r) => setTimeout(r, 1800));
+    const res = await skydropxFetch("/shipments/" + shipmentId);
+    if (res.ok) {
+      const d = extraerDatosGuia(await res.json());
+      if (d.label_url || d.workflow_status === "success" || d.workflow_status === "error") {
+        return d;
+      }
     }
   }
   return null;
-}
-function buscarTracking(obj: Record<string, unknown>): string {
-  return String(
-    obj.tracking_number || obj.master_tracking_number || obj.tracking || ""
-  );
 }
 
 async function verificarUsuario(token: string | undefined) {
@@ -173,21 +194,53 @@ export async function POST(req: Request) {
     if (!res.ok) {
       return json({ error: "Skydropx rechazó la guía", detalle: j.errors || j.message || j }, 502);
     }
-    const label_url = buscarLabelUrl(j);
-    const tracking = buscarTracking(j as Record<string, unknown>);
-    const shipmentId = String((j as Record<string, unknown>).id || "");
-    const cost = Math.round(rate.total);
+
+    // La respuesta es JSON:API y la etiqueta puede tardar unos segundos.
+    let datos = extraerDatosGuia(j);
+    if (!datos.label_url && datos.shipmentId) {
+      const listo = await esperarGuiaLista(datos.shipmentId);
+      if (listo) datos = listo;
+    }
+    if (datos.workflow_status === "error") {
+      return json({ error: "Skydropx no pudo generar la etiqueta.", detalle: j }, 502);
+    }
+
+    const cost = datos.total != null ? Math.round(datos.total) : Math.round(rate.total);
+    const paqueteria = datos.carrier || rate.proveedor;
 
     await supabase.from("ordenes_web").update({
-      guia_url: label_url,
-      guia_tracking: tracking,
-      envio: { ...env, guia_shipment_id: shipmentId, guia_costo_real: cost, guia_paqueteria: rate.proveedor, guia_servicio: rate.servicio },
+      guia_url: datos.label_url,
+      guia_tracking: datos.tracking,
+      envio: {
+        ...env,
+        guia_shipment_id: datos.shipmentId,
+        guia_tracking_url: datos.tracking_url,
+        guia_costo_real: cost,
+        guia_paqueteria: paqueteria,
+        guia_servicio: rate.servicio,
+      },
     }).eq("id", body.ordenId);
 
+    // Mejora B: correo automático al cliente con su guía + rastreo (best-effort).
+    try {
+      await enviarCorreoGuia(orden as OrdenCorreo, {
+        tracking: datos.tracking,
+        trackingUrl: datos.tracking_url,
+        paqueteria,
+      });
+    } catch (e) {
+      console.error("[guia] correo de guía falló:", e);
+    }
+
     return json({
-      ok: true, label_url, tracking, cost,
-      paqueteria: rate.proveedor, servicio: rate.servicio, shipmentId,
-      raw: j, // para verificar la forma en la primera prueba real
+      ok: true,
+      label_url: datos.label_url,
+      tracking: datos.tracking,
+      tracking_url: datos.tracking_url,
+      cost,
+      paqueteria,
+      servicio: rate.servicio,
+      shipmentId: datos.shipmentId,
     });
   }
 
