@@ -3,6 +3,7 @@ import { fetchProductosTienda, ordenarCategorias } from "./lib/productos";
 import { SITE_URL } from "./lib/site";
 import SiteHeader from "./components/SiteHeader";
 import SiteFooter from "./components/SiteFooter";
+import HomeSeo from "./components/HomeSeo";
 import AmareaClient from "./amarea/AmareaClient";
 
 export const metadata: Metadata = {
@@ -34,6 +35,7 @@ export default async function Home() {
         marcas={marcas}
         error={error}
       />
+      <HomeSeo />
       <SiteFooter />
     </>
   );
