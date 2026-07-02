@@ -22,9 +22,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   return [
-    // Home = tienda AMAREA (producto por pieza). Cambia seguido (stock).
-    { url: SITE_URL, lastModified: now, changeFrequency: "daily", priority: 1 },
-    // Mayoreo: página aparte, sigue indexada para quien busca "lotes de maquillaje".
+    // Home informativa (contenido SEO + destacados).
+    { url: SITE_URL, lastModified: now, changeFrequency: "weekly", priority: 1 },
+    // Catálogo completo AMAREA (todos los productos por pieza). Cambia seguido.
+    {
+      url: `${SITE_URL}/amarea`,
+      lastModified: now,
+      changeFrequency: "daily",
+      priority: 0.9,
+    },
+    // Mayoreo: página aparte, indexada para "lotes de maquillaje".
     {
       url: `${SITE_URL}/mayoreo`,
       lastModified: now,

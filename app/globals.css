@@ -692,7 +692,9 @@ footer{padding:76px 16px 34px;background:var(--rose-dk);color:#F7E9E3}
 .shop-destacados-head{max-width:var(--maxw);margin:6px auto 18px;display:flex;align-items:center;gap:8px}
 .shop-destacados-head h2{font-size:clamp(22px,3.4vw,30px);color:var(--charcoal);margin:0;font-weight:600}
 .shop-vertodos-wrap{text-align:center;margin:36px 0 12px}
-.shop-vertodos-btn{display:inline-block;background:var(--charcoal);color:var(--gold-lt);border:none;border-radius:var(--radius-pill);padding:16px 46px;font-family:inherit;font-size:15px;font-weight:600;letter-spacing:.03em;cursor:pointer;transition:background .2s}
+.shop-vertodos-btn{display:inline-block;background:var(--charcoal);color:var(--gold-lt);border:none;border-radius:var(--radius-pill);padding:16px 46px;font-family:inherit;font-size:15px;font-weight:600;letter-spacing:.03em;cursor:pointer;transition:background .2s;text-decoration:none}
+.shop-hero-compact{padding-top:34px!important;padding-bottom:6px!important}
+.shop-hero-compact .shop-hero-h1{font-size:clamp(26px,4vw,40px);margin-bottom:8px}
 .shop-vertodos-btn:hover{background:var(--rose-dk)}
 .shop-orden{flex-shrink:0;background:#fff;border:1px solid rgba(201,169,110,0.4);border-radius:var(--radius-pill);padding:10px 14px;font-family:inherit;font-size:13px;color:var(--charcoal);cursor:pointer}
 .shop-orden:hover{border-color:var(--gold)}

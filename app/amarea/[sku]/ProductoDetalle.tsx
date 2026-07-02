@@ -126,6 +126,8 @@ export default function ProductoDetalle({
       <nav className="pd-breadcrumb">
         <Link href="/">Inicio</Link>
         <span>/</span>
+        <Link href="/amarea">Productos</Link>
+        <span>/</span>
         <span className="pd-bc-current">{nombre}</span>
       </nav>
 
@@ -283,7 +285,7 @@ export default function ProductoDetalle({
       </div>
 
       <div className="pd-back">
-        <Link href="/" className="pd-back-link">
+        <Link href="/amarea" className="pd-back-link">
           ← Volver al catálogo
         </Link>
       </div>

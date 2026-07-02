@@ -138,8 +138,8 @@ export default function SiteHeader({
           <div className="nav-cats">
             {variant === "amarea" ? (
               <>
-                <Link href="/">Productos</Link>
-                <Link href="/#categorias">Categorías</Link>
+                <Link href="/amarea">Productos</Link>
+                <Link href="/amarea?ver=filtros">Categorías</Link>
               </>
             ) : variant === "mayoreo" ? (
               <>

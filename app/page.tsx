@@ -34,6 +34,7 @@ export default async function Home() {
         categorias={categorias}
         marcas={marcas}
         error={error}
+        modo="home"
       />
       <HomeSeo />
       <SiteFooter />

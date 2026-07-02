@@ -17,10 +17,10 @@ export default function SiteFooter() {
             <div className="footer-links-title">Tienda</div>
             <ul className="footer-links">
               <li>
-                <Link href="/">Productos</Link>
+                <Link href="/amarea">Productos</Link>
               </li>
               <li>
-                <Link href="/#categorias">Categorías</Link>
+                <Link href="/amarea?ver=filtros">Categorías</Link>
               </li>
               <li>
                 <a

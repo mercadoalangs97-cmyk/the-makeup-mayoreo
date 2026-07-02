@@ -8,7 +8,6 @@ import { imgOpt } from "../lib/img";
 import { nombreDisplay, nombreCorto, type Producto } from "../lib/productos";
 
 // Normaliza para búsqueda tolerante: minúsculas, sin acentos, signos → espacio.
-// "L'Oréal" → "l oreal", "e.l.f." → "e l f".
 function norm(s: string): string {
   return (s || "")
     .toLowerCase()
@@ -26,25 +25,28 @@ export default function ShopClient({
   categorias,
   marcas,
   error,
+  modo = "catalogo",
 }: {
   productos: Producto[];
   categorias: string[];
   marcas: string[];
   error: string | null;
+  // "home" = landing informativa (destacados + botón a /amarea).
+  // "catalogo" = /amarea, catálogo completo paginado con filtros.
+  modo?: "home" | "catalogo";
 }) {
   const { add } = useCart();
+  const esHome = modo === "home";
   const [cat, setCat] = useState<string>("Todas");
   const [marca, setMarca] = useState<string>("Todas");
   const [query, setQuery] = useState<string>("");
   const [buscarOpen, setBuscarOpen] = useState<boolean>(false);
   const [filtrosDrawerOpen, setFiltrosDrawerOpen] = useState<boolean>(false);
-  // Home simplificada: por defecto se muestran solo los Destacados + botón.
-  const [verTodos, setVerTodos] = useState<boolean>(false);
   const [orden, setOrden] = useState<Orden>("destacados");
   const [pagina, setPagina] = useState<number>(1);
   const searchRef = useRef<HTMLInputElement>(null);
 
-  // El botón 🔍 del encabezado (SiteHeader) abre/cierra esta barra de búsqueda.
+  // El botón 🔍 del encabezado abre/cierra la barra de búsqueda.
   useEffect(() => {
     function onToggle() {
       setBuscarOpen((v) => {
@@ -57,7 +59,18 @@ export default function ShopClient({
     return () => window.removeEventListener("amarea-toggle-search", onToggle);
   }, []);
 
-  // Índice de búsqueda: un texto normalizado por producto (con y sin espacios).
+  // En el catálogo, si llegan con ?ver=filtros (desde "Categorías") abrimos el
+  // panel de filtros automáticamente.
+  useEffect(() => {
+    if (
+      !esHome &&
+      typeof window !== "undefined" &&
+      window.location.search.includes("ver=filtros")
+    ) {
+      setFiltrosDrawerOpen(true);
+    }
+  }, [esHome]);
+
   const indice = useMemo(
     () =>
       productos.map((p) => {
@@ -82,7 +95,6 @@ export default function ShopClient({
   const qn = norm(query);
   const filtrados = useMemo(() => {
     let toks = qn ? qn.split(" ").filter((t) => t.length >= 2) : [];
-    // Si solo quedaron letras sueltas (ej. "e.l.f"), usa la versión sin espacios.
     if (qn && toks.length === 0) toks = [qn.replace(/ /g, "")];
     return indice
       .filter(({ p, spaced, compact }) => {
@@ -102,15 +114,13 @@ export default function ShopClient({
     setMarca("Todas");
   };
 
-  // Sugerencias del buscador: marcas que coinciden con lo que se teclea.
   const sugMarcas = useMemo(() => {
     if (!qn) return [] as string[];
     return [...new Set(filtrados.map((p) => p.marcaNorm))].slice(0, 5);
   }, [filtrados, qn]);
 
-  // DESTACADOS de la home: selección curada y VARIADA (una por marca, hasta 8).
-  // La tienda es nueva (sin ventas); esto es honesto y está listo para pasar a
-  // "Más vendidos" reales cuando haya datos de ventas.
+  // DESTACADOS de la home: selección variada (una por marca, hasta 8). Lista
+  // para pasar a "Más vendidos" reales cuando haya datos de ventas.
   const destacados = useMemo(() => {
     const porMarca = new Map<string, Producto>();
     for (const p of productos) {
@@ -127,11 +137,8 @@ export default function ShopClient({
     return sel.slice(0, 8);
   }, [productos]);
 
-  // ¿Mostrar el catálogo completo? Sí al tocar "Ver todos", o al buscar/filtrar.
   const hayFiltro = query.trim().length > 0 || activos > 0;
-  const mostrarCatalogo = verTodos || hayFiltro;
 
-  // Orden (por precio) aplicado sobre lo filtrado.
   const ordenados = useMemo(() => {
     if (orden === "precio-asc")
       return [...filtrados].sort(
@@ -144,20 +151,18 @@ export default function ShopClient({
     return filtrados;
   }, [filtrados, orden]);
 
-  // Paginación
   const totalPaginas = Math.max(1, Math.ceil(ordenados.length / PER_PAGE));
   const pagActual = Math.min(pagina, totalPaginas);
   const visibles = ordenados.slice((pagActual - 1) * PER_PAGE, pagActual * PER_PAGE);
 
-  // Al cambiar búsqueda/filtros/orden/modo, volver a la página 1.
   useEffect(() => {
     setPagina(1);
-  }, [qn, cat, marca, orden, verTodos]);
+  }, [qn, cat, marca, orden]);
 
-  // Al pasar de página, subir al inicio de la lista.
   function irPagina(n: number) {
     setPagina(n);
-    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+    if (typeof window !== "undefined")
+      window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function agregar(p: Producto) {
@@ -175,7 +180,6 @@ export default function ShopClient({
     );
   }
 
-  // Tarjeta de producto (se usa en Destacados y en el catálogo).
   const renderCard = (p: Producto) => {
     const nombre = nombreDisplay(p);
     const corto = nombreCorto(p);
@@ -199,7 +203,6 @@ export default function ShopClient({
           <div className="prod-nombre" title={nombre}>
             {corto}
           </div>
-          {/* Nombre SEO completo en el HTML para Google (no visible) */}
           <span className="seo-only">{nombre}</span>
         </Link>
         <div className="prod-bottom">
@@ -218,22 +221,115 @@ export default function ShopClient({
     );
   };
 
+  // Buscador + sugerencias (compartido por home y catálogo).
+  const buscador = (
+    <>
+      {buscarOpen && (
+        <div className="shop-searchbar">
+          <span className="shop-search-ico" aria-hidden="true">
+            🔍
+          </span>
+          <input
+            ref={searchRef}
+            type="search"
+            className="shop-search-input"
+            placeholder="Buscar producto o marca…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            aria-label="Buscar productos"
+          />
+          <button
+            className="shop-search-clear"
+            onClick={() => {
+              setQuery("");
+              setBuscarOpen(false);
+            }}
+            aria-label="Cerrar búsqueda"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+      {buscarOpen && query.trim() && (
+        <div className="shop-suggest">
+          {sugMarcas.length > 0 && (
+            <div className="shop-suggest-marcas">
+              <span className="shop-suggest-lbl">Marcas:</span>
+              {sugMarcas.map((m) => (
+                <Link
+                  key={m}
+                  href={`/amarea?ver=filtros`}
+                  className="shop-chip"
+                  onClick={() => setBuscarOpen(false)}
+                >
+                  {m}
+                </Link>
+              ))}
+            </div>
+          )}
+          {filtrados.slice(0, 5).map((p) => (
+            <Link
+              key={p.sku}
+              href={`/amarea/${p.sku}`}
+              className="shop-suggest-item"
+              onClick={() => setBuscarOpen(false)}
+            >
+              <div className="shop-suggest-thumb">
+                {p.foto ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={imgOpt(p.foto, 80)} alt="" loading="lazy" />
+                ) : (
+                  "💄"
+                )}
+              </div>
+              <div className="shop-suggest-info">
+                <div className="shop-suggest-name">{nombreCorto(p)}</div>
+                <div className="shop-suggest-meta">{p.marcaNorm}</div>
+              </div>
+              <div className="shop-suggest-price serif">
+                {p.precio_mxn ? fmx(p.precio_mxn) : ""}
+              </div>
+            </Link>
+          ))}
+          {filtrados.length === 0 && (
+            <div className="shop-suggest-empty">
+              Sin coincidencias para “{query.trim()}”.
+            </div>
+          )}
+        </div>
+      )}
+    </>
+  );
+
   return (
     <main>
-      {/* HERO de la tienda. (El espacio para la imagen de modelo se agrega aquí
-          cuando esté lista, como fondo con el texto encima.) */}
-      <section className="shop-hero">
-        <div className="shop-hero-inner">
-          <div className="shop-hero-eyebrow">AMAREA · Tus marcas favoritas</div>
-          <h1 className="shop-hero-h1 serif">
-            Las mejores marcas de beauty <em>a un clic</em>
-          </h1>
-          <p className="shop-hero-sub">
-            e.l.f, NYX, Maybelline, L&apos;Oréal y más. Envío a todo México, con
-            pago seguro.
-          </p>
-        </div>
-      </section>
+      {/* HERO. En la home es el aspiracional (aquí irá la imagen de modelo
+          después); en el catálogo, un título compacto. */}
+      {esHome ? (
+        <section className="shop-hero">
+          <div className="shop-hero-inner">
+            <div className="shop-hero-eyebrow">
+              AMAREA · Tus marcas favoritas
+            </div>
+            <h1 className="shop-hero-h1 serif">
+              Las mejores marcas de beauty <em>a un clic</em>
+            </h1>
+            <p className="shop-hero-sub">
+              e.l.f, NYX, Maybelline, L&apos;Oréal y más. Envío a todo México,
+              con pago seguro.
+            </p>
+          </div>
+        </section>
+      ) : (
+        <section className="shop-hero shop-hero-compact">
+          <div className="shop-hero-inner">
+            <h1 className="shop-hero-h1 serif">Todos los productos</h1>
+            <p className="shop-hero-sub">
+              Catálogo completo de AMAREA — filtra por categoría, marca y precio.
+            </p>
+          </div>
+        </section>
+      )}
 
       <section className="section shop-section">
         {error ? (
@@ -245,89 +341,26 @@ export default function ShopClient({
           <div className="shop-error">
             <p>Aún no hay productos disponibles.</p>
           </div>
-        ) : (
+        ) : esHome ? (
+          /* ================= HOME: Destacados + botón a /amarea ================= */
           <>
-            {/* BUSCADOR (se abre desde el 🔍 del encabezado) */}
-            {buscarOpen && (
-              <div className="shop-searchbar">
-                <span className="shop-search-ico" aria-hidden="true">
-                  🔍
-                </span>
-                <input
-                  ref={searchRef}
-                  type="search"
-                  className="shop-search-input"
-                  placeholder="Buscar producto o marca…"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  aria-label="Buscar productos"
-                />
-                <button
-                  className="shop-search-clear"
-                  onClick={() => {
-                    setQuery("");
-                    setBuscarOpen(false);
-                  }}
-                  aria-label="Cerrar búsqueda"
-                >
-                  ✕
-                </button>
-              </div>
-            )}
+            {buscador}
+            <div className="shop-destacados-head">
+              <h2 className="serif">⭐ Destacados</h2>
+            </div>
+            <div className="prod-grid">{destacados.map(renderCard)}</div>
+            <div className="shop-vertodos-wrap">
+              <Link href="/amarea" className="shop-vertodos-btn">
+                Ver todos los productos →
+              </Link>
+            </div>
+          </>
+        ) : (
+          /* ================= CATÁLOGO /amarea: todo paginado + filtros ========= */
+          <>
+            {buscador}
 
-            {/* Sugerencias del buscador */}
-            {buscarOpen && query.trim() && (
-              <div className="shop-suggest">
-                {sugMarcas.length > 0 && (
-                  <div className="shop-suggest-marcas">
-                    <span className="shop-suggest-lbl">Marcas:</span>
-                    {sugMarcas.map((m) => (
-                      <button
-                        key={m}
-                        className="shop-chip"
-                        onClick={() => {
-                          setMarca(m);
-                          setQuery("");
-                        }}
-                      >
-                        {m}
-                      </button>
-                    ))}
-                  </div>
-                )}
-                {filtrados.slice(0, 5).map((p) => (
-                  <Link
-                    key={p.sku}
-                    href={`/amarea/${p.sku}`}
-                    className="shop-suggest-item"
-                    onClick={() => setBuscarOpen(false)}
-                  >
-                    <div className="shop-suggest-thumb">
-                      {p.foto ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={imgOpt(p.foto, 80)} alt="" loading="lazy" />
-                      ) : (
-                        "💄"
-                      )}
-                    </div>
-                    <div className="shop-suggest-info">
-                      <div className="shop-suggest-name">{nombreCorto(p)}</div>
-                      <div className="shop-suggest-meta">{p.marcaNorm}</div>
-                    </div>
-                    <div className="shop-suggest-price serif">
-                      {p.precio_mxn ? fmx(p.precio_mxn) : ""}
-                    </div>
-                  </Link>
-                ))}
-                {filtrados.length === 0 && (
-                  <div className="shop-suggest-empty">
-                    Sin coincidencias para “{query.trim()}”.
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* DRAWER lateral de filtros (al tocar ☰) — disponible siempre */}
+            {/* DRAWER lateral de filtros */}
             <div
               className={
                 "shop-filtros-overlay" + (filtrosDrawerOpen ? " open" : "")
@@ -440,144 +473,109 @@ export default function ShopClient({
               </div>
             </aside>
 
-            {!mostrarCatalogo ? (
-              /* ===== HOME: solo Destacados + botón "Ver todos" ===== */
-              <>
-                <div className="shop-destacados-head">
-                  <h2 className="serif">⭐ Destacados</h2>
-                </div>
-                <div className="prod-grid">{destacados.map(renderCard)}</div>
-                <div className="shop-vertodos-wrap">
-                  <button
-                    className="shop-vertodos-btn"
-                    onClick={() => setVerTodos(true)}
-                  >
-                    Ver todos los productos →
+            {/* TOOLBAR: filtros + orden + conteo */}
+            <div className="shop-toolbar">
+              <button
+                className="shop-filtros-btn"
+                onClick={() => setFiltrosDrawerOpen(true)}
+                aria-label="Abrir filtros"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                >
+                  <line x1="3" y1="6" x2="21" y2="6" />
+                  <line x1="3" y1="12" x2="21" y2="12" />
+                  <line x1="3" y1="18" x2="21" y2="18" />
+                </svg>
+                Filtros
+                {activos > 0 && (
+                  <span className="shop-filtros-count">{activos}</span>
+                )}
+              </button>
+              <select
+                className="shop-orden"
+                value={orden}
+                onChange={(e) => setOrden(e.target.value as Orden)}
+                aria-label="Ordenar productos"
+              >
+                <option value="destacados">Ordenar por…</option>
+                <option value="precio-asc">Precio: menor a mayor</option>
+                <option value="precio-desc">Precio: mayor a menor</option>
+              </select>
+              <span className="shop-count" style={{ margin: 0 }}>
+                {ordenados.length}{" "}
+                {ordenados.length === 1 ? "producto" : "productos"}
+              </span>
+            </div>
+
+            {/* Chips activos */}
+            {(activos > 0 || query.trim()) && (
+              <div className="shop-chips">
+                {query.trim() && (
+                  <button className="shop-chip" onClick={() => setQuery("")}>
+                    “{query.trim()}” <span aria-hidden="true">✕</span>
                   </button>
-                </div>
-              </>
-            ) : (
-              /* ===== CATÁLOGO completo: filtros + orden + paginación ===== */
-              <>
-                <div className="shop-toolbar">
-                  <button
-                    className="shop-filtros-btn"
-                    onClick={() => setFiltrosDrawerOpen(true)}
-                    aria-label="Abrir filtros"
-                  >
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    >
-                      <line x1="3" y1="6" x2="21" y2="6" />
-                      <line x1="3" y1="12" x2="21" y2="12" />
-                      <line x1="3" y1="18" x2="21" y2="18" />
-                    </svg>
-                    Filtros
-                    {activos > 0 && (
-                      <span className="shop-filtros-count">{activos}</span>
-                    )}
+                )}
+                {cat !== "Todas" && (
+                  <button className="shop-chip" onClick={() => setCat("Todas")}>
+                    {cat} <span aria-hidden="true">✕</span>
                   </button>
-                  <select
-                    className="shop-orden"
-                    value={orden}
-                    onChange={(e) => setOrden(e.target.value as Orden)}
-                    aria-label="Ordenar productos"
+                )}
+                {marca !== "Todas" && (
+                  <button
+                    className="shop-chip"
+                    onClick={() => setMarca("Todas")}
                   >
-                    <option value="destacados">Ordenar por…</option>
-                    <option value="precio-asc">Precio: menor a mayor</option>
-                    <option value="precio-desc">Precio: mayor a menor</option>
-                  </select>
-                  <span className="shop-count" style={{ margin: 0 }}>
-                    {ordenados.length}{" "}
-                    {ordenados.length === 1 ? "producto" : "productos"}
-                  </span>
-                </div>
-
-                {/* Chips de filtros / búsqueda activos */}
-                {(activos > 0 || query.trim()) && (
-                  <div className="shop-chips">
-                    {query.trim() && (
-                      <button className="shop-chip" onClick={() => setQuery("")}>
-                        “{query.trim()}” <span aria-hidden="true">✕</span>
-                      </button>
-                    )}
-                    {cat !== "Todas" && (
-                      <button
-                        className="shop-chip"
-                        onClick={() => setCat("Todas")}
-                      >
-                        {cat} <span aria-hidden="true">✕</span>
-                      </button>
-                    )}
-                    {marca !== "Todas" && (
-                      <button
-                        className="shop-chip"
-                        onClick={() => setMarca("Todas")}
-                      >
-                        {marca} <span aria-hidden="true">✕</span>
-                      </button>
-                    )}
-                    <button
-                      className="shop-chip-clear"
-                      onClick={() => {
-                        limpiarFiltros();
-                        setQuery("");
-                      }}
-                    >
-                      Limpiar
-                    </button>
-                  </div>
+                    {marca} <span aria-hidden="true">✕</span>
+                  </button>
                 )}
+                <button
+                  className="shop-chip-clear"
+                  onClick={() => {
+                    limpiarFiltros();
+                    setQuery("");
+                  }}
+                >
+                  Limpiar
+                </button>
+              </div>
+            )}
 
-                {/* GRID paginado */}
-                <div className="prod-grid">{visibles.map(renderCard)}</div>
+            {/* GRID paginado */}
+            <div className="prod-grid">{visibles.map(renderCard)}</div>
 
-                {ordenados.length === 0 && (
-                  <p className="shop-empty">
-                    No encontramos productos con esa búsqueda o filtros. Prueba
-                    con otra palabra o quita algún filtro.
-                  </p>
-                )}
+            {ordenados.length === 0 && (
+              <p className="shop-empty">
+                No encontramos productos con esa búsqueda o filtros. Prueba con
+                otra palabra o quita algún filtro.
+              </p>
+            )}
 
-                {/* Controles de paginación */}
-                {totalPaginas > 1 && (
-                  <div className="shop-paginacion">
-                    <button
-                      disabled={pagActual <= 1}
-                      onClick={() => irPagina(pagActual - 1)}
-                    >
-                      ← Anterior
-                    </button>
-                    <span>
-                      Página {pagActual} de {totalPaginas}
-                    </span>
-                    <button
-                      disabled={pagActual >= totalPaginas}
-                      onClick={() => irPagina(pagActual + 1)}
-                    >
-                      Siguiente →
-                    </button>
-                  </div>
-                )}
-
-                {/* Volver a la home de destacados (solo si entraste por "Ver todos") */}
-                {verTodos && !hayFiltro && (
-                  <div style={{ textAlign: "center", marginTop: 10 }}>
-                    <button
-                      className="shop-volver"
-                      onClick={() => setVerTodos(false)}
-                    >
-                      ← Volver a destacados
-                    </button>
-                  </div>
-                )}
-              </>
+            {/* Paginación */}
+            {totalPaginas > 1 && (
+              <div className="shop-paginacion">
+                <button
+                  disabled={pagActual <= 1}
+                  onClick={() => irPagina(pagActual - 1)}
+                >
+                  ← Anterior
+                </button>
+                <span>
+                  Página {pagActual} de {totalPaginas}
+                </span>
+                <button
+                  disabled={pagActual >= totalPaginas}
+                  onClick={() => irPagina(pagActual + 1)}
+                >
+                  Siguiente →
+                </button>
+              </div>
             )}
           </>
         )}
