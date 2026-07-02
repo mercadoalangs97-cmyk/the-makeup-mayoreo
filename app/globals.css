@@ -642,3 +642,39 @@ footer{background:var(--charcoal);padding:48px 16px 22px;color:var(--nude)}
   .co-form{grid-template-columns:1fr}
   .co-field.co-col2{grid-column:auto}
 }
+
+/* ===== Footer más grande (más presencia) ===== */
+footer{padding:76px 16px 34px}
+.footer-grid{gap:48px;margin-bottom:42px}
+.footer-brand{font-size:30px}
+.footer-brand-sub{font-size:11px;margin-top:5px}
+.footer-desc{font-size:14.5px;line-height:1.75;margin-top:12px}
+.footer-links-title{font-size:12px;margin-bottom:16px}
+.footer-links li{margin-bottom:12px}
+.footer-links a{font-size:15px}
+.footer-bottom{padding-top:24px;font-size:13px;margin-top:6px}
+@media(max-width:600px){
+  footer{padding:52px 16px 28px}
+  .footer-brand{font-size:26px}
+}
+
+/* ===== Home AMAREA: Destacados + Ver todos + Orden + Paginación ===== */
+.shop-destacados-head{max-width:var(--maxw);margin:6px auto 18px;display:flex;align-items:center;gap:8px}
+.shop-destacados-head h2{font-size:clamp(22px,3.4vw,30px);color:var(--charcoal);margin:0;font-weight:600}
+.shop-vertodos-wrap{text-align:center;margin:36px 0 12px}
+.shop-vertodos-btn{display:inline-block;background:var(--charcoal);color:var(--gold-lt);border:none;border-radius:var(--radius-pill);padding:16px 46px;font-family:inherit;font-size:15px;font-weight:600;letter-spacing:.03em;cursor:pointer;transition:background .2s}
+.shop-vertodos-btn:hover{background:var(--rose-dk)}
+.shop-orden{flex-shrink:0;background:#fff;border:1px solid rgba(201,169,110,0.4);border-radius:var(--radius-pill);padding:10px 14px;font-family:inherit;font-size:13px;color:var(--charcoal);cursor:pointer}
+.shop-orden:hover{border-color:var(--gold)}
+.shop-paginacion{max-width:var(--maxw);margin:34px auto 6px;display:flex;align-items:center;justify-content:center;gap:16px;font-size:13.5px;color:var(--charcoal)}
+.shop-paginacion button{background:#fff;border:1px solid rgba(201,169,110,0.4);border-radius:var(--radius-pill);padding:10px 20px;font-family:inherit;font-size:13px;color:var(--charcoal);font-weight:500;cursor:pointer;transition:all .2s}
+.shop-paginacion button:hover:not(:disabled){border-color:var(--gold);color:var(--rose-dk)}
+.shop-paginacion button:disabled{opacity:.4;cursor:default}
+.shop-volver{background:none;border:none;color:var(--rose-dk);font-family:inherit;font-size:13.5px;cursor:pointer;padding:8px}
+.shop-volver:hover{text-decoration:underline}
+@media(max-width:600px){
+  .shop-vertodos-btn{width:100%;padding:15px}
+  .shop-orden{flex:1;min-width:0}
+  .shop-paginacion{gap:10px}
+  .shop-paginacion button{padding:9px 14px}
+}
