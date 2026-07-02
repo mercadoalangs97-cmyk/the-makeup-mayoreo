@@ -1,86 +1,39 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { fetchProductosTienda, ordenarCategorias } from "./lib/productos";
 import { SITE_URL } from "./lib/site";
-import { imgOpt } from "./lib/img";
 import SiteHeader from "./components/SiteHeader";
 import SiteFooter from "./components/SiteFooter";
+import AmareaClient from "./amarea/AmareaClient";
 
 export const metadata: Metadata = {
-  title: "The Makeup Mayoreo CDMX · Maquillaje al mayoreo y por pieza",
+  title: "The Makeup CDMX · Maquillaje por pieza — e.l.f, NYX, Maybelline",
   description:
-    "Las mejores marcas de beauty: e.l.f, NYX, Maybelline, L'Oréal y más. Compra lotes al mayoreo para revender, o por pieza en AMAREA. Envío a todo México.",
+    "Compra tus marcas de beauty favoritas por pieza: e.l.f, NYX, Maybelline, L'Oréal y más. Envío a todo México, pago seguro.",
   alternates: { canonical: SITE_URL },
 };
 
-const BASE_LOTES =
-  "https://yekvehkmgunoafccwmyp.supabase.co/storage/v1/object/public/lotes-fotos";
-const BASE_PROD =
-  "https://yekvehkmgunoafccwmyp.supabase.co/storage/v1/object/public/product-photos";
+// El stock cambia, así que no cacheamos la página.
+export const dynamic = "force-dynamic";
 
-export default function Landing() {
+export default async function Home() {
+  const { productos, error } = await fetchProductosTienda();
+
+  const categorias = ordenarCategorias([
+    ...new Set(productos.map((p) => p.categoria).filter(Boolean) as string[]),
+  ]);
+  const marcas = [...new Set(productos.map((p) => p.marcaNorm))].sort((a, b) =>
+    a.localeCompare(b)
+  );
+
   return (
     <>
-      <SiteHeader variant="landing" />
-
-      <section className="landing-hero">
-        <div className="landing-hero-inner">
-          <div className="landing-eyebrow">Las mejores marcas de beauty</div>
-          <h1 className="landing-h1 serif">
-            Una marca, <em>dos formas</em> de comprar
-          </h1>
-          <p className="landing-sub">
-            e.l.f, NYX, Maybelline, L&apos;Oréal y más. Elige cómo quieres
-            comprar: lotes al por mayor para revender, o tus productos
-            favoritos por pieza.
-          </p>
-        </div>
-      </section>
-
-      <section className="landing-cards">
-        {/* MAYOREO */}
-        <Link href="/mayoreo" className="store-card">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={imgOpt(`${BASE_LOTES}/lote-50-mixto.png`, 760)}
-            alt="Lotes de maquillaje al mayoreo"
-            loading="eager"
-          />
-          <div className="store-card-overlay">
-            <div className="store-card-tag">Para revendedoras</div>
-            <div className="store-card-name serif">The Makeup Mayoreo</div>
-            <p className="store-card-desc">
-              Lotes mixtos de 10 a 500 piezas a precio de mayoreo. Compra
-              barato y revende.
-            </p>
-            <span className="store-card-btn">Comprar al mayoreo →</span>
-          </div>
-        </Link>
-
-        {/* AMAREA */}
-        <Link href="/amarea" className="store-card">
-          <div className="store-collage" aria-hidden="true">
-            {[
-              "EL-PAPA-149-1.png",
-              "NY-082-1.png",
-              "MA-10LI-163-1.png",
-              "EL-COPP-088-1.png",
-            ].map((f) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img key={f} src={imgOpt(`${BASE_PROD}/${f}`, 420)} alt="" loading="eager" />
-            ))}
-          </div>
-          <div className="store-card-overlay">
-            <div className="store-card-tag">Para consumidor final</div>
-            <div className="store-card-name serif">AMAREA</div>
-            <p className="store-card-desc">
-              Tus marcas favoritas por pieza, con envío a todo México. Belleza
-              importada, unidad por unidad.
-            </p>
-            <span className="store-card-btn">Comprar por pieza →</span>
-          </div>
-        </Link>
-      </section>
-
+      <SiteHeader variant="amarea" />
+      <AmareaClient
+        productos={productos}
+        categorias={categorias}
+        marcas={marcas}
+        error={error}
+      />
       <SiteFooter />
     </>
   );

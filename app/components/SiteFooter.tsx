@@ -17,16 +17,19 @@ export default function SiteFooter() {
             <div className="footer-links-title">Tienda</div>
             <ul className="footer-links">
               <li>
-                <Link href="/mayoreo">Lotes de mayoreo</Link>
+                <Link href="/">Productos</Link>
               </li>
               <li>
-                <Link href="/amarea">AMAREA · Productos</Link>
+                <Link href="/#categorias">Categorías</Link>
               </li>
               <li>
-                <Link href="/mayoreo#como-funciona">Cómo funciona</Link>
-              </li>
-              <li>
-                <Link href="/mayoreo#opiniones">Opiniones</Link>
+                <a
+                  href="https://wa.me/5215543813568"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  WhatsApp
+                </a>
               </li>
             </ul>
           </div>
@@ -59,8 +62,13 @@ export default function SiteFooter() {
           </div>
         </div>
         <div className="footer-bottom">
-          <span>© 2025 The Makeup Mayoreo CDMX</span>
-          <span>🔒 Pagos seguros · Marcas 100% originales</span>
+          <span>© 2026 The Makeup CDMX · Pagos seguros · Marcas 100% originales</span>
+          <Link
+            href="/mayoreo"
+            style={{ color: "inherit", textDecoration: "underline", opacity: 0.85 }}
+          >
+            ¿Eres revendedora? Ver mayoreo →
+          </Link>
         </div>
       </div>
     </footer>

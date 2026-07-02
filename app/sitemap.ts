@@ -22,18 +22,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   return [
-    { url: SITE_URL, lastModified: now, changeFrequency: "weekly", priority: 1 },
+    // Home = tienda AMAREA (producto por pieza). Cambia seguido (stock).
+    { url: SITE_URL, lastModified: now, changeFrequency: "daily", priority: 1 },
+    // Mayoreo: página aparte, sigue indexada para quien busca "lotes de maquillaje".
     {
       url: `${SITE_URL}/mayoreo`,
       lastModified: now,
       changeFrequency: "weekly",
-      priority: 0.9,
-    },
-    {
-      url: `${SITE_URL}/amarea`,
-      lastModified: now,
-      changeFrequency: "daily",
-      priority: 0.9,
+      priority: 0.8,
     },
     ...fichas,
   ];

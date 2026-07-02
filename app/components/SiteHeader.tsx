@@ -17,7 +17,7 @@ export default function SiteHeader({
   // Identidad y navegación según la sección
   const esAmarea = variant === "amarea";
   const logoHref =
-    variant === "amarea" ? "/amarea" : variant === "mayoreo" ? "/mayoreo" : "/";
+    variant === "amarea" ? "/" : variant === "mayoreo" ? "/mayoreo" : "/";
   const logoNombre = esAmarea ? "AMAREA" : "The Makeup Mayoreo";
   const logoSub = esAmarea ? "Belleza por pieza" : null;
 
@@ -138,16 +138,12 @@ export default function SiteHeader({
           <div className="nav-cats">
             {variant === "amarea" ? (
               <>
-                <Link href="/amarea">Productos</Link>
-                <Link href="/amarea#categorias">Categorías</Link>
-                <Link href="/mayoreo">Mayoreo · Lotes</Link>
+                <Link href="/">Productos</Link>
+                <Link href="/#categorias">Categorías</Link>
               </>
             ) : variant === "mayoreo" ? (
               <>
                 <Link href="/mayoreo#lotes">Lotes</Link>
-                <Link href="/amarea" className="nav-amarea">
-                  AMAREA · Productos
-                </Link>
                 <Link href="/mayoreo#como-funciona">Cómo funciona</Link>
                 <Link href="/mayoreo#opiniones">Opiniones</Link>
               </>

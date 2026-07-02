@@ -1,40 +1,7 @@
-import type { Metadata } from "next";
-import { fetchProductosTienda, ordenarCategorias } from "../lib/productos";
-import { SITE_URL } from "../lib/site";
-import SiteHeader from "../components/SiteHeader";
-import SiteFooter from "../components/SiteFooter";
-import AmareaClient from "./AmareaClient";
+import { permanentRedirect } from "next/navigation";
 
-export const metadata: Metadata = {
-  title: "AMAREA · Maquillaje por pieza | The Makeup Mayoreo CDMX",
-  description:
-    "Compra tus marcas de beauty favoritas por pieza: e.l.f, NYX, Maybelline, L'Oréal y más. Envío a todo México.",
-  alternates: { canonical: `${SITE_URL}/amarea` },
-};
-
-// El stock cambia, así que no cacheamos la página.
-export const dynamic = "force-dynamic";
-
-export default async function AmareaPage() {
-  const { productos, error } = await fetchProductosTienda();
-
-  const categorias = ordenarCategorias([
-    ...new Set(productos.map((p) => p.categoria).filter(Boolean) as string[]),
-  ]);
-  const marcas = [...new Set(productos.map((p) => p.marcaNorm))].sort((a, b) =>
-    a.localeCompare(b)
-  );
-
-  return (
-    <>
-      <SiteHeader variant="amarea" />
-      <AmareaClient
-        productos={productos}
-        categorias={categorias}
-        marcas={marcas}
-        error={error}
-      />
-      <SiteFooter />
-    </>
-  );
+// La tienda AMAREA ahora vive en la raíz (/). Esta ruta redirige de forma
+// permanente (308) para no duplicar contenido y conservar los enlaces viejos.
+export default function AmareaIndex() {
+  permanentRedirect("/");
 }
