@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import "./globals.css";
 import { CartProvider } from "./lib/cart";
+import { GA_ID } from "./lib/analytics";
 import CartDrawer from "./components/CartDrawer";
 import Toast from "./components/Toast";
 import WppFloat from "./components/WppFloat";
@@ -54,6 +56,18 @@ export default function RootLayout({
         />
       </head>
       <body>
+        {/* Google Analytics 4 — carga en todas las páginas (estrategia
+            afterInteractive, la forma recomendada por Next.js). */}
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="ga4-init" strategy="afterInteractive">
+          {`window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', '${GA_ID}');`}
+        </Script>
         <CartProvider>
           {children}
           <CartDrawer />

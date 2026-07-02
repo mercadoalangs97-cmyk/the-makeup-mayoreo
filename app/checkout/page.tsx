@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 import { useCart } from "../lib/cart";
 import { fmx, ENVIO_AMAREA_GRATIS_DESDE, calcularEnvio, modoEnvio } from "../lib/lotes";
+import { gaBeginCheckout } from "../lib/analytics";
 
 type OpcionEnvio = {
   proveedor: string;
@@ -39,6 +40,15 @@ export default function CheckoutPage() {
   //  - "cotizar":  lotes → cotización Skydropx (el cliente elige paquetería)
   //  - "coordinar": lote especial (500 pz) → por WhatsApp
   const modo = modoEnvio(items);
+
+  // GA4: iniciar checkout (una vez, cuando el carrito ya hidrató con items).
+  const beganRef = useRef(false);
+  useEffect(() => {
+    if (!beganRef.current && items.length > 0) {
+      beganRef.current = true;
+      gaBeginCheckout(items, total);
+    }
+  }, [items, total]);
 
   // Estado de cotización de lotes
   const [opciones, setOpciones] = useState<OpcionEnvio[] | null>(null);
@@ -197,6 +207,22 @@ export default function CheckoutPage() {
         setEnviando(false);
         return;
       }
+      // Guardamos el valor de la venta para disparar "purchase" en /checkout/exito.
+      try {
+        sessionStorage.setItem(
+          "amarea_ga_purchase",
+          JSON.stringify({
+            id: data.orden_id || "",
+            value: totalPagar,
+            items: items.map((it) => ({
+              item_id: it.id,
+              item_name: it.nombre,
+              price: it.precio,
+              quantity: it.qty,
+            })),
+          })
+        );
+      } catch {}
       window.location.href = data.init_point;
     } catch {
       setError("Error de conexión. Revisa tu internet e intenta de nuevo.");

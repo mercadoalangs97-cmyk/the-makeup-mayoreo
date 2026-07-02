@@ -7,6 +7,7 @@ import { useCart } from "../../lib/cart";
 import { imgOpt } from "../../lib/img";
 import { getBrowserSupabase, supabasePublicConfigurado } from "../../lib/supabase";
 import { nombreDisplay, nombreCorto, type Producto } from "../../lib/productos";
+import { gaViewItem } from "../../lib/analytics";
 
 // Modo de uso generico segun categoria
 function modoDeUso(categoria: string | null): string {
@@ -58,6 +59,18 @@ export default function ProductoDetalle({
   const { add, openCart } = useCart();
   const [stock, setStock] = useState(producto.stock);
   const [qty, setQty] = useState(1);
+
+  // GA4: ver producto (una vez por ficha).
+  useEffect(() => {
+    gaViewItem({
+      sku: producto.sku,
+      nombre: nombreDisplay(producto),
+      marca: producto.marcaNorm,
+      categoria: producto.categoria,
+      precio: producto.precio_mxn ?? 0,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [producto.sku]);
   const [abierta, setAbierta] = useState<string | null>("Descripción");
 
   // Stock en tiempo real (Realtime de Supabase sobre la tabla productos)

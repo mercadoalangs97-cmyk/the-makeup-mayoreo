@@ -10,6 +10,7 @@ import {
   useState,
 } from "react";
 import { WPP, fmx, ENVIO_AMAREA_GRATIS_DESDE, calcularEnvio } from "./lotes";
+import { gaAddToCart } from "./analytics";
 
 export type CartItem = {
   id: string; // "lote:mixto-50" | "prod:EL-040"
@@ -101,6 +102,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         return [...prev, { ...item, qty: Math.min(qty, max) }];
       });
       showToast(item.nombre + " añadido al carrito");
+      gaAddToCart(item, qty); // GA4: add_to_cart
     },
     [showToast]
   );

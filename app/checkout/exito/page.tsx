@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import SiteHeader from "../../components/SiteHeader";
 import SiteFooter from "../../components/SiteFooter";
 import { useCart } from "../../lib/cart";
+import { gaPurchase } from "../../lib/analytics";
 
 export default function CheckoutExito() {
   const { clear, hydrated } = useCart();
@@ -13,6 +14,18 @@ export default function CheckoutExito() {
   useEffect(() => {
     if (hydrated) clear();
   }, [hydrated, clear]);
+
+  // GA4: compra completada. Lee el valor guardado al iniciar el pago y lo manda
+  // una sola vez (se borra después para que un refresh no la cuente doble).
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem("amarea_ga_purchase");
+      if (raw) {
+        gaPurchase(JSON.parse(raw));
+        sessionStorage.removeItem("amarea_ga_purchase");
+      }
+    } catch {}
+  }, []);
 
   return (
     <>
