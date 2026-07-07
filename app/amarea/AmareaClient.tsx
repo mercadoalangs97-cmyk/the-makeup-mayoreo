@@ -6,6 +6,7 @@ import { fmx } from "../lib/lotes";
 import { useCart } from "../lib/cart";
 import { imgOpt } from "../lib/img";
 import { nombreDisplay, nombreCorto, type Producto } from "../lib/productos";
+import { gaSearch } from "../lib/analytics";
 
 // Normaliza para búsqueda tolerante: minúsculas, sin acentos, signos → espacio.
 function norm(s: string): string {
@@ -70,6 +71,23 @@ export default function ShopClient({
       setFiltrosDrawerOpen(true);
     }
   }, [esHome]);
+
+  // Búsqueda inicial desde ?q= (SearchAction de Google + búsquedas compartibles).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const q = new URLSearchParams(window.location.search).get("q");
+    if (q) {
+      setQuery(q);
+      setBuscarOpen(true);
+    }
+  }, []);
+
+  // GA4/Meta: evento "search" con debounce (mide qué busca la gente).
+  useEffect(() => {
+    if (!query.trim()) return;
+    const t = setTimeout(() => gaSearch(query), 900);
+    return () => clearTimeout(t);
+  }, [query]);
 
   const indice = useMemo(
     () =>

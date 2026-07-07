@@ -10,7 +10,7 @@ import {
   useState,
 } from "react";
 import { WPP, fmx, ENVIO_AMAREA_GRATIS_DESDE, calcularEnvio } from "./lotes";
-import { gaAddToCart } from "./analytics";
+import { gaAddToCart, gaLead } from "./analytics";
 
 export type CartItem = {
   id: string; // "lote:mixto-50" | "prod:EL-040"
@@ -163,6 +163,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       "\n\nTotal: " +
       fmx(total) +
       " MXN\n\n¿Me confirma disponibilidad y datos de pago?";
+    gaLead("whatsapp_carrito_lote"); // GA4: lead de mayoreo por WhatsApp
     window.open(
       "https://wa.me/" + WPP + "?text=" + encodeURIComponent(msg),
       "_blank"

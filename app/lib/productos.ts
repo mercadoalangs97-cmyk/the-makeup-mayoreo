@@ -13,6 +13,7 @@ export type Producto = {
   stock_min: number | null;
   foto: string | null;
   notas: string | null;
+  barcode: string | null; // GTIN/EAN/UPC — para Google Shopping (Merchant Center)
 };
 
 // Nombre que se muestra en la tienda: el optimizado si existe, si no el original.
@@ -33,7 +34,7 @@ export function nombreCorto(p: {
 }
 
 const COLS =
-  "sku,nombre,nombre_seo,marca,categoria,variante,precio_mxn,stock,stock_min,foto,notas";
+  "sku,nombre,nombre_seo,marca,categoria,variante,precio_mxn,stock,stock_min,foto,notas,barcode";
 
 // Las marcas vienen inconsistentes en la base (e.l.f. / e.l.f. Skin /
 // Maybelline / Maybelline New York / L'Oreal Paris ...). Las agrupamos.

@@ -2,7 +2,8 @@ import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import "./globals.css";
 import { CartProvider } from "./lib/cart";
-import { GA_ID } from "./lib/analytics";
+import { GA_ID, META_PIXEL_ID } from "./lib/analytics";
+import { SITE_URL, SITE_NAME } from "./lib/site";
 import CartDrawer from "./components/CartDrawer";
 import Toast from "./components/Toast";
 import WppFloat from "./components/WppFloat";
@@ -68,6 +69,56 @@ function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
 gtag('config', '${GA_ID}');`}
         </Script>
+
+        {/* Meta (Facebook) Pixel — solo si hay ID configurado. Al ponerlo en
+            NEXT_PUBLIC_META_PIXEL_ID (Vercel), se activa y espeja los eventos. */}
+        {META_PIXEL_ID && (
+          <Script id="meta-pixel" strategy="afterInteractive">
+            {`!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '${META_PIXEL_ID}');fbq('track', 'PageView');`}
+          </Script>
+        )}
+
+        {/* Datos estructurados del negocio (SEO: Google entiende que eres una
+            tienda de maquillaje en México) */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Store",
+              name: SITE_NAME,
+              url: SITE_URL,
+              description:
+                "Tienda de maquillaje original por pieza: e.l.f, NYX, Maybelline, L'Oréal y más. Envío a todo México.",
+              telephone: "+525543813568",
+              areaServed: "MX",
+              currenciesAccepted: "MXN",
+              paymentAccepted: "Mercado Pago, Visa, Mastercard, SPEI, OXXO",
+            }),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: SITE_NAME,
+              url: SITE_URL,
+              potentialAction: {
+                "@type": "SearchAction",
+                target: `${SITE_URL}/amarea?q={search_term_string}`,
+                "query-input": "required name=search_term_string",
+              },
+            }),
+          }}
+        />
+
         <CartProvider>
           {children}
           <CartDrawer />

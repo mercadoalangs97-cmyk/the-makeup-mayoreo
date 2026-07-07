@@ -1,19 +1,27 @@
-// Google Analytics 4. El Measurement ID es PÚBLICO (no es un secreto: se expone
-// en el navegador de todos modos), por eso puede ir aquí. Si algún día cambia,
-// se puede sobreescribir con la variable NEXT_PUBLIC_GA_ID en Vercel.
+// Google Analytics 4. El Measurement ID es PÚBLICO. Override con NEXT_PUBLIC_GA_ID.
 export const GA_ID = process.env.NEXT_PUBLIC_GA_ID || "G-FX6JGB8NGC";
+// Meta (Facebook) Pixel — vacío hasta poner el ID en NEXT_PUBLIC_META_PIXEL_ID
+// (Vercel). Mientras esté vacío, no carga y los eventos de Meta son no-op.
+export const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID || "";
 
 type Params = Record<string, unknown>;
 
-// Envía un evento a GA4 (solo si gtag ya cargó en el navegador). En el servidor
-// no hace nada, así que es seguro llamarlo desde cualquier componente.
+// Evento a GA4 (solo si gtag ya cargó). En el servidor no hace nada.
 export function gaEvent(name: string, params: Params = {}): void {
   if (typeof window === "undefined") return;
   const w = window as unknown as { gtag?: (...a: unknown[]) => void };
   if (typeof w.gtag === "function") w.gtag("event", name, params);
 }
 
-// ---- Eventos de e-commerce (formato estándar GA4) ----
+// Evento equivalente al Meta Pixel (si está cargado). Los "standard events" de
+// Meta permiten optimizar campañas de Facebook/Instagram por conversión.
+function fbq(name: string, params: Params = {}): void {
+  if (typeof window === "undefined") return;
+  const w = window as unknown as { fbq?: (...a: unknown[]) => void };
+  if (typeof w.fbq === "function") w.fbq("track", name, params);
+}
+
+// ---- Eventos de e-commerce (GA4 estándar + espejo en Meta) ----
 
 export function gaViewItem(p: {
   sku: string;
@@ -36,6 +44,13 @@ export function gaViewItem(p: {
       },
     ],
   });
+  fbq("ViewContent", {
+    content_ids: [p.sku],
+    content_name: p.nombre,
+    content_type: "product",
+    value: p.precio,
+    currency: "MXN",
+  });
 }
 
 export function gaAddToCart(
@@ -55,6 +70,13 @@ export function gaAddToCart(
       },
     ],
   });
+  fbq("AddToCart", {
+    content_ids: [item.id],
+    content_name: item.nombre,
+    content_type: "product",
+    value: item.precio * qty,
+    currency: "MXN",
+  });
 }
 
 export function gaBeginCheckout(
@@ -72,10 +94,15 @@ export function gaBeginCheckout(
       quantity: it.qty,
     })),
   });
+  fbq("InitiateCheckout", {
+    content_ids: items.map((it) => it.id),
+    content_type: "product",
+    num_items: items.reduce((s, it) => s + it.qty, 0),
+    value,
+    currency: "MXN",
+  });
 }
 
-// La compra se dispara en /checkout/exito leyendo lo que se guardó al iniciar el
-// pago (valor + id de la orden), para poder mandar el VALOR real de la venta.
 export function gaPurchase(data: {
   id: string;
   value: number;
@@ -87,4 +114,27 @@ export function gaPurchase(data: {
     value: data.value,
     items: data.items,
   });
+  fbq("Purchase", {
+    content_ids: (data.items || []).map((i) => i.item_id),
+    content_type: "product",
+    value: data.value,
+    currency: "MXN",
+  });
+}
+
+// ---- Lead (contacto por WhatsApp/correo/tel) — clave para el MAYOREO ----
+// GA4: generate_lead (conversión estándar que Google Ads reconoce) + un evento
+// con la fuente exacta. Meta: Lead.
+export function gaLead(fuente: string): void {
+  gaEvent("generate_lead", { method: fuente });
+  gaEvent("contacto_whatsapp", { fuente });
+  fbq("Lead", { content_name: fuente });
+}
+
+// ---- Búsqueda en el catálogo ----
+export function gaSearch(term: string): void {
+  const t = (term || "").trim();
+  if (t.length < 2) return;
+  gaEvent("search", { search_term: t });
+  fbq("Search", { search_string: t });
 }

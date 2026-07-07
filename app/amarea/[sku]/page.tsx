@@ -71,6 +71,10 @@ export default async function ProductoPage({ params }: Params) {
       producto.notas?.trim() ||
       `${nombre} de ${producto.marcaNorm}, disponible por pieza.`,
     sku: producto.sku,
+    gtin:
+      producto.barcode && /^\d{8,14}$/.test(producto.barcode)
+        ? producto.barcode
+        : undefined,
     brand: { "@type": "Brand", name: producto.marcaNorm },
     category: producto.categoria ?? undefined,
     offers: {
@@ -78,6 +82,7 @@ export default async function ProductoPage({ params }: Params) {
       url: `${SITE_URL}/amarea/${producto.sku}`,
       priceCurrency: "MXN",
       price: producto.precio_mxn ?? 0,
+      itemCondition: "https://schema.org/NewCondition",
       availability:
         producto.stock > 0
           ? "https://schema.org/InStock"
@@ -86,11 +91,36 @@ export default async function ProductoPage({ params }: Params) {
     },
   };
 
+  // Migas (breadcrumb) para SEO
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Inicio", item: SITE_URL },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Productos",
+        item: `${SITE_URL}/amarea`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: nombre,
+        item: `${SITE_URL}/amarea/${producto.sku}`,
+      },
+    ],
+  };
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
       <SiteHeader variant="amarea" />
       <ProductoDetalle producto={producto} variantes={variantes} />
