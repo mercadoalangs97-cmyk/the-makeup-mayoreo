@@ -695,6 +695,31 @@ footer{padding:76px 16px 34px;background:var(--rose-dk);color:#F7E9E3}
 .shop-vertodos-btn{display:inline-block;background:var(--charcoal);color:var(--gold-lt);border:none;border-radius:var(--radius-pill);padding:16px 46px;font-family:inherit;font-size:15px;font-weight:600;letter-spacing:.03em;cursor:pointer;transition:background .2s;text-decoration:none}
 .shop-hero-compact{padding-top:34px!important;padding-bottom:6px!important}
 .shop-hero-compact .shop-hero-h1{font-size:clamp(26px,4vw,40px);margin-bottom:8px}
+
+/* ===== Banner principal de la home (imagen de modelo + texto) ===== */
+.hero-banner{position:relative;width:100%;overflow:hidden;background:var(--cream)}
+.hero-banner-media{position:absolute;inset:0}
+.hero-banner-img{width:100%;height:100%;object-fit:cover;object-position:80% center;display:block}
+.hero-banner-inner{position:relative;max-width:var(--maxw);margin:0 auto;min-height:clamp(380px,48vw,540px);display:flex;align-items:center;padding:0 22px}
+.hero-banner-inner::before{content:"";position:absolute;left:0;top:0;bottom:0;width:72%;background:linear-gradient(90deg,rgba(250,246,240,0.96) 0%,rgba(250,246,240,0.85) 32%,rgba(250,246,240,0) 100%);pointer-events:none}
+.hero-banner-content{position:relative;max-width:min(540px,58%)}
+.hero-banner-eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--rose-dk);font-weight:600;margin-bottom:12px}
+.hero-banner-h1{font-size:clamp(28px,4.6vw,52px);font-weight:600;color:var(--charcoal);line-height:1.06;margin-bottom:14px}
+.hero-banner-h1 em{color:var(--rose);font-style:italic;font-weight:500}
+.hero-banner-sub{font-size:clamp(14px,1.5vw,17px);color:#5A4A42;line-height:1.6;margin-bottom:22px;max-width:400px}
+.hero-banner-cta{display:inline-block;background:var(--charcoal);color:var(--gold-lt);text-decoration:none;border-radius:var(--radius-pill);padding:14px 34px;font-size:15px;font-weight:600;letter-spacing:.02em;transition:background .2s}
+.hero-banner-cta:hover{background:var(--rose-dk)}
+/* Móvil: imagen arriba + panel de texto abajo (legibilidad garantizada) */
+@media(max-width:640px){
+  .hero-banner{display:flex;flex-direction:column}
+  .hero-banner-media{position:relative;inset:auto;width:100%;aspect-ratio:16/11}
+  .hero-banner-img{object-position:74% center}
+  .hero-banner-inner{position:static;min-height:0;display:block;background:var(--cream);padding:22px 20px 28px;text-align:center}
+  .hero-banner-inner::before{display:none}
+  .hero-banner-content{max-width:100%}
+  .hero-banner-sub{max-width:none;margin-left:auto;margin-right:auto}
+  .hero-banner-cta{width:100%;padding:15px}
+}
 .shop-vertodos-btn:hover{background:var(--rose-dk)}
 .shop-orden{flex-shrink:0;background:#fff;border:1px solid rgba(201,169,110,0.4);border-radius:var(--radius-pill);padding:10px 14px;font-family:inherit;font-size:13px;color:var(--charcoal);cursor:pointer}
 .shop-orden:hover{border-color:var(--gold)}

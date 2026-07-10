@@ -21,6 +21,11 @@ function norm(s: string): string {
 type Orden = "destacados" | "precio-asc" | "precio-desc";
 const PER_PAGE = 24;
 
+// Banner de la home (imagen de modelo, tonos AMAREA). Se sirve optimizada (WebP)
+// vía imgOpt. El espacio libre queda a la izquierda para el texto.
+const HERO_IMG =
+  "https://yekvehkmgunoafccwmyp.supabase.co/storage/v1/object/public/product-photos/sitio/hero-amarea.png";
+
 export default function ShopClient({
   productos,
   categorias,
@@ -324,18 +329,30 @@ export default function ShopClient({
       {/* HERO. En la home es el aspiracional (aquí irá la imagen de modelo
           después); en el catálogo, un título compacto. */}
       {esHome ? (
-        <section className="shop-hero">
-          <div className="shop-hero-inner">
-            <div className="shop-hero-eyebrow">
-              AMAREA · Tus marcas favoritas
+        <section className="hero-banner">
+          <div className="hero-banner-media">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              className="hero-banner-img"
+              src={imgOpt(HERO_IMG, 1600) ?? HERO_IMG}
+              alt="Maquillaje de las mejores marcas de beauty — AMAREA"
+              fetchPriority="high"
+            />
+          </div>
+          <div className="hero-banner-inner">
+            <div className="hero-banner-content">
+              <div className="hero-banner-eyebrow">AMAREA · Belleza por pieza</div>
+              <h1 className="hero-banner-h1 serif">
+                Las mejores marcas de beauty <em>a un clic</em>
+              </h1>
+              <p className="hero-banner-sub">
+                e.l.f, NYX, Maybelline, L&apos;Oréal y más. Envío a todo México,
+                con pago seguro.
+              </p>
+              <Link href="/amarea" className="hero-banner-cta">
+                Ver productos →
+              </Link>
             </div>
-            <h1 className="shop-hero-h1 serif">
-              Las mejores marcas de beauty <em>a un clic</em>
-            </h1>
-            <p className="shop-hero-sub">
-              e.l.f, NYX, Maybelline, L&apos;Oréal y más. Envío a todo México,
-              con pago seguro.
-            </p>
           </div>
         </section>
       ) : (
