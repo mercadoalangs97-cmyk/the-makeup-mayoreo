@@ -8,7 +8,12 @@ import CartDrawer from "./components/CartDrawer";
 import Toast from "./components/Toast";
 import WppFloat from "./components/WppFloat";
 
+// Imagen que aparece al compartir el link (WhatsApp, Facebook, iMessage…).
+const OG_IMG =
+  "https://yekvehkmgunoafccwmyp.supabase.co/storage/v1/object/public/product-photos/sitio/og-amarea.jpg";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "The Makeup Mayoreo CDMX · Maquillaje al mayoreo y por pieza",
   description:
     "Las mejores marcas de beauty: e.l.f, NYX, Maybelline, L'Oréal y más. Lotes al mayoreo y productos por pieza (AMAREA). Envío a todo México.",
@@ -23,12 +28,28 @@ export const metadata: Metadata = {
     "CDMX",
   ],
   openGraph: {
-    title:
-      "The Makeup Mayoreo CDMX - Lotes de Maquillaje · e.l.f, NYX, Maybelline",
+    siteName: "AMAREA · The Makeup CDMX",
+    title: "AMAREA — Las mejores marcas de beauty a un clic",
     description:
-      "Lotes de las mejores marcas de beauty. Paquetes de 10 a 500 piezas. Para revendedoras en México.",
+      "Maquillaje 100% original por pieza: e.l.f, NYX, Maybelline, L'Oréal y más. Envío a todo México y pago seguro.",
+    url: SITE_URL,
     locale: "es_MX",
     type: "website",
+    images: [
+      {
+        url: OG_IMG,
+        width: 1200,
+        height: 630,
+        alt: "AMAREA — Maquillaje original, las mejores marcas de beauty",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "AMAREA — Las mejores marcas de beauty a un clic",
+    description:
+      "Maquillaje 100% original por pieza. Envío a todo México, pago seguro.",
+    images: [OG_IMG],
   },
 };
 
