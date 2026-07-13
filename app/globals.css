@@ -735,12 +735,14 @@ footer{padding:76px 16px 34px;background:var(--rose-dk);color:#F7E9E3}
 
 /* ===== Guías (blog) ===== */
 .guias-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin-top:26px}
-.guia-card{display:block;background:#fff;border:1px solid rgba(201,169,110,0.35);border-radius:14px;padding:20px;text-decoration:none;transition:border-color .2s,transform .2s}
+.guia-card{display:block;background:#fff;border:1px solid rgba(201,169,110,0.35);border-radius:14px;overflow:hidden;text-decoration:none;transition:border-color .2s,transform .2s}
 .guia-card:hover{border-color:var(--gold);transform:translateY(-2px)}
-.guia-card-emoji{font-size:26px}
-.guia-card h2{font-size:17px;font-weight:600;color:var(--charcoal);margin:8px 0 6px}
-.guia-card p{font-size:13.5px;color:#5A4A42;line-height:1.55;margin-bottom:10px}
+.guia-card-img{width:100%;aspect-ratio:3/2;object-fit:cover;display:block}
+.guia-card-body{padding:16px 18px 18px}
+.guia-card h2{font-size:16px;font-weight:600;color:var(--charcoal);margin:0 0 6px}
+.guia-card p{font-size:13px;color:#5A4A42;line-height:1.5;margin-bottom:10px}
 .guia-card-link{font-size:13px;color:var(--rose-dk);font-weight:600}
+.guia-hero-img{width:100%;border-radius:14px;margin:8px 0 20px;display:block}
 .guia-breadcrumb{font-size:12.5px;color:#9a8a82;margin-bottom:16px}
 .guia-breadcrumb a{color:var(--rose-dk);font-weight:500}
 .legal-page a.guia-cta{display:inline-block;background:var(--charcoal);color:var(--gold-lt);text-decoration:none;border-radius:var(--radius-pill);padding:12px 30px;font-size:14px;font-weight:600;margin-top:6px}

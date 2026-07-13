@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SITE_URL } from "../lib/site";
-import { GUIAS } from "../lib/guias";
+import { GUIAS, guiaImg } from "../lib/guias";
+import { imgOpt } from "../lib/img";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 
@@ -24,12 +25,18 @@ export default function GuiasIndex() {
         <div className="guias-grid">
           {GUIAS.map((g) => (
             <Link key={g.slug} href={`/guias/${g.slug}`} className="guia-card">
-              <span className="guia-card-emoji" aria-hidden="true">
-                {g.emoji}
-              </span>
-              <h2>{g.titulo}</h2>
-              <p>{g.descripcion}</p>
-              <span className="guia-card-link">Leer →</span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                className="guia-card-img"
+                src={imgOpt(guiaImg(g.slug), 500) ?? guiaImg(g.slug)}
+                alt={g.titulo}
+                loading="lazy"
+              />
+              <div className="guia-card-body">
+                <h2>{g.titulo}</h2>
+                <p>{g.descripcion}</p>
+                <span className="guia-card-link">Leer →</span>
+              </div>
             </Link>
           ))}
         </div>

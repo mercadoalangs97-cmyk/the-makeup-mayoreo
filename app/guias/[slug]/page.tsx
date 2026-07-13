@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SITE_URL, SITE_NAME } from "../../lib/site";
-import { getGuia, GUIAS, type Bloque } from "../../lib/guias";
+import { getGuia, GUIAS, guiaImg, type Bloque } from "../../lib/guias";
+import { imgOpt } from "../../lib/img";
 import SiteHeader from "../../components/SiteHeader";
 import SiteFooter from "../../components/SiteFooter";
 
@@ -55,6 +56,7 @@ export default async function GuiaPage({ params }: Params) {
     "@context": "https://schema.org",
     "@type": "Article",
     headline: g.titulo,
+    image: guiaImg(g.slug),
     description: g.descripcion,
     datePublished: g.fecha,
     dateModified: g.fecha,
@@ -95,6 +97,12 @@ export default async function GuiaPage({ params }: Params) {
         </nav>
         <h1 className="serif">{g.titulo}</h1>
         <p className="legal-updated">Actualizado: julio 2026 · {SITE_NAME}</p>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          className="guia-hero-img"
+          src={imgOpt(guiaImg(g.slug), 1000) ?? guiaImg(g.slug)}
+          alt={g.titulo}
+        />
         {g.cuerpo.map((b, i) => (
           <BloqueView key={i} b={b} />
         ))}

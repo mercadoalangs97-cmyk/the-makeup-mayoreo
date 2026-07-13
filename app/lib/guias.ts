@@ -120,3 +120,10 @@ export const GUIAS: Guia[] = [
 export function getGuia(slug: string): Guia | undefined {
   return GUIAS.find((g) => g.slug === slug);
 }
+
+// Imagen de portada de cada guía (subida al bucket como sitio/guia-<slug>.png).
+const GUIAS_IMG_BASE =
+  "https://yekvehkmgunoafccwmyp.supabase.co/storage/v1/object/public/product-photos/sitio";
+export function guiaImg(slug: string): string {
+  return `${GUIAS_IMG_BASE}/guia-${slug}.png`;
+}
