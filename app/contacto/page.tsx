@@ -40,6 +40,13 @@ export default function Contacto() {
           <a href="mailto:ventas@themakeup.com.mx">ventas@themakeup.com.mx</a>
         </p>
 
+        <h2>Horario de atención</h2>
+        <p>
+          Lunes a viernes, de <strong>9:00 a 18:00 h</strong> (hora de la Ciudad
+          de México). Los mensajes recibidos fuera de este horario los
+          respondemos el siguiente día hábil.
+        </p>
+
         <h2>Negocio</h2>
         <p>
           The Makeup · AMAREA
