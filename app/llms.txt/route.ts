@@ -1,4 +1,5 @@
 import { SITE_URL, SITE_NAME } from "../lib/site";
+import { GUIAS } from "../lib/guias";
 
 // llms.txt — resumen curado del sitio para motores de IA (ChatGPT, Perplexity,
 // Gemini, Google AI). Estándar emergente tipo robots.txt pero para LLMs: les da
@@ -29,6 +30,9 @@ export function GET() {
 - [Contacto](${SITE_URL}/contacto): WhatsApp, correo y horario de atención (lun–vie 9:00–18:00 h, CDMX).
 - [Cambios y devoluciones](${SITE_URL}/devoluciones): por higiene no hay devoluciones por decisión del cliente; se resuelven productos dañados, defectuosos o equivocados.
 - [Términos y condiciones](${SITE_URL}/terminos).
+
+## Guías de maquillaje (contenido útil)
+${GUIAS.map((g) => `- [${g.titulo}](${SITE_URL}/guias/${g.slug}): ${g.descripcion}`).join("\n")}
 
 ## Datos del negocio
 - Nombre: ${SITE_NAME} (marca de venta al consumidor: AMAREA).

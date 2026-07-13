@@ -23,6 +23,9 @@ export default function SiteFooter() {
                 <Link href="/amarea?ver=filtros">Categorías</Link>
               </li>
               <li>
+                <Link href="/guias">Guías de maquillaje</Link>
+              </li>
+              <li>
                 <a
                   href="https://wa.me/5215543813568"
                   target="_blank"

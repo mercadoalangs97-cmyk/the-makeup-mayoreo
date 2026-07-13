@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "./lib/site";
 import { fetchProductosTienda } from "./lib/productos";
+import { GUIAS } from "./lib/guias";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +39,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 0.8,
     },
+    // Guías (blog) — SEO + GEO.
+    { url: `${SITE_URL}/guias`, lastModified: now, changeFrequency: "monthly", priority: 0.6 },
+    ...GUIAS.map((g) => ({
+      url: `${SITE_URL}/guias/${g.slug}`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.5,
+    })),
     // Páginas de información (Merchant Center / confianza).
     { url: `${SITE_URL}/contacto`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
     { url: `${SITE_URL}/devoluciones`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
