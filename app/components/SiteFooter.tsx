@@ -37,19 +37,13 @@ export default function SiteFooter() {
             <div className="footer-links-title">Ayuda</div>
             <ul className="footer-links">
               <li>
-                <a
-                  href="https://wa.me/5215543813568"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  WhatsApp
-                </a>
+                <Link href="/contacto">Contacto</Link>
               </li>
               <li>
-                <a href="#">Politica de devoluciones</a>
+                <Link href="/devoluciones">Cambios y devoluciones</Link>
               </li>
               <li>
-                <a href="#">Terminos y condiciones</a>
+                <Link href="/terminos">Términos y condiciones</Link>
               </li>
             </ul>
             <div className="footer-pay">
