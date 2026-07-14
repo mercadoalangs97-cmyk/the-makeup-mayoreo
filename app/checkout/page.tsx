@@ -56,6 +56,14 @@ export default function CheckoutPage() {
   const [cotizando, setCotizando] = useState(false);
   const [cotizaError, setCotizaError] = useState("");
 
+  // Cupón de descuento
+  const [cupon, setCupon] = useState("");
+  const [cuponInfo, setCuponInfo] = useState<
+    { codigo: string; valor: number; solo_productos: boolean } | null
+  >(null);
+  const [cuponMsg, setCuponMsg] = useState("");
+  const [cuponLoading, setCuponLoading] = useState(false);
+
   // Validación por C.P. (autocompleta estado/municipio + colonias)
   const [colonias, setColonias] = useState<string[] | null>(null);
   const [coloniaManual, setColoniaManual] = useState(false);
@@ -123,10 +131,66 @@ export default function CheckoutPage() {
       : modo === "cotizar"
       ? opcionElegida?.total ?? null // null = aún no elige
       : 0; // coordinar
-  const totalPagar = total + (envioMonto ?? 0);
+
+  // Descuento del cupón (solo productos individuales). Se calcula igual que en
+  // el servidor: se baja el % del precio de cada producto y se redondea.
+  const subtotalProductos = items
+    .filter((it) => it.tipo === "producto")
+    .reduce((s, it) => s + it.precio * it.qty, 0);
+  const descuento =
+    cuponInfo && subtotalProductos > 0
+      ? Math.round(
+          items
+            .filter((it) => it.tipo === "producto")
+            .reduce((s, it) => {
+              const nuevo =
+                Math.round(it.precio * (1 - cuponInfo.valor / 100) * 100) / 100;
+              return s + (it.precio - nuevo) * it.qty;
+            }, 0) * 100
+        ) / 100
+      : 0;
+
+  const totalPagar = total - descuento + (envioMonto ?? 0);
 
   function set(campo: string, valor: string) {
     setF((prev) => ({ ...prev, [campo]: valor }));
+  }
+
+  async function aplicarCupon() {
+    const code = cupon.trim().toUpperCase();
+    if (!code) return;
+    setCuponLoading(true);
+    setCuponMsg("");
+    try {
+      const res = await fetch("/api/cupon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ codigo: code, telefono: f.telefono }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        setCuponInfo(null);
+        setCuponMsg(data.error || "Código no válido.");
+        setCuponLoading(false);
+        return;
+      }
+      if (data.solo_productos && subtotalProductos <= 0) {
+        setCuponInfo(null);
+        setCuponMsg("Este código solo aplica a productos individuales (no a lotes).");
+        setCuponLoading(false);
+        return;
+      }
+      setCuponInfo({
+        codigo: data.codigo,
+        valor: Number(data.valor),
+        solo_productos: !!data.solo_productos,
+      });
+      setCuponMsg("✓ Código aplicado");
+      setCuponLoading(false);
+    } catch {
+      setCuponMsg("No se pudo validar. Intenta de nuevo.");
+      setCuponLoading(false);
+    }
   }
 
   async function cotizar() {
@@ -202,6 +266,7 @@ export default function CheckoutPage() {
           items: items.map((it) => ({ id: it.id, qty: it.qty })),
           envio: f,
           envioServicio: envioSel || undefined,
+          cupon: cuponInfo?.codigo || undefined,
         }),
       });
       const data = await res.json();
@@ -376,6 +441,59 @@ export default function CheckoutPage() {
                   <span>Subtotal</span>
                   <span>{fmx(total)}</span>
                 </div>
+
+                {/* Código de descuento */}
+                <div className="co-cupon">
+                  <div className="co-cupon-row">
+                    <input
+                      className="co-cupon-input"
+                      placeholder="Código de descuento"
+                      value={cupon}
+                      onChange={(e) =>
+                        setCupon(e.target.value.toUpperCase().replace(/\s/g, ""))
+                      }
+                      disabled={!!cuponInfo}
+                    />
+                    {cuponInfo ? (
+                      <button
+                        type="button"
+                        className="co-cupon-btn co-cupon-quitar"
+                        onClick={() => {
+                          setCuponInfo(null);
+                          setCupon("");
+                          setCuponMsg("");
+                        }}
+                      >
+                        Quitar
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className="co-cupon-btn"
+                        onClick={aplicarCupon}
+                        disabled={cuponLoading || !cupon.trim()}
+                      >
+                        {cuponLoading ? "…" : "Aplicar"}
+                      </button>
+                    )}
+                  </div>
+                  {cuponMsg && (
+                    <div
+                      className={
+                        "co-cupon-msg" + (cuponInfo ? " ok" : " err")
+                      }
+                    >
+                      {cuponMsg}
+                    </div>
+                  )}
+                </div>
+
+                {descuento > 0 && (
+                  <div className="co-subtotal-row co-descuento">
+                    <span>Descuento ({cuponInfo?.codigo})</span>
+                    <span>−{fmx(descuento)}</span>
+                  </div>
+                )}
 
                 {modo === "cotizar" && (
                   <div className="co-cotiza">

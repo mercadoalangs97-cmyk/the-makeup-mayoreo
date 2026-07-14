@@ -1,0 +1,458 @@
+{
+  "CO-30WA-241": {
+    "nombre_seo": "Tinta Labial Covergirl Clean Fresh Jelly – Color Acuoso Hidratante 30 Watermelon Splash",
+    "notas": "La Clean Fresh Jelly Water Tint de Covergirl es una tinta de textura gel-agua que deja un velo de color jugoso y natural, sin sensación pegajosa. Hidrata mientras aporta un tono fresco tipo 'mordida de fruta', ideal para un look diario y luminoso. El tono 30 Watermelon Splash es un coral-sandía vivo que ilumina al instante. Aplícala directo del aplicador, una o dos capas según la intensidad que busques."
+  },
+  "CO-60BE-240": {
+    "nombre_seo": "Tinta Labial Covergirl Clean Fresh Jelly – Color Acuoso Hidratante 60 Berry Wiggle",
+    "notas": "La Clean Fresh Jelly Water Tint de Covergirl es una tinta de textura gel-agua que deja un velo de color jugoso y natural, sin sensación pegajosa. Hidrata mientras aporta un tono fresco tipo 'mordida de fruta', ideal para un look diario y luminoso. El tono 60 Berry Wiggle es un rosa-baya vibrante que favorece a casi todos los tonos de piel. Aplícala directo del aplicador, una o dos capas según la intensidad que busques."
+  },
+  "CO-20CH-239": {
+    "nombre_seo": "Tinta Labial CoverGirl Clean Fresh Jelly – Color Acuoso Hidratante 20 Cherry Burst",
+    "notas": "La Clean Fresh Jelly Water Tint de CoverGirl es una tinta de textura gel-agua que deja un velo de color jugoso y natural, sin sensación pegajosa. Hidrata mientras aporta un tono fresco tipo 'mordida de fruta', ideal para un look diario y luminoso. El tono 20 Cherry Burst es un rojo-cereza fresco y favorecedor que da un toque coqueto. Aplícala directo del aplicador, una o dos capas según la intensidad que busques."
+  },
+  "EL-PINK-201": {
+    "nombre_seo": "Glossy Lip Stain e.l.f – Tinta de Labios con Brillo Larga Duración Pinkies Up",
+    "notas": "El Glossy Lip Stain de e.l.f es una tinta líquida ligera que combina color que dura con un acabado brillante y jugoso. Se siente cómoda, no reseca y deja un tinte que aguanta horas sin sentirse pesada. El tono Pinkies Up es un rosa coqueto y luminoso, perfecto para el día a día. Aplica una capa sobre los labios y deja secar unos segundos; repasa si quieres más intensidad."
+  },
+  "EL-POWE-200": {
+    "nombre_seo": "Glossy Lip Stain e.l.f – Tinta de Labios con Brillo Larga Duración Power Mauve",
+    "notas": "El Glossy Lip Stain de e.l.f es una tinta líquida ligera que combina color que dura con un acabado brillante y jugoso. Se siente cómoda, no reseca y deja un tinte que aguanta horas sin sentirse pesada. El tono Power Mauve es un malva elegante de subtono rosado que estiliza cualquier look. Aplica una capa sobre los labios y deja secar unos segundos; repasa si quieres más intensidad."
+  },
+  "EL-ROSR-199": {
+    "nombre_seo": "Glossy Lip Stain e.l.f – Tinta de Labios con Brillo Larga Duración Rosé Rizzin'",
+    "notas": "El Glossy Lip Stain de e.l.f es una tinta líquida ligera que combina color que dura con un acabado brillante y jugoso. Se siente cómoda, no reseca y deja un tinte que aguanta horas sin sentirse pesada. El tono Rosé Rizzin' es un rosado nude muy ponible, ideal para un look natural y fresco. Aplica una capa sobre los labios y deja secar unos segundos; repasa si quieres más intensidad."
+  },
+  "EL-APRI-174": {
+    "nombre_seo": "Glow Reviver Lip Oil e.l.f – Aceite Labial Hidratante con Efecto Volumen Apricot Feelings",
+    "notas": "El Glow Reviver Lip Oil de e.l.f es un aceite labial que nutre e hidrata mientras deja un brillo jugoso y un sutil efecto de volumen. Su fórmula ligera no se siente pegajosa y aporta un velo de color natural que revive los labios. El tono Apricot Feelings es un durazno suave y luminoso, perfecto para un acabado fresco de diario. Aplícalo solo o sobre tu labial para un toque glow al instante."
+  },
+  "EL-MAJO-173": {
+    "nombre_seo": "Glow Reviver Lip Oil e.l.f – Aceite Labial Hidratante con Efecto Volumen Major Mauve",
+    "notas": "El Glow Reviver Lip Oil de e.l.f es un aceite labial que nutre e hidrata mientras deja un brillo jugoso y un sutil efecto de volumen. Su fórmula ligera no se siente pegajosa y aporta un velo de color natural que revive los labios. El tono Major Mauve es un malva rosado favorecedor que da elegancia sin esfuerzo. Aplícalo solo o sobre tu labial para un toque glow al instante."
+  },
+  "EL-ROSE-197": {
+    "nombre_seo": "Glow Reviver Lip Oil Stick e.l.f – Aceite Labial en Barra Hidratante Rose Latte",
+    "notas": "El Glow Reviver Lip Oil Stick de e.l.f lleva el aceite labial nutritivo a un práctico formato en barra que se desliza directo sobre los labios. Hidrata, da brillo jugoso y un toque de volumen sin sensación pegajosa, ideal para retocar sobre la marcha. El tono Rose Latte es un rosa nude cremoso y muy natural. Pásalo directo sobre los labios, solo o encima de tu labial favorito."
+  },
+  "EL-VINE-196": {
+    "nombre_seo": "Glow Reviver Lip Oil Stick e.l.f – Aceite Labial en Barra Hidratante Vine & Shine",
+    "notas": "El Glow Reviver Lip Oil Stick de e.l.f lleva el aceite labial nutritivo a un práctico formato en barra que se desliza directo sobre los labios. Hidrata, da brillo jugoso y un toque de volumen sin sensación pegajosa, ideal para retocar sobre la marcha. El tono Vine & Shine es un vino-berry profundo y favorecedor para un look más intenso. Pásalo directo sobre los labios, solo o encima de tu labial favorito."
+  },
+  "EL-CARA-198": {
+    "nombre_seo": "Glow Reviver Slipstick Lip Oil e.l.f – Aceite Labial en Barra Hidratante Cara-Melt",
+    "notas": "El Glow Reviver Slipstick de e.l.f es un aceite labial en barra que se desliza suave para hidratar, dar brillo jugoso y un sutil efecto de volumen. Su textura nutritiva no reseca ni se siente pegajosa, perfecta para llevar y retocar todo el día. El tono Cara-Melt es un caramelo nude cálido que favorece a la mayoría. Pásalo directo sobre los labios, solo o sobre tu labial."
+  },
+  "LO-10PI-275": {
+    "nombre_seo": "Polvo Suelto L'Oréal Infallible Blur-Fection 24H – Fija y Difumina Poros 10 Pink Light",
+    "notas": "El Infallible Blur-Fection de L'Oréal Paris es un polvo suelto ultrafino que fija el maquillaje hasta 24 horas mientras difumina poros y aporta luminosidad. Controla el brillo sin resecar y deja un acabado suave y uniforme tipo desenfoque. El tono 10 Pink Light ilumina y da un efecto fresco a la piel. Aplícalo con brocha sobre la base, enfocándote en zona T o en todo el rostro para sellar tu maquillaje."
+  },
+  "LO-217S-186": {
+    "nombre_seo": "Tinta Labial L'Oréal Hyaluron Tint Serum – Color Hidratante con Ácido Hialurónico 217 Smoky Mauve",
+    "notas": "El Hyaluron Tint Lip Stain Serum de L'Oréal Paris es una tinta-suero con ácido hialurónico que aporta color mientras hidrata y da sensación de volumen. Deja un acabado jugoso y ligero que se siente cómodo todo el día, sin resecar. El tono 217 Smoky Mauve es un malva ahumado elegante y muy favorecedor. Aplica con el aplicador una capa para un velo natural o dos para más intensidad."
+  },
+  "LO-521B-187": {
+    "nombre_seo": "Tinta Labial L'Oréal Hyaluron Tint Serum – Color Hidratante con Ácido Hialurónico 521 Bordeaux Please",
+    "notas": "El Hyaluron Tint Lip Stain Serum de L'Oréal Paris es una tinta-suero con ácido hialurónico que aporta color mientras hidrata y da sensación de volumen. Deja un acabado jugoso y ligero que se siente cómodo todo el día, sin resecar. El tono 521 Bordeaux Please es un vino burdeos profundo, ideal para un look sofisticado. Aplica con el aplicador una capa para un velo natural o dos para más intensidad."
+  },
+  "LO-640T-188": {
+    "nombre_seo": "Tinta Labial L'Oréal Hyaluron Tint Serum – Color Hidratante con Ácido Hialurónico 640 Tea Time",
+    "notas": "El Hyaluron Tint Lip Stain Serum de L'Oréal Paris es una tinta-suero con ácido hialurónico que aporta color mientras hidrata y da sensación de volumen. Deja un acabado jugoso y ligero que se siente cómodo todo el día, sin resecar. El tono 640 Tea Time es un nude rosado cálido muy ponible para el diario. Aplica con el aplicador una capa para un velo natural o dos para más intensidad."
+  },
+  "LO-420L-219": {
+    "nombre_seo": "Labial Líquido L'Oréal Infallible Le Rouge Paris – Color Intenso Larga Duración 420 Le Rouge Paris",
+    "notas": "El Infallible Le Rouge Paris de L'Oréal Paris es un labial líquido de color intenso y larga duración con un acabado favorecedor que aguanta el día. Su fórmula cubre parejo en una sola pasada y se mantiene sin transferir tanto. El tono 420 Le Rouge Paris es el rojo clásico parisino que estiliza cualquier look. Aplica desde el centro del labio hacia las orillas y deja asentar unos segundos."
+  },
+  "LO-220P-222": {
+    "nombre_seo": "Labial Líquido Mate L'Oréal Infallible Matte Resistance – Larga Duración Cómodo 220 Paris Sunset",
+    "notas": "El Infallible Matte Resistance de L'Oréal Paris es un labial líquido mate de larga duración que se siente ligero y cómodo, sin la sensación reseca de otros mates. Aporta color intenso que aguanta comidas y bebidas sin retocar tanto. El tono 220 Paris Sunset es un rosa cálido luminoso, perfecto para el día. Aplica una capa fina desde el centro y deja secar para fijar el acabado mate."
+  },
+  "LO-600F-220": {
+    "nombre_seo": "Labial Líquido Mate L'Oréal Infallible Matte Resistance – Larga Duración Cómodo 600 First Kiss",
+    "notas": "El Infallible Matte Resistance de L'Oréal Paris es un labial líquido mate de larga duración que se siente ligero y cómodo, sin la sensación reseca de otros mates. Aporta color intenso que aguanta comidas y bebidas sin retocar tanto. El tono 600 First Kiss es un rosa-nude suave y favorecedor para un look natural. Aplica una capa fina desde el centro y deja secar para fijar el acabado mate."
+  },
+  "LO-625S-221": {
+    "nombre_seo": "Labial Líquido Mate L'Oréal Infallible Matte Resistance – Larga Duración Cómodo 625 Summer Fling",
+    "notas": "El Infallible Matte Resistance de L'Oréal Paris es un labial líquido mate de larga duración que se siente ligero y cómodo, sin la sensación reseca de otros mates. Aporta color intenso que aguanta comidas y bebidas sin retocar tanto. El tono 625 Summer Fling es un rosa-malva vibrante que da un toque coqueto. Aplica una capa fina desde el centro y deja secar para fijar el acabado mate."
+  },
+  "LO-650W-214": {
+    "nombre_seo": "Labial Líquido Mate L'Oréal Infallible Matte Resistance – Larga Duración Cómodo 650 Wedding Night",
+    "notas": "El Infallible Matte Resistance de L'Oréal Paris es un labial líquido mate de larga duración que se siente ligero y cómodo, sin la sensación reseca de otros mates. Aporta color intenso que aguanta comidas y bebidas sin retocar tanto. El tono 650 Wedding Night es un rojo profundo y elegante para un look de noche. Aplica una capa fina desde el centro y deja secar para fijar el acabado mate."
+  },
+  "LO-630R-217": {
+    "nombre_seo": "Labial Líquido Mate L'Oréal Infallible Matte Resistance – Larga Duración Cómodo 630 Rose Heat",
+    "notas": "El Infallible Matte Resistance de L'Oréal Paris es un labial líquido mate de larga duración que se siente ligero y cómodo, sin la sensación reseca de otros mates. Aporta color intenso que aguanta comidas y bebidas sin retocar tanto. El tono 630 Rose Heat es un rosa intenso cálido muy favorecedor. Aplica una capa fina desde el centro y deja secar para fijar el acabado mate."
+  },
+  "LO-120M-218": {
+    "nombre_seo": "Labial Líquido Mate L'Oréal Infallible Pro Matte – Cobertura Total Larga Duración 120 Major Crush",
+    "notas": "El Infallible Pro Matte de L'Oréal Paris es un labial líquido de acabado mate aterciopelado y cobertura total que dura horas sin perder intensidad. Su fórmula ligera cubre parejo y resiste el día a día. El tono 120 Major Crush es un rosa-nude cálido fácil de llevar todos los días. Aplica una capa fina y deja secar unos segundos para sellar el color mate."
+  },
+  "LO-635W-215": {
+    "nombre_seo": "Labial Líquido Mate L'Oréal Infallible Pro Matte – Cobertura Total Larga Duración 635 Worth It Medium",
+    "notas": "El Infallible Pro Matte de L'Oréal Paris es un labial líquido de acabado mate aterciopelado y cobertura total que dura horas sin perder intensidad. Su fórmula ligera cubre parejo y resiste el día a día. El tono 635 Worth It Medium es un rosa-malva medio versátil y favorecedor. Aplica una capa fina y deja secar unos segundos para sellar el color mate."
+  },
+  "LO-655P-003": {
+    "nombre_seo": "Labial Líquido Mate L'Oréal Infallible Pro Matte – Cobertura Total Larga Duración 655 Proposal",
+    "notas": "El Infallible Pro Matte de L'Oréal Paris es un labial líquido de acabado mate aterciopelado y cobertura total que dura horas sin perder intensidad. Su fórmula ligera cubre parejo y resiste el día a día. El tono 655 Proposal es un rojo-rosado romántico que estiliza al instante. Aplica una capa fina y deja secar unos segundos para sellar el color mate."
+  },
+  "LO-601W-216": {
+    "nombre_seo": "Labial Líquido Mate L'Oréal Infallible Pro Matte – Cobertura Total Larga Duración 601 Worth It",
+    "notas": "El Infallible Pro Matte de L'Oréal Paris es un labial líquido de acabado mate aterciopelado y cobertura total que dura horas sin perder intensidad. Su fórmula ligera cubre parejo y resiste el día a día. El tono 601 Worth It es un malva-nude favorecedor muy fácil de combinar. Aplica una capa fina y deja secar unos segundos para sellar el color mate."
+  },
+  "LO-NUCO-269": {
+    "nombre_seo": "Labial L'Oréal Colour Riche Les Nus – Barra Nude Intensa Cremosa Nu Confident",
+    "notas": "El Colour Riche Les Nus Intense de L'Oréal Paris es un labial en barra de nudes intensos enriquecido con aceites y pigmentos para un color cremoso y confortable. Cubre parejo en una pasada y cuida los labios mientras los favorece. El tono Nu Confident es un nude rosado cálido elegante que combina con todo. Aplica directo desde la barra, perfilando el contorno para un acabado pulido."
+  },
+  "LO-380R-181": {
+    "nombre_seo": "Brillo Labial L'Oréal Plump & Shine – Gloss con Efecto Volumen y Brillo 380 Rouge In Love",
+    "notas": "El Plump & Shine Lip Gloss de L'Oréal Paris es un brillo labial que da un efecto de volumen jugoso con un acabado espejo de alto brillo. Su fórmula deja los labios luminosos y con sensación rellena, sin pegajosidad excesiva. El tono 380 Rouge In Love es un rojo brillante coqueto que ilumina la sonrisa. Aplica sobre los labios solo o encima de tu labial para más dimensión."
+  },
+  "LO-490B-184": {
+    "nombre_seo": "Brillo Labial L'Oréal Plump & Shine Hyaluronic – Gloss con Volumen y Brillo 490 Berry Jolie",
+    "notas": "El Plump & Shine Hyaluronic Lip Gloss de L'Oréal Paris combina ácido hialurónico con un acabado de alto brillo para labios jugosos y con efecto volumen. Hidrata mientras da luminosidad espejo sin sentirse pesado. El tono 490 Berry Jolie es un rosa-baya luminoso muy favorecedor. Aplica sobre los labios solo o encima de tu labial para más dimensión y brillo."
+  },
+  "LO-390C-183": {
+    "nombre_seo": "Aceite Labial L'Oréal Plump Ambition – Lip Oil Hialurónico con Efecto Volumen 390 Cherry Cherie",
+    "notas": "El Plump Ambition Hyaluron Lip Oil de L'Oréal Paris es un aceite labial con ácido hialurónico que hidrata, da brillo jugoso y un sutil efecto de volumen. Su textura ligera no se siente pegajosa y deja un velo de color natural. El tono 390 Cherry Cherie es un cereza luminoso fresco y favorecedor. Aplícalo solo o sobre tu labial para un acabado glow al instante."
+  },
+  "LO-485W-185": {
+    "nombre_seo": "Aceite Labial L'Oréal Plump Ambition – Lip Oil Hialurónico con Efecto Volumen 485 Wine O'Clock",
+    "notas": "El Plump Ambition Hyaluron Lip Oil de L'Oréal Paris es un aceite labial con ácido hialurónico que hidrata, da brillo jugoso y un sutil efecto de volumen. Su textura ligera no se siente pegajosa y deja un velo de color natural. El tono 485 Wine O'Clock es un vino suave y elegante para un look más profundo. Aplícalo solo o sobre tu labial para un acabado glow al instante."
+  },
+  "LO-020P-182": {
+    "nombre_seo": "Aceite Labial L'Oréal Plump Ambition pH – Lip Oil que se Adapta a tu Tono 020 pH Rosé",
+    "notas": "El Plump Ambition Hyaluron Lip Oil pH de L'Oréal Paris es un aceite labial que reacciona con el pH de tus labios para revelar un rosa personalizado, único en cada persona. Hidrata, da brillo jugoso y un sutil efecto de volumen sin pegajosidad. El tono 020 pH Rosé se transforma en un rosa natural a tu medida. Aplícalo solo para un toque fresco y deja que el color se revele."
+  },
+  "LO-C12B-271": {
+    "nombre_seo": "Rubor en Polvo L'Oréal True Match – Color Natural Difuminable C1-2 Baby Blossom",
+    "notas": "El True Match Super-Blendable Blush de L'Oréal Paris es un rubor en polvo finísimo que se funde con la piel para un color natural y favorecedor. Su pigmento se difumina sin esfuerzo y es graduable, de un toque sutil a un acabado más definido. El tono C1-2 Baby Blossom es un rosa suave de subtono frío, ideal para dar frescura al rostro. Aplícalo sobre la manzana de la mejilla con una brocha y difumina hacia las sienes."
+  },
+  "LO-W1LI-270": {
+    "nombre_seo": "Polvo Compacto L'Oréal True Match – Acabado Natural que Unifica el Tono W1 Light",
+    "notas": "El True Match Super-Blendable Powder de L'Oréal Paris es un polvo compacto que unifica el tono y controla el brillo con un acabado natural, nunca acartonado. Su textura fina se funde con la piel y se puede construir de ligero a más cobertura. El tono W1 Light favorece pieles claras de subtono cálido. Aplícalo con brocha o esponja sobre la base o solo para retocar durante el día."
+  },
+  "LO-W6ME-272": {
+    "nombre_seo": "Polvo Compacto L'Oréal True Match – Acabado Natural que Unifica el Tono W6 Medium",
+    "notas": "El True Match Super-Blendable Powder de L'Oréal Paris es un polvo compacto que unifica el tono y controla el brillo con un acabado natural, nunca acartonado. Su textura fina se funde con la piel y se puede construir de ligero a más cobertura. El tono W6 Medium favorece pieles medias de subtono cálido. Aplícalo con brocha o esponja sobre la base o solo para retocar durante el día."
+  },
+  "MA-45PL-260": {
+    "nombre_seo": "Rubor en Polvo Maybelline – Color Difuminable para un Toque Natural 45 Plum",
+    "notas": "El rubor en polvo de Maybelline New York aporta color difuminable que da vida al rostro con un acabado natural y favorecedor. Su textura suave se funde fácil y es graduable según la intensidad que busques. El tono 45 Plum es un ciruela rosado que aporta calidez y definición a las mejillas. Aplícalo con brocha sobre la manzana de la mejilla y difumina hacia arriba."
+  },
+  "MA-001C-178": {
+    "nombre_seo": "Labial Líquido Mate Maybelline SuperStay Matte Ink – Hasta 16H de Duración 001 Crop Top",
+    "notas": "El SuperStay Matte Ink de Maybelline New York es un labial líquido de acabado mate intenso que dura hasta 16 horas sin retoques. Su aplicador de flecha define con precisión y el color se mantiene a prueba de comidas y bebidas. El tono 001 Crop Top es un nude rosado claro muy ponible para el diario. Aplica una capa fina sobre labios secos y deja secar sin presionar para fijar el mate."
+  },
+  "MA-118D-212": {
+    "nombre_seo": "Labial Líquido Mate Maybelline SuperStay Matte Ink – Hasta 16H de Duración 118 Dancer",
+    "notas": "El SuperStay Matte Ink de Maybelline New York es un labial líquido de acabado mate intenso que dura hasta 16 horas sin retoques. Su aplicador de flecha define con precisión y el color se mantiene a prueba de comidas y bebidas. El tono 118 Dancer es un nude rosado cálido elegante y versátil. Aplica una capa fina sobre labios secos y deja secar sin presionar para fijar el mate."
+  },
+  "MA-125I-207": {
+    "nombre_seo": "Labial Líquido Mate Maybelline SuperStay Matte Ink – Hasta 16H de Duración 125 Inspirer",
+    "notas": "El SuperStay Matte Ink de Maybelline New York es un labial líquido de acabado mate intenso que dura hasta 16 horas sin retoques. Su aplicador de flecha define con precisión y el color se mantiene a prueba de comidas y bebidas. El tono 125 Inspirer es un rosa-nude suave ideal para un look natural. Aplica una capa fina sobre labios secos y deja secar sin presionar para fijar el mate."
+  },
+  "MA-510C-209": {
+    "nombre_seo": "Labial Líquido Mate Maybelline SuperStay Matte Ink – Hasta 16H de Duración 510 Charmer",
+    "notas": "El SuperStay Matte Ink de Maybelline New York es un labial líquido de acabado mate intenso que dura hasta 16 horas sin retoques. Su aplicador de flecha define con precisión y el color se mantiene a prueba de comidas y bebidas. El tono 510 Charmer es un nude rosado favorecedor para todos los días. Aplica una capa fina sobre labios secos y deja secar sin presionar para fijar el mate."
+  },
+  "MA-515R-213": {
+    "nombre_seo": "Labial Líquido Mate Maybelline SuperStay Matte Ink – Hasta 16H de Duración 515 Renegade",
+    "notas": "El SuperStay Matte Ink de Maybelline New York es un labial líquido de acabado mate intenso que dura hasta 16 horas sin retoques. Su aplicador de flecha define con precisión y el color se mantiene a prueba de comidas y bebidas. El tono 515 Renegade es un rosa malva profundo con carácter. Aplica una capa fina sobre labios secos y deja secar sin presionar para fijar el mate."
+  },
+  "MA-105S-179": {
+    "nombre_seo": "Labial Líquido Maybelline SuperStay Matte Ink Satin – Acabado Satinado Larga Duración 105 Speed Walk",
+    "notas": "El SuperStay Matte Ink en su versión Satin de Maybelline New York ofrece la larga duración del Matte Ink con un acabado satinado más suave y cómodo en los labios. El color se mantiene horas sin retoques y luce menos seco que un mate clásico. El tono 105 Speed Walk es un nude cálido natural muy ponible. Aplica una capa fina sobre labios secos y deja asentar unos segundos."
+  },
+  "MA-155S-206": {
+    "nombre_seo": "Labial Líquido Mate Maybelline SuperStay Matte Ink – Hasta 16H de Duración 155 Savant",
+    "notas": "El SuperStay Matte Ink de Maybelline New York es un labial líquido de acabado mate intenso que dura hasta 16 horas sin retoques. Su aplicador de flecha define con precisión y el color se mantiene a prueba de comidas y bebidas. El tono 155 Savant es un rosa malva sofisticado y favorecedor. Aplica una capa fina sobre labios secos y deja secar sin presionar para fijar el mate."
+  },
+  "MA-160M-210": {
+    "nombre_seo": "Labial Líquido Mate Maybelline SuperStay Matte Ink – Hasta 16H de Duración 160 Mover",
+    "notas": "El SuperStay Matte Ink de Maybelline New York es un labial líquido de acabado mate intenso que dura hasta 16 horas sin retoques. Su aplicador de flecha define con precisión y el color se mantiene a prueba de comidas y bebidas. El tono 160 Mover es un rosa vibrante con energía, ideal para destacar. Aplica una capa fina sobre labios secos y deja secar sin presionar para fijar el mate."
+  },
+  "MA-20PI-208": {
+    "nombre_seo": "Labial Líquido Mate Maybelline SuperStay Matte Ink – Hasta 16H de Duración 20 Pioneer",
+    "notas": "El SuperStay Matte Ink de Maybelline New York es un labial líquido de acabado mate intenso que dura hasta 16 horas sin retoques. Su aplicador de flecha define con precisión y el color se mantiene a prueba de comidas y bebidas. El tono 20 Pioneer es un rojo clásico atrevido que nunca falla. Aplica una capa fina sobre labios secos y deja secar sin presionar para fijar el mate."
+  },
+  "MA-500I-202": {
+    "nombre_seo": "Labial Líquido Mate Maybelline SuperStay Matte Ink – Hasta 16H de Duración 500 Insider",
+    "notas": "El SuperStay Matte Ink de Maybelline New York es un labial líquido de acabado mate intenso que dura hasta 16 horas sin retoques. Su aplicador de flecha define con precisión y el color se mantiene a prueba de comidas y bebidas. El tono 500 Insider es un rojo-vino profundo y elegante para la noche. Aplica una capa fina sobre labios secos y deja secar sin presionar para fijar el mate."
+  },
+  "MA-525V-211": {
+    "nombre_seo": "Labial Líquido Mate Maybelline SuperStay Matte Ink – Hasta 16H de Duración 525 Vixen",
+    "notas": "El SuperStay Matte Ink de Maybelline New York es un labial líquido de acabado mate intenso que dura hasta 16 horas sin retoques. Su aplicador de flecha define con precisión y el color se mantiene a prueba de comidas y bebidas. El tono 525 Vixen es un vino intenso con actitud para un look de impacto. Aplica una capa fina sobre labios secos y deja secar sin presionar para fijar el mate."
+  },
+  "MA-65SE-204": {
+    "nombre_seo": "Labial Líquido Mate Maybelline SuperStay Matte Ink – Hasta 16H de Duración 65 Seductress",
+    "notas": "El SuperStay Matte Ink de Maybelline New York es un labial líquido de acabado mate intenso que dura hasta 16 horas sin retoques. Su aplicador de flecha define con precisión y el color se mantiene a prueba de comidas y bebidas. El tono 65 Seductress es un rosa-malva profundo muy favorecedor. Aplica una capa fina sobre labios secos y deja secar sin presionar para fijar el mate."
+  },
+  "MA-70AM-203": {
+    "nombre_seo": "Labial Líquido Mate Maybelline SuperStay Matte Ink – Hasta 16H de Duración 70 Amazonian",
+    "notas": "El SuperStay Matte Ink de Maybelline New York es un labial líquido de acabado mate intenso que dura hasta 16 horas sin retoques. Su aplicador de flecha define con precisión y el color se mantiene a prueba de comidas y bebidas. El tono 70 Amazonian es un nude rosado cálido versátil para el diario. Aplica una capa fina sobre labios secos y deja secar sin presionar para fijar el mate."
+  },
+  "MA-30RO-205": {
+    "nombre_seo": "Labial Líquido Mate Maybelline Super Stay Matte Ink – Hasta 16H de Duración 30 Romantic",
+    "notas": "El Super Stay Matte Ink de Maybelline New York es un labial líquido de acabado mate intenso que dura hasta 16 horas sin retoques. Su aplicador de flecha define con precisión y el color se mantiene a prueba de comidas y bebidas. El tono 30 Romantic es un rosa-nude tierno ideal para un look dulce. Aplica una capa fina sobre labios secos y deja secar sin presionar para fijar el mate."
+  },
+  "MA-15CH-223": {
+    "nombre_seo": "Bálsamo Labial Maybelline Baby Lips – Hidratación con Color Cherry Me",
+    "notas": "El Baby Lips de Maybelline New York es un bálsamo labial que hidrata y suaviza los labios mientras deja un toque de color natural. Su fórmula ligera mantiene los labios cómodos durante horas, ideal para llevar a diario. El tono Cherry Me es un rojo-cereza translúcido fresco y coqueto. Pásalo directo sobre los labios cuantas veces quieras para hidratar y dar un velo de color."
+  },
+  "MA-103M-177": {
+    "nombre_seo": "Labial Maybelline Color Sensational Made For All – Barra Satinada Universal 103 Make It Work",
+    "notas": "El Color Sensational Made For All de Maybelline New York es un labial en barra de acabado satinado pensado para favorecer todos los tonos de piel. Aporta color cremoso y cómodo en una sola pasada, con cuidado para los labios. El tono 103 Make It Work es un nude rosado satinado versátil para cualquier ocasión. Aplica directo desde la barra y perfila el contorno para un acabado pulido."
+  },
+  "MA-002M-180": {
+    "nombre_seo": "Labial Maybelline Color Sensational Made For All – Barra Mate Universal 002 Maybe It's Matte",
+    "notas": "El Color Sensational Made For All de Maybelline New York en acabado mate ofrece color cómodo y favorecedor pensado para todos los tonos de piel. Cubre parejo en una pasada con una textura suave que no reseca como otros mates. El tono 002 Maybe It's... Matte es un nude rosado mate universal muy ponible. Aplica directo desde la barra y perfila el contorno para definir."
+  },
+  "MA-20SL-259": {
+    "nombre_seo": "Sombra de Ojos Maybelline Expert Wear – Color Sedoso Fácil de Difuminar 20S Linen",
+    "notas": "La Expert Wear Eyeshadow de Maybelline New York es una sombra de textura sedosa que se difumina fácil y aporta color uniforme al párpado. Su acabado favorecedor permite construir desde un velo sutil hasta más intensidad. El tono 20S Linen es un nude claro luminoso ideal para iluminar o como base. Aplícala con brocha o aplicador y difumina los bordes para un acabado pulido."
+  },
+  "MA-30SS-258": {
+    "nombre_seo": "Sombra de Ojos Maybelline Expert Wear – Color Sedoso Fácil de Difuminar 30S Seashell",
+    "notas": "La Expert Wear Eyeshadow de Maybelline New York es una sombra de textura sedosa que se difumina fácil y aporta color uniforme al párpado. Su acabado favorecedor permite construir desde un velo sutil hasta más intensidad. El tono 30S Seashell es un rosa nude suave perfecto para un look natural. Aplícala con brocha o aplicador y difumina los bordes para un acabado pulido."
+  },
+  "MA-40QD-263": {
+    "nombre_seo": "Paleta de Sombras Maybelline Expert Wear Quad – 4 Tonos Coordinados 40Q Designer Chocolate",
+    "notas": "La Expert Wear Eyeshadow Quad de Maybelline New York reúne cuatro sombras coordinadas para crear un look completo de ojos sin complicarte. Sus texturas sedosas se difuminan fácil y combinan entre sí para dar luz, color y profundidad. El cuarteto 40Q Designer Chocolate ofrece nudes y cafés cálidos elegantes para todos los días. Usa los claros en el párpado y los oscuros en la cuenca para dar dimensión."
+  },
+  "MA-02QN-262": {
+    "nombre_seo": "Paleta de Sombras Maybelline Expert Wear Quad – 4 Tonos Coordinados 02Q Natural Smokes",
+    "notas": "La Expert Wear Eyeshadow Quad de Maybelline New York reúne cuatro sombras coordinadas para crear un look completo de ojos sin complicarte. Sus texturas sedosas se difuminan fácil y combinan entre sí para dar luz, color y profundidad. El cuarteto 02Q Natural Smokes ofrece grises y neutros ahumados ideales para un smokey suave. Usa los claros en el párpado y los oscuros en la cuenca para dar dimensión."
+  },
+  "MA-001C-255": {
+    "nombre_seo": "Corrector Maybelline Fit Me – Cobertura Natural que Difumina Ojeras 001 Cool Ivory",
+    "notas": "El Fit Me Concealer de Maybelline New York es un corrector de cobertura media y acabado natural que difumina ojeras e imperfecciones sin marcar líneas. Su fórmula ligera se funde con la piel y se siente cómoda todo el día. El tono 001 Cool Ivory favorece pieles muy claras de subtono frío. Aplícalo en triángulo bajo el ojo o sobre imperfecciones y difumina con esponja o dedo."
+  },
+  "MA-011V-256": {
+    "nombre_seo": "Corrector Maybelline Fit Me – Cobertura Natural que Difumina Ojeras 011 Vanilla",
+    "notas": "El Fit Me Concealer de Maybelline New York es un corrector de cobertura media y acabado natural que difumina ojeras e imperfecciones sin marcar líneas. Su fórmula ligera se funde con la piel y se siente cómoda todo el día. El tono 011 Vanilla favorece pieles claras de subtono neutro a cálido. Aplícalo en triángulo bajo el ojo o sobre imperfecciones y difumina con esponja o dedo."
+  },
+  "MA-025M-257": {
+    "nombre_seo": "Corrector Maybelline Fit Me – Cobertura Natural que Difumina Ojeras 025 Medium",
+    "notas": "El Fit Me Concealer de Maybelline New York es un corrector de cobertura media y acabado natural que difumina ojeras e imperfecciones sin marcar líneas. Su fórmula ligera se funde con la piel y se siente cómoda todo el día. El tono 025 Medium favorece pieles medias de subtono neutro. Aplícalo en triángulo bajo el ojo o sobre imperfecciones y difumina con esponja o dedo."
+  },
+  "MA-010E-193": {
+    "nombre_seo": "Bálsamo Aceite Labial Maybelline Lifter Glaze – Brillo Jugoso e Hidratante 010 Espresso Kiss",
+    "notas": "El Lifter Glaze Oil Balm de Maybelline New York es un bálsamo-aceite que hidrata e ilumina los labios con un brillo jugoso tipo cristal. Su textura nutritiva no reseca y deja un velo de color natural muy cómodo. El tono 010 Espresso Kiss es un café cálido translúcido elegante y favorecedor. Aplícalo directo sobre los labios cuantas veces quieras para brillo e hidratación."
+  },
+  "MA-008A-194": {
+    "nombre_seo": "Brillo Labial Maybelline Lifter Gloss – Gloss Hidratante con Efecto Volumen 008 Acai Glaze",
+    "notas": "El Lifter Gloss de Maybelline New York es un brillo labial con ácido hialurónico que da un acabado jugoso y un sutil efecto de volumen, dejando los labios suaves y luminosos. Su fórmula no es pegajosa y se siente cómoda al usar. El tono 008 Acai Glaze es un baya rosado luminoso muy favorecedor. Aplícalo solo o sobre tu labial para más brillo y dimensión."
+  },
+  "MA-028M-243": {
+    "nombre_seo": "Brillo Labial Maybelline Lifter Gloss con Ácido Hialurónico – Efecto Volumen y Brillo 028 Maple",
+    "notas": "El Lifter Gloss con ácido hialurónico de Maybelline New York da un acabado jugoso y un sutil efecto de volumen, dejando los labios suaves, hidratados y luminosos. Su fórmula no es pegajosa y se siente cómoda todo el día. El tono 028 Maple es un nude cálido acaramelado ideal para el diario. Aplícalo solo o sobre tu labial para más brillo y dimensión."
+  },
+  "MA-027T-242": {
+    "nombre_seo": "Brillo Labial Maybelline Lifter Gloss – Gloss Hidratante con Efecto Volumen 027 Toffee",
+    "notas": "El Lifter Gloss de Maybelline New York es un brillo labial con ácido hialurónico que da un acabado jugoso y un sutil efecto de volumen, dejando los labios suaves y luminosos. Su fórmula no es pegajosa y se siente cómoda al usar. El tono 027 Toffee es un nude cálido amarronado favorecedor para todo tipo de pieles. Aplícalo solo o sobre tu labial para más brillo y dimensión."
+  },
+  "MA-004C-195": {
+    "nombre_seo": "Bálsamo Aceite Labial Maybelline Lifter Gloss Sheer – Brillo Jugoso e Hidratante 004 Cherry Swirl",
+    "notas": "El Lifter Gloss Sheer Glaze Oil Balm de Maybelline New York es un bálsamo-aceite ligero que hidrata e ilumina con un brillo jugoso translúcido. Su textura nutritiva no reseca y deja un velo de color natural muy cómodo. El tono 004 Cherry Swirl es un cereza rosado fresco y coqueto. Aplícalo directo sobre los labios cuantas veces quieras para brillo e hidratación."
+  },
+  "MA-003O-175": {
+    "nombre_seo": "Labial Mate Maybelline Color Sensational Matte Ink – Barra de Color Intenso 003 Open Late",
+    "notas": "El labial mate Matte Ink de Maybelline New York es una barra de color intenso y acabado mate que se siente cómoda y luce uniforme en una sola pasada. Aporta pigmento favorecedor que aguanta el día sin resecar tanto. El tono 003 Open Late es un nude rosado mate versátil para cualquier ocasión. Aplica directo desde la barra y perfila el contorno para definir."
+  },
+  "MA-101U-176": {
+    "nombre_seo": "Labial Maybelline Color Sensational Satin – Barra Cremosa de Color Uniforme 101 Upstate",
+    "notas": "El labial Color Sensational en acabado satinado de Maybelline New York aporta color cremoso y cómodo con un brillo suave favorecedor. Cubre parejo en una pasada y cuida los labios mientras los resalta. El tono 101 Upstate es un nude rosado satinado muy ponible para el diario. Aplica directo desde la barra y perfila el contorno para un acabado pulido."
+  },
+  "MA-120-273": {
+    "nombre_seo": "Base en Polvo Maybelline Super Stay 24H – Cobertura Larga Duración Acabado Mate Tono 120",
+    "notas": "La Super Stay 24H Hybrid Powder-Foundation de Maybelline New York combina lo mejor del polvo y la base líquida: cobertura media a alta con acabado mate aterciopelado que dura hasta 24 horas. Se aplica en seco o húmedo y controla el brillo todo el día, perfecta para piel mixta a grasa. El tono 120 unifica el rostro sin resecar ni marcar líneas. Aplícala con esponja húmeda para más cobertura o con brocha para un acabado natural."
+  },
+  "MA-332-274": {
+    "nombre_seo": "Base en Polvo Maybelline Super Stay 24H – Cobertura Larga Duración Acabado Mate Tono 332",
+    "notas": "La Super Stay 24H Hybrid Powder-Foundation de Maybelline New York combina lo mejor del polvo y la base líquida: cobertura media a alta con acabado mate aterciopelado que dura hasta 24 horas. Se aplica en seco o húmedo y controla el brillo todo el día, perfecta para piel mixta a grasa. El tono 332 unifica el rostro sin resecar ni marcar líneas. Aplícala con esponja húmeda para más cobertura o con brocha para un acabado natural."
+  },
+  "MA-25RE-171": {
+    "nombre_seo": "Labial Líquido Maybelline Super Stay Vinyl Ink – Brillo Vinilo Larga Duración 25 Red-Hot",
+    "notas": "El Super Stay Vinyl Ink de Maybelline New York es un labial líquido de alto brillo tipo vinilo que combina color intenso con larga duración y un acabado espejo. Se siente ligero y mantiene el brillo y el tono por horas. El tono 25 Red-Hot es un rojo encendido vibrante de gran impacto. Aplica una capa con el aplicador desde el centro hacia las orillas para un acabado jugoso."
+  },
+  "MA-105G-170": {
+    "nombre_seo": "Labial Líquido Maybelline Super Stay Vinyl Ink – Brillo Vinilo Larga Duración 105 Golden",
+    "notas": "El Super Stay Vinyl Ink de Maybelline New York es un labial líquido de alto brillo tipo vinilo que combina color intenso con larga duración y un acabado espejo. Se siente ligero y mantiene el brillo y el tono por horas. El tono 105 Golden es un nude cálido con destello dorado muy favorecedor. Aplica una capa con el aplicador desde el centro hacia las orillas para un acabado jugoso."
+  },
+  "MA-15PE-165": {
+    "nombre_seo": "Labial Líquido Maybelline Super Stay Vinyl Ink – Brillo Vinilo Larga Duración 15 Peachy",
+    "notas": "El Super Stay Vinyl Ink de Maybelline New York es un labial líquido de alto brillo tipo vinilo que combina color intenso con larga duración y un acabado espejo. Se siente ligero y mantiene el brillo y el tono por horas. El tono 15 Peachy es un durazno luminoso fresco ideal para el día. Aplica una capa con el aplicador desde el centro hacia las orillas para un acabado jugoso."
+  },
+  "MA-160S-168": {
+    "nombre_seo": "Labial Líquido Maybelline Super Stay Vinyl Ink – Brillo Vinilo Larga Duración 160 Sultry",
+    "notas": "El Super Stay Vinyl Ink de Maybelline New York es un labial líquido de alto brillo tipo vinilo que combina color intenso con larga duración y un acabado espejo. Se siente ligero y mantiene el brillo y el tono por horas. El tono 160 Sultry es un vino profundo y seductor para un look de noche. Aplica una capa con el aplicador desde el centro hacia las orillas para un acabado jugoso."
+  },
+  "MA-40WI-167": {
+    "nombre_seo": "Labial Líquido Maybelline Super Stay Vinyl Ink – Brillo Vinilo Larga Duración 40 Witty",
+    "notas": "El Super Stay Vinyl Ink de Maybelline New York es un labial líquido de alto brillo tipo vinilo que combina color intenso con larga duración y un acabado espejo. Se siente ligero y mantiene el brillo y el tono por horas. El tono 40 Witty es un coral-rosado vibrante lleno de energía. Aplica una capa con el aplicador desde el centro hacia las orillas para un acabado jugoso."
+  },
+  "MA-155U-164": {
+    "nombre_seo": "Labial Líquido Maybelline SuperStay Vinyl Ink – Brillo Vinilo Larga Duración 155 Upbeat",
+    "notas": "El SuperStay Vinyl Ink de Maybelline New York es un labial líquido de alto brillo tipo vinilo que combina color intenso con larga duración y un acabado espejo. Se siente ligero y mantiene el brillo y el tono por horas. El tono 155 Upbeat es un fucsia-rosa vibrante de gran impacto. Aplica una capa con el aplicador desde el centro hacia las orillas para un acabado jugoso."
+  },
+  "MA-20CO-169": {
+    "nombre_seo": "Labial Líquido Maybelline SuperStay Vinyl Ink – Brillo Vinilo Larga Duración 20 Coy",
+    "notas": "El SuperStay Vinyl Ink de Maybelline New York es un labial líquido de alto brillo tipo vinilo que combina color intenso con larga duración y un acabado espejo. Se siente ligero y mantiene el brillo y el tono por horas. El tono 20 Coy es un rosa-nude coqueto fácil de llevar a diario. Aplica una capa con el aplicador desde el centro hacia las orillas para un acabado jugoso."
+  },
+  "MA-50WI-166": {
+    "nombre_seo": "Labial Líquido Maybelline SuperStay Vinyl Ink – Brillo Vinilo Larga Duración 50 Wicked",
+    "notas": "El SuperStay Vinyl Ink de Maybelline New York es un labial líquido de alto brillo tipo vinilo que combina color intenso con larga duración y un acabado espejo. Se siente ligero y mantiene el brillo y el tono por horas. El tono 50 Wicked es un rojo-vino atrevido con mucha personalidad. Aplica una capa con el aplicador desde el centro hacia las orillas para un acabado jugoso."
+  },
+  "MA-55RO-172": {
+    "nombre_seo": "Labial Líquido Maybelline SuperStay Vinyl Ink – Brillo Vinilo Larga Duración 55 Royal",
+    "notas": "El SuperStay Vinyl Ink de Maybelline New York es un labial líquido de alto brillo tipo vinilo que combina color intenso con larga duración y un acabado espejo. Se siente ligero y mantiene el brillo y el tono por horas. El tono 55 Royal es un rosa-fucsia profundo elegante y vibrante. Aplica una capa con el aplicador desde el centro hacia las orillas para un acabado jugoso."
+  },
+  "MA-110F-191": {
+    "nombre_seo": "Tinta Labial Maybelline SuperStay Teddy Tint – Color Mate Aterciopelado 110 Faux Freckle",
+    "notas": "El SuperStay Teddy Tint de Maybelline New York es una tinta líquida de acabado mate suave y aterciopelado que deja un velo de color difuminado tipo 'blur'. Se siente ligera, no apelmaza y aporta un tono natural que dura horas. El tono 110 Faux Freckle es un nude cálido amarronado muy favorecedor. Aplica una capa difuminando con el aplicador para un efecto borroso natural."
+  },
+  "MA-60CO-192": {
+    "nombre_seo": "Tinta Labial Maybelline SuperStay Teddy Tint – Color Mate Aterciopelado 60 Cool Grunge",
+    "notas": "El SuperStay Teddy Tint de Maybelline New York es una tinta líquida de acabado mate suave y aterciopelado que deja un velo de color difuminado tipo 'blur'. Se siente ligera, no apelmaza y aporta un tono natural que dura horas. El tono 60 Cool Grunge es un malva amarronado de subtono frío con estilo. Aplica una capa difuminando con el aplicador para un efecto borroso natural."
+  },
+  "MA-85SO-189": {
+    "nombre_seo": "Tinta Labial Maybelline SuperStay Teddy Tint – Color Mate Aterciopelado 85 Soft Era",
+    "notas": "El SuperStay Teddy Tint de Maybelline New York es una tinta líquida de acabado mate suave y aterciopelado que deja un velo de color difuminado tipo 'blur'. Se siente ligera, no apelmaza y aporta un tono natural que dura horas. El tono 85 Soft Era es un rosa-nude tenue ideal para un look delicado. Aplica una capa difuminando con el aplicador para un efecto borroso natural."
+  },
+  "MA-90RI-190": {
+    "nombre_seo": "Tinta Labial Maybelline SuperStay Teddy Tint – Color Mate Aterciopelado 90 Ribbon Tied",
+    "notas": "El SuperStay Teddy Tint de Maybelline New York es una tinta líquida de acabado mate suave y aterciopelado que deja un velo de color difuminado tipo 'blur'. Se siente ligera, no apelmaza y aporta un tono natural que dura horas. El tono 90 Ribbon Tied es un rosa malva favorecedor con un toque coqueto. Aplica una capa difuminando con el aplicador para un efecto borroso natural."
+  },
+  "MA-430D-264": {
+    "nombre_seo": "Paleta de Sombras Maybelline The City Mini – 6 Tonos Coordinados 430 Downtown Sunrise",
+    "notas": "La City Mini Palette de Maybelline New York reúne seis sombras coordinadas en un formato compacto para crear looks completos donde estés. Sus texturas se difuminan fácil y combinan mates y brillos para dar luz y profundidad. La paleta 430 Downtown Sunrise ofrece nudes cálidos y corales luminosos ideales para todos los días. Usa los claros en el párpado y los oscuros en la cuenca para dar dimensión."
+  },
+  "MI-09LI-265": {
+    "nombre_seo": "Skin Tint en Stick Milani Conceal + Perfect Blur Out – Cobertura Natural Difuminable 09 Light Medium Golden Beige",
+    "notas": "El Conceal + Perfect Blur Out Skin Tint Stick de Milani es una base en stick de cobertura ligera a media que unifica el tono y difumina poros con un acabado natural tipo 'blur'. Su formato práctico se aplica directo y se difumina con los dedos en segundos. El tono 09 Light Medium Golden Beige favorece pieles claras a medias de subtono cálido. Traza sobre el rostro y difumina con dedos o esponja para un acabado fresco."
+  },
+  "NY-07JE-247": {
+    "nombre_seo": "Brillo Labial NYX Jelly Blushin' – Gloss Jugoso de Alto Brillo 07 Jelly Blushin'",
+    "notas": "El Jelly Blushin' Full-Bodied Shine Gloss de NYX Professional Makeup es un brillo labial de textura jelly que da un acabado jugoso y muy luminoso, con un velo de color fresco. Se siente cómodo, no pegajoso, y aporta dimensión a los labios. El tono 07 Jelly Blushin' es un rosa luminoso favorecedor para el diario. Aplícalo solo o sobre tu labial para más brillo y volumen visual."
+  },
+  "NY-BLG1-234": {
+    "nombre_seo": "Brillo Labial NYX Butter Gloss – Gloss Cremoso No Pegajoso BLG14 Madeleine",
+    "notas": "El Butter Gloss de NYX Professional Makeup es un brillo labial de textura mantecosa que se siente suave y cremoso, nunca pegajoso, con cobertura translúcida a media. Deja los labios luminosos y cómodos con un velo de color favorecedor. El tono BLG14 Madeleine es un nude rosado cálido muy ponible. Aplícalo solo o sobre tu labial para un acabado jugoso."
+  },
+  "NY-BLG1-231": {
+    "nombre_seo": "Brillo Labial NYX Butter Gloss – Gloss Cremoso No Pegajoso BLG15 Angel Food Cake",
+    "notas": "El Butter Gloss de NYX Professional Makeup es un brillo labial de textura mantecosa que se siente suave y cremoso, nunca pegajoso, con cobertura translúcida a media. Deja los labios luminosos y cómodos con un velo de color favorecedor. El tono BLG15 Angel Food Cake es un rosa pálido luminoso ideal para un look fresco. Aplícalo solo o sobre tu labial para un acabado jugoso."
+  },
+  "NY-BLG1-232": {
+    "nombre_seo": "Brillo Labial NYX Butter Gloss – Gloss Cremoso No Pegajoso BLG16 Praline",
+    "notas": "El Butter Gloss de NYX Professional Makeup es un brillo labial de textura mantecosa que se siente suave y cremoso, nunca pegajoso, con cobertura translúcida a media. Deja los labios luminosos y cómodos con un velo de color favorecedor. El tono BLG16 Praline es un nude amarronado cálido muy favorecedor. Aplícalo solo o sobre tu labial para un acabado jugoso."
+  },
+  "NY-BLG4-233": {
+    "nombre_seo": "Brillo Labial NYX Butter Gloss – Gloss Cremoso No Pegajoso BLG45 Sugar High",
+    "notas": "El Butter Gloss de NYX Professional Makeup es un brillo labial de textura mantecosa que se siente suave y cremoso, nunca pegajoso, con cobertura translúcida a media. Deja los labios luminosos y cómodos con un velo de color favorecedor. El tono BLG45 Sugar High es un rosa-malva luminoso coqueto. Aplícalo solo o sobre tu labial para un acabado jugoso."
+  },
+  "NY-03NU-225": {
+    "nombre_seo": "Gloss Voluminizador NYX Duck Plump – Brillo con Efecto Volumen 03 Nude Swings",
+    "notas": "El Duck Plump High Pigment Plumping Gloss de NYX Professional Makeup es un brillo labial de alto pigmento con extracto de chile que da una sensación de hormigueo y un efecto de volumen visible. Su acabado jugoso luce labios más llenos y luminosos. El tono 03 Nude Swings es un nude rosado favorecedor para el día. Aplícalo solo o sobre tu labial; sentirás un cosquilleo que indica el efecto volumen."
+  },
+  "NY-FOLD-238": {
+    "nombre_seo": "Aceite Labial NYX Fat Oil Lip Drip – Brillo Hidratante con Squalane FOLD01 My Main",
+    "notas": "El Fat Oil Lip Drip de NYX Professional Makeup es un aceite labial con squalane que hidrata y da un brillo jugoso de larga sensación, dejando los labios suaves y luminosos. Su fórmula ligera no se siente pegajosa y aporta un velo de color natural. El tono FOLD01 My Main es un nude rosado translúcido muy ponible. Aplícalo con su aplicador esponjoso, solo o sobre tu labial."
+  },
+  "NY-FOLD-236": {
+    "nombre_seo": "Aceite Labial NYX Fat Oil Lip Drip – Brillo Hidratante con Squalane FOLD02 Missed Call",
+    "notas": "El Fat Oil Lip Drip de NYX Professional Makeup es un aceite labial con squalane que hidrata y da un brillo jugoso de larga sensación, dejando los labios suaves y luminosos. Su fórmula ligera no se siente pegajosa y aporta un velo de color natural. El tono FOLD02 Missed Call es un rosa nude cálido favorecedor. Aplícalo con su aplicador esponjoso, solo o sobre tu labial."
+  },
+  "NY-FOLD-235": {
+    "nombre_seo": "Aceite Labial NYX Fat Oil Lip Drip – Brillo Hidratante con Squalane FOLD08 Status Update",
+    "notas": "El Fat Oil Lip Drip de NYX Professional Makeup es un aceite labial con squalane que hidrata y da un brillo jugoso de larga sensación, dejando los labios suaves y luminosos. Su fórmula ligera no se siente pegajosa y aporta un velo de color natural. El tono FOLD08 Status Update es un baya rosado luminoso con dimensión. Aplícalo con su aplicador esponjoso, solo o sobre tu labial."
+  },
+  "NY-FOLD-237": {
+    "nombre_seo": "Aceite Labial NYX Fat Oil Lip Drip – Brillo Hidratante con Squalane FOLD09 Chillin'",
+    "notas": "El Fat Oil Lip Drip de NYX Professional Makeup es un aceite labial con squalane que hidrata y da un brillo jugoso de larga sensación, dejando los labios suaves y luminosos. Su fórmula ligera no se siente pegajosa y aporta un velo de color natural. El tono FOLD09 Chillin' Like A Villain es un malva rosado favorecedor con carácter. Aplícalo con su aplicador esponjoso, solo o sobre tu labial."
+  },
+  "NY-05LI-252": {
+    "nombre_seo": "Bálsamo Labial NYX Fat Oil Slick Click – Hidratación con Brillo en Barra 05 Link In My Bio",
+    "notas": "El Fat Oil Slick Click de NYX Professional Makeup es un bálsamo labial en barra con aceites nutritivos que hidrata y da un brillo jugoso con un práctico click. Su textura ligera deja los labios suaves y luminosos con un velo de color. El tono 05 Link In My Bio es un rosa nude natural muy ponible. Pásalo directo sobre los labios cuantas veces quieras para brillo e hidratación."
+  },
+  "NY-06HI-253": {
+    "nombre_seo": "Bálsamo Labial NYX Fat Oil Slick Click – Hidratación con Brillo en Barra 06 Hits Different",
+    "notas": "El Fat Oil Slick Click de NYX Professional Makeup es un bálsamo labial en barra con aceites nutritivos que hidrata y da un brillo jugoso con un práctico click. Su textura ligera deja los labios suaves y luminosos con un velo de color translúcido. El tono 06 Hits Different es un rosa luminoso fresco y favorecedor. Pásalo directo sobre los labios cuantas veces quieras para brillo e hidratación."
+  },
+  "NY-02JE-251": {
+    "nombre_seo": "Brillo Labial NYX Jelly Job – Gloss Jugoso de Alto Brillo 02 Jelly Frost",
+    "notas": "El Jelly Job Full-Bodied Shine Gloss de NYX Professional Makeup es un brillo labial de textura jelly que da un acabado jugoso y muy luminoso, con un velo de color fresco. Se siente cómodo, no pegajoso, y aporta dimensión a los labios. El tono 02 Jelly Frost es un rosa frío luminoso ideal para un look limpio. Aplícalo solo o sobre tu labial para más brillo y volumen visual."
+  },
+  "NY-03GL-245": {
+    "nombre_seo": "Brillo Labial NYX Jelly Job – Gloss Jugoso de Alto Brillo 03 Glow Job",
+    "notas": "El Jelly Job Full-Bodied Shine Gloss de NYX Professional Makeup es un brillo labial de textura jelly que da un acabado jugoso y muy luminoso, con un velo de color fresco. Se siente cómodo, no pegajoso, y aporta dimensión a los labios. El tono 03 Glow Job es un nude rosado luminoso muy favorecedor. Aplícalo solo o sobre tu labial para más brillo y volumen visual."
+  },
+  "NY-06JE-248": {
+    "nombre_seo": "Brillo Labial NYX Jelly Job – Gloss Jugoso de Alto Brillo 06 Jelly Filled",
+    "notas": "El Jelly Job Full-Bodied Shine Gloss de NYX Professional Makeup es un brillo labial de textura jelly que da un acabado jugoso y muy luminoso, con un velo de color fresco. Se siente cómodo, no pegajoso, y aporta dimensión a los labios. El tono 06 Jelly Filled es un rosa-baya luminoso coqueto. Aplícalo solo o sobre tu labial para más brillo y volumen visual."
+  },
+  "NY-09JE-249": {
+    "nombre_seo": "Brillo Labial NYX Jelly Job – Gloss Jugoso de Alto Brillo 09 Jelly Jammin'",
+    "notas": "El Jelly Job Full-Bodied Shine Gloss de NYX Professional Makeup es un brillo labial de textura jelly que da un acabado jugoso y muy luminoso, con un velo de color fresco. Se siente cómodo, no pegajoso, y aporta dimensión a los labios. El tono 09 Jelly Jammin' es un baya intenso luminoso con carácter. Aplícalo solo o sobre tu labial para más brillo y volumen visual."
+  },
+  "NY-16JE-250": {
+    "nombre_seo": "Brillo Labial NYX Jelly Job – Gloss Jugoso de Alto Brillo 16 Jellybean",
+    "notas": "El Jelly Job Full-Bodied Shine Gloss de NYX Professional Makeup es un brillo labial de textura jelly que da un acabado jugoso y muy luminoso, con un velo de color fresco. Se siente cómodo, no pegajoso, y aporta dimensión a los labios. El tono 16 Jellybean es un rosa vibrante divertido y juvenil. Aplícalo solo o sobre tu labial para más brillo y volumen visual."
+  },
+  "NY-JEP6-254": {
+    "nombre_seo": "Lápiz de Ojos NYX Jumbo Eye Pencil – Delineador y Sombra Cremosa JEP608 Cottage Cheese",
+    "notas": "El Jumbo Eye Pencil de NYX Professional Makeup es un lápiz grueso y cremoso que funciona como delineador, sombra o base para tus sombras. Su fórmula se desliza sin jalar y se difumina fácil antes de fijar, para un look intenso de larga duración. El tono JEP608 Cottage Cheese es un nude cremoso que ilumina y agranda la mirada. Traza la línea o cubre todo el párpado y difumina con el dedo o una brocha."
+  },
+  "NY-13CR-261": {
+    "nombre_seo": "Gloss Serum NYX Lip I.V. – Brillo Hidratante con Efecto Volumen 13 Cranberry Splash",
+    "notas": "El Lip I.V. Hydrating Gloss Serum de NYX Professional Makeup es un brillo-suero que hidrata intensamente y da un acabado jugoso con sensación de labios más llenos. Su fórmula ligera deja los labios suaves, luminosos y cómodos. El tono 13 Cranberry Splash es un arándano rosado luminoso muy favorecedor. Aplícalo solo o sobre tu labial para hidratación y brillo con dimensión."
+  },
+  "NY-LXXL-268": {
+    "nombre_seo": "Labial Líquido Mate NYX Lip Lingerie XXL – Color Intenso Larga Duración LXXL01 Undressd",
+    "notas": "El Lip Lingerie XXL Matte Liquid Lipstick de NYX Professional Makeup es un labial líquido de acabado mate aterciopelado y color intenso que dura horas sin sentirse acartonado. Cubre parejo en una pasada con una fórmula cómoda. El tono LXXL01 Undressd es un nude rosado claro favorecedor, ideal para el diario. Aplica una capa fina desde el centro y deja secar para fijar el acabado mate."
+  },
+  "NY-04TO-244": {
+    "nombre_seo": "Brillo Labial NYX Full-Bodied Shine Gloss – Gloss Jugoso de Alto Brillo 04 Toast N' Jelly",
+    "notas": "El Full-Bodied Shine Gloss de NYX Professional Makeup es un brillo labial de textura jelly que da un acabado jugoso y muy luminoso, con un velo de color fresco. Se siente cómodo, no pegajoso, y aporta dimensión a los labios. El tono 04 Toast N' Jelly es un nude cálido acaramelado muy ponible. Aplícalo solo o sobre tu labial para más brillo y volumen visual."
+  },
+  "NY-01JU-246": {
+    "nombre_seo": "Brillo Labial NYX Glow Lip Gloss – Gloss Jugoso de Alto Brillo 01 Just Jelly",
+    "notas": "El Glow Lip Gloss Full-Bodied Shine de NYX Professional Makeup es un brillo labial de textura jelly que da un acabado jugoso y muy luminoso, con un velo de color fresco. Se siente cómodo, no pegajoso, y aporta dimensión a los labios. El tono 01 Just Jelly es un rosa translúcido luminoso ideal para un look natural. Aplícalo solo o sobre tu labial para más brillo y volumen visual."
+  },
+  "NY-BRG0-266": {
+    "nombre_seo": "Brillo Labial NYX Royal Butter Gloss Bridgerton – Gloss Cremoso Edición Especial BRG01",
+    "notas": "El Royal Butter Gloss de NYX Professional Makeup, en su edición especial inspirada en Bridgerton, es un brillo labial de textura mantecosa suave y nada pegajosa, con cobertura translúcida a media. Deja los labios luminosos y cómodos con un velo de color favorecedor. El tono BRG01 es un nude rosado elegante muy ponible. Aplícalo solo o sobre tu labial para un acabado jugoso."
+  },
+  "NY-GLOB-228": {
+    "nombre_seo": "Labial Líquido NYX Shine Loud – Alto Pigmento y Brillo de Larga Duración Global Citizen",
+    "notas": "El Shine Loud High Pigment Lip Shine de NYX Professional Makeup es un labial líquido de dos pasos: color de alto pigmento más una capa de brillo que sella para una larga duración con acabado luminoso. Combina la intensidad de un mate con el brillo de un gloss. El tono Global Citizen (SLHP07) es un nude rosado favorecedor con destello. Aplica el color, deja secar y sella con la capa de brillo."
+  },
+  "NY-REBE-230": {
+    "nombre_seo": "Labial Líquido NYX Shine Loud – Alto Pigmento y Brillo de Larga Duración Rebel In Red",
+    "notas": "El Shine Loud High Pigment Lip Shine de NYX Professional Makeup es un labial líquido de dos pasos: color de alto pigmento más una capa de brillo que sella para una larga duración con acabado luminoso. Combina la intensidad de un mate con el brillo de un gloss. El tono Rebel In Red (SLHP17) es un rojo intenso vibrante de gran impacto. Aplica el color, deja secar y sella con la capa de brillo."
+  },
+  "NY-SLHP-226": {
+    "nombre_seo": "Labial Líquido NYX Shine Loud – Alto Pigmento y Brillo de Larga Duración SLHP04",
+    "notas": "El Shine Loud High Pigment Lip Shine de NYX Professional Makeup es un labial líquido de dos pasos: color de alto pigmento más una capa de brillo que sella para una larga duración con acabado luminoso. Combina la intensidad de un mate con el brillo de un gloss. El tono SLHP04 es un nude rosado favorecedor con destello, ideal para el día. Aplica el color, deja secar y sella con la capa de brillo."
+  },
+  "NY-SLHP-229": {
+    "nombre_seo": "Labial Líquido NYX Shine Loud – Alto Pigmento y Brillo de Larga Duración SLHP09",
+    "notas": "El Shine Loud High Pigment Lip Shine de NYX Professional Makeup es un labial líquido de dos pasos: color de alto pigmento más una capa de brillo que sella para una larga duración con acabado luminoso. Combina la intensidad de un mate con el brillo de un gloss. El tono SLHP09 es un baya rosado luminoso con dimensión. Aplica el color, deja secar y sella con la capa de brillo."
+  },
+  "NY-SLHP-227": {
+    "nombre_seo": "Labial Líquido NYX Shine Loud – Alto Pigmento y Brillo de Larga Duración SLHP19",
+    "notas": "El Shine Loud High Pigment Lip Shine de NYX Professional Makeup es un labial líquido de dos pasos: color de alto pigmento más una capa de brillo que sella para una larga duración con acabado luminoso. Combina la intensidad de un mate con el brillo de un gloss. El tono SLHP19 es un tono profundo intenso para un look de impacto. Aplica el color, deja secar y sella con la capa de brillo."
+  },
+  "NY-MMP0-224": {
+    "nombre_seo": "Primer Facial NYX The Marsh Mellow – Prebase Suavizante de Poros MMP01M",
+    "notas": "The Marsh Mellow Primer de NYX Professional Makeup es una prebase de textura suave tipo malvavisco que alisa la piel, difumina poros y prepara el rostro para una base más uniforme y duradera. Deja un acabado aterciopelado cómodo bajo el maquillaje. Es ideal para suavizar la textura antes de aplicar tu base. Aplica una capa fina sobre la piel limpia e hidratada y deja asentar antes de maquillarte."
+  },
+  "RE-102P-267": {
+    "nombre_seo": "Rubor Líquido Revlon Glimmer Blush Drops – Color Buildable con Acabado Fresco 102 Pink It Over",
+    "notas": "Las Glimmer Blush Drops de Revlon son un rubor líquido en gotas de alto pigmento que aporta un color fresco y graduable con un acabado luminoso natural. Unas gotas se difuminan fácil y dan vida a las mejillas sin apelmazar. El tono 102 Pink It Over es un rosa favorecedor que ilumina el rostro. Aplica una o dos gotas en las mejillas y difumina con los dedos o esponja antes de que se fije."
+  },
+  "ST-108": {
+    "nombre_seo": "Parches para Granitos Starface Hydro-Star + Ácido Salicílico – Estuche Recargable Big Blue",
+    "notas": "Los Hydro-Star Patches de Starface son parches hidrocoloides con ácido salicílico que ayudan a proteger y tratar los granitos mientras absorben impurezas y evitan que te los toques. Vienen en un práctico estuche Big Blue recargable con espejo, ideal para llevar contigo. Su forma de estrella es discreta y divertida. Pega un parche sobre el granito limpio y seco, y déjalo actuar varias horas o durante la noche."
+  }
+}

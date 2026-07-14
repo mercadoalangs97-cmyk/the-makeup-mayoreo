@@ -768,3 +768,38 @@ footer{padding:76px 16px 34px;background:var(--rose-dk);color:#F7E9E3}
   .shop-paginacion{gap:10px}
   .shop-paginacion button{padding:9px 14px}
 }
+
+/* ===== Pop-up de suscripción (10% bienvenida) ===== */
+.sub-overlay{position:fixed;inset:0;background:rgba(40,30,30,.55);backdrop-filter:blur(2px);z-index:1200;display:flex;align-items:center;justify-content:center;padding:20px;animation:subFade .2s ease}
+@keyframes subFade{from{opacity:0}to{opacity:1}}
+.sub-card{position:relative;background:var(--cream,#fff);width:100%;max-width:390px;border-radius:20px;padding:34px 28px 26px;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.28);animation:subPop .25s cubic-bezier(.2,.8,.3,1.2)}
+@keyframes subPop{from{transform:translateY(14px) scale(.97);opacity:0}to{transform:none;opacity:1}}
+.sub-close{position:absolute;top:12px;right:14px;background:none;border:none;font-size:18px;color:#9a8f8a;cursor:pointer;line-height:1}
+.sub-emoji{font-size:40px;margin-bottom:6px}
+.sub-tit{font-size:24px;color:var(--rose-dk);margin:0 0 8px}
+.sub-sub{font-size:14px;color:#6b5d57;line-height:1.5;margin:0 0 16px}
+.sub-form{display:flex;flex-direction:column;gap:10px}
+.sub-form input{width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:12px;font-size:15px;background:#fff}
+.sub-form input:focus{outline:none;border-color:var(--rose-dk)}
+.sub-msg{font-size:13px;color:#c0392b;text-align:left}
+.sub-btn{display:block;width:100%;padding:13px;background:var(--rose-dk);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;text-decoration:none;transition:filter .15s}
+.sub-btn:hover{filter:brightness(1.06)}
+.sub-btn:disabled{opacity:.6;cursor:default}
+.sub-btn-link{margin-top:14px}
+.sub-fine{font-size:11px;color:#a99f9a;margin:12px 0 0}
+.sub-code{display:inline-flex;align-items:center;gap:12px;margin:6px 0 4px;padding:12px 18px;background:#fff;border:2px dashed var(--rose-dk);border-radius:12px;font-size:20px;font-weight:800;letter-spacing:.05em;color:var(--rose-dk);cursor:pointer}
+.sub-code span{font-size:11px;font-weight:600;letter-spacing:.02em;color:#9a8f8a;background:var(--rose-soft,#f7e9e9);padding:3px 8px;border-radius:20px}
+
+/* ===== Cupón en el checkout ===== */
+.co-cupon{margin:10px 0 4px}
+.co-cupon-row{display:flex;gap:8px}
+.co-cupon-input{flex:1;min-width:0;padding:10px 12px;border:1px solid var(--border);border-radius:10px;font-size:14px;letter-spacing:.04em;text-transform:uppercase}
+.co-cupon-input:focus{outline:none;border-color:var(--rose-dk)}
+.co-cupon-input:disabled{background:#f3efec;color:#6b5d57}
+.co-cupon-btn{flex:0 0 auto;padding:10px 16px;background:var(--rose-dk);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer}
+.co-cupon-btn:disabled{opacity:.5;cursor:default}
+.co-cupon-quitar{background:#8a8078}
+.co-cupon-msg{font-size:12.5px;margin-top:6px}
+.co-cupon-msg.ok{color:#1e8a4c}
+.co-cupon-msg.err{color:#c0392b}
+.co-descuento{color:#1e8a4c;font-weight:600}

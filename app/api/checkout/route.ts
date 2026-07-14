@@ -40,6 +40,7 @@ export async function POST(req: Request) {
     items?: ItemEntrada[];
     envio?: Record<string, string>;
     envioServicio?: string; // servicioCode elegido (modo cotizar/lotes)
+    cupon?: string; // código de descuento (opcional)
   };
   try {
     body = await req.json();
@@ -191,6 +192,68 @@ export async function POST(req: Request) {
     }
   }
 
+  // ---- Cupón de descuento (aplica solo a productos individuales / AMAREA) ----
+  let cupon: string | null = null;
+  let descuento = 0;
+  const codigoCupon = (body.cupon || "").trim().toUpperCase();
+  if (codigoCupon) {
+    const { data: c } = await supabase
+      .from("cupones")
+      .select("*")
+      .eq("codigo", codigoCupon)
+      .eq("activo", true)
+      .maybeSingle();
+    if (!c) {
+      return NextResponse.json(
+        { error: `El código "${codigoCupon}" no es válido o ya expiró.` },
+        { status: 409 }
+      );
+    }
+    const productItems = itemsOrden.filter((it) => it.tipo === "producto");
+    const baseProductos = productItems.reduce(
+      (s, it) => s + it.precio * it.qty,
+      0
+    );
+    if (c.solo_productos && baseProductos <= 0) {
+      return NextResponse.json(
+        { error: "Este código solo aplica a productos individuales (no a lotes)." },
+        { status: 409 }
+      );
+    }
+    if (c.min_compra && baseProductos < Number(c.min_compra)) {
+      return NextResponse.json(
+        { error: `El código aplica en compras de productos desde ${c.min_compra}.` },
+        { status: 409 }
+      );
+    }
+    // Una vez por WhatsApp: ¿ya hay una compra PAGADA con este código y número?
+    if (c.una_vez_por_wpp) {
+      const { data: previa } = await supabase
+        .from("ordenes_web")
+        .select("id")
+        .eq("wpp", envio.telefono)
+        .eq("cupon", codigoCupon)
+        .eq("status", "pagado")
+        .limit(1);
+      if (previa && previa.length > 0) {
+        return NextResponse.json(
+          { error: "Este código de bienvenida ya se usó con este número de WhatsApp." },
+          { status: 409 }
+        );
+      }
+    }
+    // Aplica el porcentaje bajando el precio de cada producto (MP no acepta
+    // importes negativos; así el descuento queda repartido y transparente).
+    const factor = 1 - Number(c.valor) / 100;
+    for (const it of productItems) {
+      const nuevo = Math.round(it.precio * factor * 100) / 100;
+      descuento += (it.precio - nuevo) * it.qty;
+      it.precio = nuevo;
+    }
+    descuento = Math.round(descuento * 100) / 100;
+    cupon = codigoCupon;
+  }
+
   const total = itemsOrden.reduce((s, it) => s + it.precio * it.qty, 0);
 
   // ---- Envío que paga el cliente ----
@@ -252,7 +315,7 @@ export async function POST(req: Request) {
   const ahora = Date.now();
 
   // ---- Crear orden PENDIENTE (fuente de verdad para el webhook) ----
-  const { error: insErr } = await supabase.from("ordenes_web").insert({
+  const ordenRow: Record<string, unknown> = {
     id: ordenId,
     items: itemsOrden,
     total,
@@ -264,7 +327,14 @@ export async function POST(req: Request) {
     cliente: envio.nombre,
     email: envio.email,
     wpp: envio.telefono,
-  });
+  };
+  // Solo tocamos las columnas de cupón cuando se usó uno (así el checkout
+  // sigue funcionando aunque la migración de cupón aún no se haya corrido).
+  if (cupon) {
+    ordenRow.cupon = cupon;
+    ordenRow.descuento = descuento;
+  }
+  const { error: insErr } = await supabase.from("ordenes_web").insert(ordenRow);
   if (insErr) {
     return NextResponse.json(
       { error: "No se pudo crear la orden: " + insErr.message },

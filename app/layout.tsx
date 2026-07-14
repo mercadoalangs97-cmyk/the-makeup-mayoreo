@@ -7,6 +7,7 @@ import { SITE_URL, SITE_NAME } from "./lib/site";
 import CartDrawer from "./components/CartDrawer";
 import Toast from "./components/Toast";
 import WppFloat from "./components/WppFloat";
+import PopupSuscripcion from "./components/PopupSuscripcion";
 
 // Imagen que aparece al compartir el link (WhatsApp, Facebook, iMessage…).
 const OG_IMG =
@@ -145,6 +146,7 @@ fbq('init', '${META_PIXEL_ID}');fbq('track', 'PageView');`}
           <CartDrawer />
           <WppFloat />
           <Toast />
+          <PopupSuscripcion />
         </CartProvider>
       </body>
     </html>
