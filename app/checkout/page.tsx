@@ -155,7 +155,10 @@ export default function CheckoutPage() {
         setCotizando(false);
         return;
       }
-      setOpciones(data.opciones as OpcionEnvio[]);
+      const ops = data.opciones as OpcionEnvio[];
+      setOpciones(ops);
+      // Pre-seleccionamos la más barata (viene ordenada por precio): Estafeta económica por defecto.
+      setEnvioSel(ops[0]?.servicioCode || "");
       setCotizando(false);
     } catch {
       setCotizaError("Error de conexión al cotizar. Intenta de nuevo.");

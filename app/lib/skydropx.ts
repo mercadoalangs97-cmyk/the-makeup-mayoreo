@@ -78,23 +78,18 @@ export type RateEnvio = {
   rateId: string;
 };
 
-// Paqueterías confiables permitidas para LOTES (Estafeta, FedEx, DHL, 99 Minutos, iMile).
-// OJO: en Skydropx 99 Minutos viene como provider_name "ninetynineminutes".
-// ampm queda EXCLUIDA (retrasos). Cualquier otra fuera de la lista se oculta.
-const PAQUETERIAS_PERMITIDAS = [
-  "estafeta",
-  "fedex",
-  "dhl",
-  "ninetynineminutes",
-  "99minutos",
-  "imile",
-];
+// Paquetería única: SOLO Estafeta (cuenta configurada por la dueña).
+// Se elige siempre la opción de Estafeta más barata (la lista va ordenada por precio).
+// Si por cobertura Estafeta NO llegara a un domicilio, hay un respaldo abajo que
+// muestra la más barata disponible para no perder la venta.
+const PAQUETERIAS_PERMITIDAS = ["estafeta"];
 const PAQUETERIAS_BLOQUEADAS = ["ampm"];
 
 const normalizarKey = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
 
-// Filtra a las paqueterías permitidas y ordena de menor a mayor precio.
-// Si NINGUNA permitida aparece, regresa hasta 3 de las más baratas (sin las bloqueadas).
+// Filtra a Estafeta y ordena de menor a mayor precio (la más barata primero).
+// Respaldo: si Estafeta no cubre ese destino, regresa hasta 3 de las más baratas
+// disponibles (sin las bloqueadas) para no bloquear la compra.
 export function filtrarPaqueterias(rates: RateEnvio[]): RateEnvio[] {
   const permitidas = rates
     .filter((r) => {
