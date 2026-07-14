@@ -3,6 +3,10 @@
     {
       "path": "/api/skydropx/sync-envios",
       "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/carritos/recordatorio",
+      "schedule": "0 17 * * *"
     }
   ]
 }

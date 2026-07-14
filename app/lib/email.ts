@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import { fmx, WPP } from "./lotes";
+import { SITE_URL } from "./site";
 
 // Remitente (debe ser del dominio verificado en Resend)
 export const EMAIL_NEGOCIO = "ventas@themakeup.com.mx";
@@ -233,6 +234,46 @@ function htmlGuiaCliente(o: OrdenCorreo, g: DatosGuia): string {
     ${bloqueEnvio(o.envio)}
     <p style="color:${C.muted};font-size:12px;margin-top:16px">Si algún dato es incorrecto, respóndenos este correo lo antes posible.</p>`;
   return envoltura(marca, "🚚 ¡Tu pedido va en camino!", `Pedido ${pedidoNum(o.id)}`, cuerpo);
+}
+
+// ---- Correo de CARRITO ABANDONADO (punto 4) ----
+function htmlCarritoAbandonado(o: OrdenCorreo): string {
+  const marca = o.items.some((i) => i.tipo === "lote") ? "The Makeup Mayoreo" : "AMAREA";
+  const nombre = o.cliente || o.envio?.nombre || "";
+  const cuerpo = `
+    <p style="color:${C.text};font-size:15px;margin:0 0 16px">¡Hola ${nombre}! Notamos que dejaste estos productos en tu carrito. Todavía te esperan 💄</p>
+    ${tablaItems(o.items)}
+    <table role="presentation" style="width:100%;border-collapse:collapse;margin-top:6px">
+      ${totalRow("Subtotal", fmx(o.total), true)}
+    </table>
+    <p style="text-align:center;margin:22px 0 6px">
+      <a href="${SITE_URL}/amarea" style="display:inline-block;background:${C.roseDk};color:#fff;text-decoration:none;padding:13px 30px;border-radius:999px;font-size:15px;font-weight:bold">Completar mi compra →</a>
+    </p>
+    <p style="color:${C.text};font-size:14px;margin:16px 0 0;background:${C.cream};padding:14px 16px;border-radius:10px;text-align:center">
+      🎁 Usa el código <b style="color:${C.roseDk};letter-spacing:1px">BIENVENIDA10</b> y llévate <b>10% de descuento</b> en productos individuales.
+    </p>
+    <p style="text-align:center;margin:18px 0 0">
+      <a href="https://wa.me/${WPP}" style="color:${C.roseDk};font-size:13px">¿Dudas? Escríbenos por WhatsApp</a>
+    </p>`;
+  return envoltura(marca, "¿Olvidaste algo? 💄", `Tu carrito en ${marca}`, cuerpo);
+}
+
+export async function enviarCorreoCarrito(o: OrdenCorreo): Promise<boolean> {
+  if (!emailConfigurado() || !o.email) return false;
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  const marca = o.items.some((i) => i.tipo === "lote") ? "The Makeup Mayoreo" : "AMAREA";
+  try {
+    await resend.emails.send({
+      from: `${marca} <${EMAIL_NEGOCIO}>`,
+      to: o.email,
+      subject: `¿Olvidaste algo? 💄 Tu carrito te espera · ${marca}`,
+      html: htmlCarritoAbandonado(o),
+    });
+    return true;
+  } catch (err) {
+    console.error("[email] carrito abandonado falló:", err);
+    return false;
+  }
 }
 
 export async function enviarCorreoGuia(o: OrdenCorreo, g: DatosGuia): Promise<void> {
