@@ -52,13 +52,19 @@ function Seccion({
 export default function ProductoDetalle({
   producto,
   variantes = [],
+  fotos = [],
 }: {
   producto: Producto;
   variantes?: Producto[];
+  fotos?: string[];
 }) {
   const { add, openCart } = useCart();
   const [stock, setStock] = useState(producto.stock);
   const [qty, setQty] = useState(1);
+
+  // Galería de fotos (si el bucket tiene más de una). Si no, cae a la principal.
+  const galeria = fotos.length > 0 ? fotos : producto.foto ? [producto.foto] : [];
+  const [imgActiva, setImgActiva] = useState(0);
 
   // GA4: ver producto (una vez por ficha).
   useEffect(() => {
@@ -145,12 +151,12 @@ export default function ProductoDetalle({
       </nav>
 
       <div className="pd-grid">
-        {/* FOTO */}
+        {/* FOTO + galería */}
         <div className="pd-media">
           <div className="pd-img">
-            {producto.foto ? (
+            {galeria.length > 0 ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={imgOpt(producto.foto, 820)} alt={nombre} />
+              <img src={imgOpt(galeria[imgActiva], 820)} alt={nombre} />
             ) : (
               <div className="pd-img-ph">💄</div>
             )}
@@ -160,6 +166,23 @@ export default function ProductoDetalle({
               </span>
             )}
           </div>
+          {galeria.length > 1 && (
+            <div className="pd-thumbs">
+              {galeria.map((f, i) => (
+                <button
+                  key={f}
+                  className={"pd-thumb" + (i === imgActiva ? " active" : "")}
+                  onClick={() => setImgActiva(i)}
+                  onMouseEnter={() => setImgActiva(i)}
+                  aria-label={`Ver foto ${i + 1} de ${nombre}`}
+                  aria-current={i === imgActiva ? "true" : undefined}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={imgOpt(f, 150)} alt={`${nombre} foto ${i + 1}`} loading="lazy" />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* INFO */}

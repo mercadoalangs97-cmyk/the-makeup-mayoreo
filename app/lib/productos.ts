@@ -1,4 +1,8 @@
-import { createServerSupabase, supabasePublicConfigurado } from "./supabase";
+import {
+  createServerSupabase,
+  createAdminSupabase,
+  supabasePublicConfigurado,
+} from "./supabase";
 
 export type Producto = {
   sku: string;
@@ -113,6 +117,45 @@ export async function fetchProductoPorSku(
   if (error) return { producto: null, error: error.message };
   if (!data) return { producto: null, error: null };
   return { producto: { ...data, marcaNorm: normalizaMarca(data.marca) }, error: null };
+}
+
+// Galería de la ficha: todas las fotos del producto en el bucket, nombradas
+// {SKU}-1, {SKU}-2, … Devuelve las URLs públicas ordenadas (la principal primero).
+// Se ejecuta SOLO server-side (usa la service key para listar el bucket).
+export async function fetchFotosProducto(
+  sku: string,
+  fotoPrincipal: string | null
+): Promise<string[]> {
+  const fallback = fotoPrincipal ? [fotoPrincipal] : [];
+  try {
+    const sb = createAdminSupabase();
+    const { data } = await sb.storage
+      .from("product-photos")
+      .list("", { limit: 100, search: sku });
+    if (!data || data.length === 0) return fallback;
+
+    const esc = sku.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const rx = new RegExp(`^${esc}-(\\d+)\\.(jpe?g|png|webp)$`, "i");
+    const urls = data
+      .map((f) => ({ n: f.name, m: f.name.match(rx) }))
+      .filter((x) => x.m)
+      .sort((a, b) => parseInt(a.m![1], 10) - parseInt(b.m![1], 10))
+      .map(
+        (x) =>
+          sb.storage.from("product-photos").getPublicUrl(x.n).data.publicUrl
+      );
+    if (urls.length === 0) return fallback;
+
+    // La foto "principal" (columna foto) va primero.
+    if (fotoPrincipal) {
+      const i = urls.indexOf(fotoPrincipal);
+      if (i > 0) urls.unshift(urls.splice(i, 1)[0]);
+      else if (i === -1) urls.unshift(fotoPrincipal);
+    }
+    return urls;
+  } catch {
+    return fallback;
+  }
 }
 
 // ---- Agrupación de variantes (tonos del MISMO producto) ----

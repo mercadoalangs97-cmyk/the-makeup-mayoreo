@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import {
   fetchProductoPorSku,
   fetchProductosTienda,
+  fetchFotosProducto,
   extrasFicha,
   variantesDe,
   nombreDisplay,
@@ -58,6 +59,9 @@ export default async function ProductoPage({ params }: Params) {
   const { productos: pool } = await fetchProductosTienda();
   const variantes = variantesDe(pool, producto);
   const { relacionados, completaTuLook } = extrasFicha(pool, producto);
+
+  // Galería: todas las fotos del producto (si tiene más de una en el bucket).
+  const fotos = await fetchFotosProducto(producto.sku, producto.foto);
 
   const nombre = nombreDisplay(producto);
 
@@ -123,7 +127,7 @@ export default async function ProductoPage({ params }: Params) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
       <SiteHeader variant="amarea" />
-      <ProductoDetalle producto={producto} variantes={variantes} />
+      <ProductoDetalle producto={producto} variantes={variantes} fotos={fotos} />
 
       <div className="pd-extras">
         <FilaProductos
