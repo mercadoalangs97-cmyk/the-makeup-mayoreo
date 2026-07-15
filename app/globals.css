@@ -803,3 +803,8 @@ footer{padding:76px 16px 34px;background:var(--rose-dk);color:#F7E9E3}
 .co-cupon-msg.ok{color:#1e8a4c}
 .co-cupon-msg.err{color:#c0392b}
 .co-descuento{color:#1e8a4c;font-weight:600}
+
+/* Selector WhatsApp/Correo en el pop-up */
+.sub-toggle{display:flex;gap:6px;background:#efe7e2;border-radius:12px;padding:4px;margin:0 0 12px}
+.sub-toggle button{flex:1;padding:9px 8px;border:none;background:none;border-radius:9px;font-size:13.5px;font-weight:700;color:#8a7068;cursor:pointer;transition:all .15s}
+.sub-toggle button.active{background:#fff;color:var(--rose-dk);box-shadow:0 1px 4px rgba(0,0,0,.08)}

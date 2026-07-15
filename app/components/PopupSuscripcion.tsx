@@ -7,8 +7,10 @@ const KEY = "amarea_sub_v1"; // marca de "ya suscrito / cerrado"
 
 export default function PopupSuscripcion() {
   const [show, setShow] = useState(false);
+  const [via, setVia] = useState<"whatsapp" | "email">("whatsapp");
   const [nombre, setNombre] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
+  const [email, setEmail] = useState("");
   const [estado, setEstado] = useState<"form" | "loading" | "ok">("form");
   const [codigo, setCodigo] = useState("");
   const [msg, setMsg] = useState("");
@@ -52,13 +54,17 @@ export default function PopupSuscripcion() {
 
   async function enviar(e: React.FormEvent) {
     e.preventDefault();
-    const w = whatsapp.replace(/\D/g, "");
     if (nombre.trim().length < 2) {
       setMsg("Escribe tu nombre.");
       return;
     }
-    if (w.length !== 10) {
+    const w = whatsapp.replace(/\D/g, "");
+    if (via === "whatsapp" && w.length !== 10) {
       setMsg("Escribe tu WhatsApp a 10 dígitos.");
+      return;
+    }
+    if (via === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setMsg("Escribe un correo válido.");
       return;
     }
     setMsg("");
@@ -67,7 +73,7 @@ export default function PopupSuscripcion() {
       const res = await fetch("/api/suscribir", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ whatsapp: w, nombre }),
+        body: JSON.stringify({ via, whatsapp: w, email: email.trim(), nombre }),
       });
       const data = await res.json();
       if (!res.ok || !data.ok) {
@@ -80,7 +86,7 @@ export default function PopupSuscripcion() {
       try {
         localStorage.setItem(KEY, "1");
       } catch {}
-      gaEvent("suscripcion", { fuente: "popup" });
+      gaEvent("suscripcion", { fuente: "popup", via });
     } catch {
       setEstado("form");
       setMsg("Error de conexión. Intenta de nuevo.");
@@ -108,24 +114,55 @@ export default function PopupSuscripcion() {
             <div className="sub-emoji">💄</div>
             <h3 className="sub-tit serif">10% en tu primera compra</h3>
             <p className="sub-sub">
-              Déjanos tu WhatsApp y te damos un código de bienvenida para tu
+              Déjanos tu contacto y te damos un código de bienvenida para tu
               primer maquillaje. Además te avisamos de novedades y promos. 💌
             </p>
+            <div className="sub-toggle" role="tablist">
+              <button
+                type="button"
+                className={via === "whatsapp" ? "active" : ""}
+                onClick={() => {
+                  setVia("whatsapp");
+                  setMsg("");
+                }}
+              >
+                📱 WhatsApp
+              </button>
+              <button
+                type="button"
+                className={via === "email" ? "active" : ""}
+                onClick={() => {
+                  setVia("email");
+                  setMsg("");
+                }}
+              >
+                ✉️ Correo
+              </button>
+            </div>
             <form onSubmit={enviar} className="sub-form">
               <input
                 placeholder="Tu nombre"
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
               />
-              <input
-                placeholder="WhatsApp (10 dígitos)"
-                inputMode="numeric"
-                maxLength={10}
-                value={whatsapp}
-                onChange={(e) =>
-                  setWhatsapp(e.target.value.replace(/\D/g, "").slice(0, 10))
-                }
-              />
+              {via === "whatsapp" ? (
+                <input
+                  placeholder="WhatsApp (10 dígitos)"
+                  inputMode="numeric"
+                  maxLength={10}
+                  value={whatsapp}
+                  onChange={(e) =>
+                    setWhatsapp(e.target.value.replace(/\D/g, "").slice(0, 10))
+                  }
+                />
+              ) : (
+                <input
+                  placeholder="tucorreo@ejemplo.com"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              )}
               {msg && <div className="sub-msg">{msg}</div>}
               <button type="submit" className="sub-btn" disabled={estado === "loading"}>
                 {estado === "loading" ? "Enviando…" : "Quiero mi 10%"}
