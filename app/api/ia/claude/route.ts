@@ -61,7 +61,7 @@ export async function POST(req: Request) {
   if (!body.messages) return json({ error: "Falta 'messages'." }, 400);
 
   const payload: Record<string, unknown> = {
-    model: body.model || "claude-opus-4-5",
+    model: body.model || "claude-sonnet-5",
     max_tokens: Math.min(Number(body.max_tokens) || 1000, 4000),
     messages: body.messages,
   };

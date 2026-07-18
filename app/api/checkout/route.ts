@@ -271,7 +271,7 @@ export async function POST(req: Request) {
   const envioExtra: Record<string, unknown> = { modo };
 
   if (modo === "amarea") {
-    // Regla fija: gratis desde $599, si no $99
+    // Regla fija: gratis desde $599, si no $129
     envioMonto = calcularEnvio(itemsOrden) ?? 0;
   } else if (modo === "cotizar") {
     // LOTES: re-cotizamos en el servidor y validamos el servicio elegido

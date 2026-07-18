@@ -9,7 +9,7 @@ export const WPP = "5215543813568";
 // Umbral de envio gratis MAYOREO (MXN) — hero de /mayoreo (lotes grandes).
 export const ENVIO_GRATIS_DESDE = 2500;
 
-// Envío AMAREA (consumidor): GRATIS desde $599, si no $99 fijo.
+// Envío AMAREA (consumidor): GRATIS desde $599, si no $129 fijo.
 // El cliente NO ve la tarifa real de Skydropx; eso se usa internamente.
 export const ENVIO_AMAREA_GRATIS_DESDE = 599;
 export const ENVIO_AMAREA_TARIFA = 129;
@@ -17,7 +17,7 @@ export const ENVIO_AMAREA_TARIFA = 129;
 // Calcula el envío que VE y PAGA el cliente (NO el costo real de Skydropx).
 //  - Si el carrito tiene algún lote de mayoreo → se coordina por WhatsApp
 //    (devuelve null, no se cobra tarifa fija).
-//  - Solo productos AMAREA → gratis desde $599, si no $99 fijo.
+//  - Solo productos AMAREA → gratis desde $599, si no $129 fijo.
 export function calcularEnvio(
   items: { tipo: "lote" | "producto"; precio: number; qty: number }[]
 ): number | null {
@@ -245,7 +245,7 @@ export function loteDeItemId(id: string): Lote | undefined {
 }
 
 // Modo de envío del carrito:
-//  - "amarea"    : solo productos → regla fija ($599 gratis / $99)
+//  - "amarea"    : solo productos → regla fija ($599 gratis / $129)
 //  - "cotizar"   : tiene lotes → se cotiza con Skydropx según peso
 //  - "coordinar" : tiene un lote sin cotización automática (500 pz) → WhatsApp
 export function modoEnvio(
