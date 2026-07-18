@@ -1,15 +1,17 @@
 import Link from "next/link";
+import { imgOpt } from "../lib/img";
 
 // Sección editorial de la home: contenido de maquillaje pensado para SEO
 // (texto indexable + FAQ con datos estructurados). Se renderiza en el
 // servidor para que Google lo lea completo.
 //
-// Imágenes: Unsplash (licencia Unsplash — uso comercial gratuito, sin
-// atribución obligatoria). Servidas desde su CDN oficial images.unsplash.com.
+// IMG_BRUSHES: Unsplash (licencia Unsplash — uso comercial gratuito, sin
+// atribución obligatoria). Servida desde su CDN oficial images.unsplash.com.
 const IMG_BRUSHES =
   "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=1100&h=460&fit=crop&q=70&auto=format";
-const IMG_COSMETICA =
-  "https://images.unsplash.com/photo-1631730486572-226d1f595b68?w=700&q=70&auto=format";
+// Imagen propia (bucket product-photos/sitio) — se sirve optimizada con imgOpt.
+const IMG_ELF_GLOW =
+  "https://yekvehkmgunoafccwmyp.supabase.co/storage/v1/object/public/product-photos/sitio/elf-glow-reviver.jpg";
 
 const FAQS = [
   {
@@ -87,8 +89,8 @@ export default function HomeSeo() {
           <div className="hs-editorial-img">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={IMG_COSMETICA}
-              alt="Cosméticos y productos de belleza en tonos rosa — tienda de maquillaje en línea México"
+              src={imgOpt(IMG_ELF_GLOW, 700) ?? IMG_ELF_GLOW}
+              alt="Lip oils e.l.f Glow Reviver en tonos Wild Cherry, Pink Quartz, Cherry Cola y Cinnamon Dreamz — labiales e.l.f originales en México"
               loading="lazy"
               decoding="async"
             />
