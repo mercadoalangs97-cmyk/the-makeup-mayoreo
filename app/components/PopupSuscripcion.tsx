@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { gaEvent } from "../lib/analytics";
+import { imgOpt } from "../lib/img";
 
 const KEY = "amarea_sub_v1"; // marca de "ya suscrito / cerrado"
+const POPUP_IMG =
+  "https://yekvehkmgunoafccwmyp.supabase.co/storage/v1/object/public/product-photos/sitio/popup-modelo.jpg";
 
 export default function PopupSuscripcion() {
   const [show, setShow] = useState(false);
-  const [via, setVia] = useState<"whatsapp" | "email">("whatsapp");
-  const [nombre, setNombre] = useState("");
-  const [whatsapp, setWhatsapp] = useState("");
   const [email, setEmail] = useState("");
   const [estado, setEstado] = useState<"form" | "loading" | "ok">("form");
   const [codigo, setCodigo] = useState("");
@@ -20,7 +20,6 @@ export default function PopupSuscripcion() {
     try {
       if (localStorage.getItem(KEY)) return; // ya se suscribió o lo cerró
     } catch {}
-    // No molestar durante el pago
     if (
       typeof window !== "undefined" &&
       window.location.pathname.startsWith("/checkout")
@@ -33,7 +32,6 @@ export default function PopupSuscripcion() {
       abierto = true;
       setShow(true);
     };
-    // Aparece a los 15 s, o si el cursor sale por arriba (intención de irse).
     const t = setTimeout(abrir, 15000);
     const onLeave = (e: MouseEvent) => {
       if (e.clientY <= 0) abrir();
@@ -54,16 +52,7 @@ export default function PopupSuscripcion() {
 
   async function enviar(e: React.FormEvent) {
     e.preventDefault();
-    if (nombre.trim().length < 2) {
-      setMsg("Escribe tu nombre.");
-      return;
-    }
-    const w = whatsapp.replace(/\D/g, "");
-    if (via === "whatsapp" && w.length !== 10) {
-      setMsg("Escribe tu WhatsApp a 10 dígitos.");
-      return;
-    }
-    if (via === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
       setMsg("Escribe un correo válido.");
       return;
     }
@@ -73,7 +62,7 @@ export default function PopupSuscripcion() {
       const res = await fetch("/api/suscribir", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ via, whatsapp: w, email: email.trim(), nombre }),
+        body: JSON.stringify({ via: "email", email: email.trim() }),
       });
       const data = await res.json();
       if (!res.ok || !data.ok) {
@@ -86,7 +75,7 @@ export default function PopupSuscripcion() {
       try {
         localStorage.setItem(KEY, "1");
       } catch {}
-      gaEvent("suscripcion", { fuente: "popup", via });
+      gaEvent("suscripcion", { fuente: "popup", via: "email" });
     } catch {
       setEstado("form");
       setMsg("Error de conexión. Intenta de nuevo.");
@@ -104,90 +93,86 @@ export default function PopupSuscripcion() {
   if (!show) return null;
 
   return (
-    <div className="sub-overlay" onClick={cerrar}>
-      <div className="sub-card" onClick={(e) => e.stopPropagation()}>
-        <button className="sub-close" onClick={cerrar} aria-label="Cerrar">
+    <div className="pu-overlay" onClick={cerrar}>
+      <div className="pu-card" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="pu-photo"
+          style={{ backgroundImage: `url(${imgOpt(POPUP_IMG, 800) ?? POPUP_IMG})` }}
+        />
+        <div className="pu-grad" />
+        <button className="pu-close" onClick={cerrar} aria-label="Cerrar">
           ✕
         </button>
-        {estado !== "ok" ? (
-          <>
-            <div className="sub-emoji">💄</div>
-            <h3 className="sub-tit serif">10% en tu primera compra</h3>
-            <p className="sub-sub">
-              Déjanos tu contacto y te damos un código de bienvenida para tu
-              primer maquillaje. Además te avisamos de novedades y promos. 💌
-            </p>
-            <div className="sub-toggle" role="tablist">
-              <button
-                type="button"
-                className={via === "whatsapp" ? "active" : ""}
-                onClick={() => {
-                  setVia("whatsapp");
-                  setMsg("");
-                }}
-              >
-                📱 WhatsApp
-              </button>
-              <button
-                type="button"
-                className={via === "email" ? "active" : ""}
-                onClick={() => {
-                  setVia("email");
-                  setMsg("");
-                }}
-              >
-                ✉️ Correo
-              </button>
+
+        <div className="pu-content">
+          <div className="pu-logo serif">
+            AMARÉA<span>MÉXICO</span>
+          </div>
+
+          {estado !== "ok" ? (
+            <div className="pu-bottom">
+              <h3 className="pu-tit serif">Bienvenida a Amaréa ♡</h3>
+              <p className="pu-sub">
+                Sé la primera en enterarte de nuevos lanzamientos, promociones
+                exclusivas y mucho más.
+              </p>
+              <div className="pu-divider">
+                <span>✦</span>
+              </div>
+              <div className="pu-kicker">Regístrate y recibe</div>
+              <div className="pu-off serif">
+                10<span className="pu-off-pct">%</span> OFF
+              </div>
+              <div className="pu-off-sub">en tu primera compra</div>
+
+              <form onSubmit={enviar} className="pu-form">
+                <label className="pu-input">
+                  <span className="pu-input-ico">✉️</span>
+                  <input
+                    type="email"
+                    placeholder="Tu correo electrónico"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </label>
+                {msg && <div className="pu-msg">{msg}</div>}
+                <button
+                  type="submit"
+                  className="pu-btn"
+                  disabled={estado === "loading"}
+                >
+                  {estado === "loading" ? "Enviando…" : "QUIERO MI 10% OFF →"}
+                </button>
+              </form>
+
+              <div className="pu-badges">
+                <span>🚚 Envíos rápidos a todo México</span>
+                <span>🔒 Compra segura y protegida</span>
+              </div>
+              <p className="pu-fine">
+                Al registrarte, aceptas recibir correos con novedades y
+                promociones exclusivas.
+              </p>
             </div>
-            <form onSubmit={enviar} className="sub-form">
-              <input
-                placeholder="Tu nombre"
-                value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
-              />
-              {via === "whatsapp" ? (
-                <input
-                  placeholder="WhatsApp (10 dígitos)"
-                  inputMode="numeric"
-                  maxLength={10}
-                  value={whatsapp}
-                  onChange={(e) =>
-                    setWhatsapp(e.target.value.replace(/\D/g, "").slice(0, 10))
-                  }
-                />
-              ) : (
-                <input
-                  placeholder="tucorreo@ejemplo.com"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              )}
-              {msg && <div className="sub-msg">{msg}</div>}
-              <button type="submit" className="sub-btn" disabled={estado === "loading"}>
-                {estado === "loading" ? "Enviando…" : "Quiero mi 10%"}
+          ) : (
+            <div className="pu-bottom pu-bottom-ok">
+              <div className="pu-off serif" style={{ fontSize: 40 }}>
+                🎉
+              </div>
+              <h3 className="pu-tit serif">¡Listo!</h3>
+              <p className="pu-sub">
+                Usa este código al pagar y obtén <b>10% de descuento</b> en tu
+                primera compra de productos individuales:
+              </p>
+              <button className="pu-code" onClick={copiar} title="Toca para copiar">
+                {codigo} <span>{copiado ? "✓ copiado" : "copiar"}</span>
               </button>
-            </form>
-            <p className="sub-fine">Sin spam. Puedes darte de baja cuando quieras.</p>
-          </>
-        ) : (
-          <>
-            <div className="sub-emoji">🎉</div>
-            <h3 className="sub-tit serif">
-              ¡Listo{nombre ? `, ${nombre.trim().split(" ")[0]}` : ""}!
-            </h3>
-            <p className="sub-sub">
-              Usa este código al pagar y obtén <b>10% de descuento</b> en
-              productos individuales:
-            </p>
-            <button className="sub-code" onClick={copiar} title="Toca para copiar">
-              {codigo} <span>{copiado ? "✓ copiado" : "copiar"}</span>
-            </button>
-            <a href="/amarea" className="sub-btn sub-btn-link">
-              Ir a comprar
-            </a>
-          </>
-        )}
+              <a href="/amarea" className="pu-btn" style={{ textDecoration: "none" }}>
+                Ir a comprar →
+              </a>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

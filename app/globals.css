@@ -808,3 +808,38 @@ footer{padding:76px 16px 34px;background:var(--rose-dk);color:#F7E9E3}
 .sub-toggle{display:flex;gap:6px;background:#efe7e2;border-radius:12px;padding:4px;margin:0 0 12px}
 .sub-toggle button{flex:1;padding:9px 8px;border:none;background:none;border-radius:9px;font-size:13.5px;font-weight:700;color:#8a7068;cursor:pointer;transition:all .15s}
 .sub-toggle button.active{background:#fff;color:var(--rose-dk);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+
+/* ===== Pop-up de bienvenida con imagen (modelo AMARÉA) ===== */
+.pu-overlay{position:fixed;inset:0;background:rgba(30,22,22,.6);backdrop-filter:blur(3px);z-index:1200;display:flex;align-items:center;justify-content:center;padding:16px;animation:puFade .25s ease}
+@keyframes puFade{from{opacity:0}to{opacity:1}}
+.pu-card{position:relative;width:100%;max-width:390px;max-height:92vh;border-radius:20px;overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.4);animation:puPop .3s cubic-bezier(.2,.8,.3,1.15);display:flex;flex-direction:column}
+@keyframes puPop{from{transform:translateY(16px) scale(.97);opacity:0}to{transform:none;opacity:1}}
+.pu-photo{position:absolute;inset:0;background-size:cover;background-position:center 22%;z-index:0}
+.pu-grad{position:absolute;inset:0;z-index:1;background:linear-gradient(to bottom,rgba(20,12,12,.12) 0%,rgba(20,12,12,.04) 28%,rgba(35,18,20,.72) 60%,rgba(33,15,17,.93) 100%)}
+.pu-close{position:absolute;top:12px;right:14px;z-index:3;background:rgba(0,0,0,.28);border:none;color:#fff;font-size:15px;width:30px;height:30px;border-radius:50%;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center}
+.pu-content{position:relative;z-index:2;display:flex;flex-direction:column;justify-content:space-between;min-height:565px;padding:22px 24px;color:#FAF6F0;overflow-y:auto}
+.pu-logo{text-align:center;font-size:26px;letter-spacing:.16em;color:#FAF6F0;text-shadow:0 1px 8px rgba(0,0,0,.45);font-weight:400}
+.pu-logo span{display:block;font-size:10px;letter-spacing:.4em;margin-top:3px;opacity:.92}
+.pu-bottom{margin-top:auto;text-align:center}
+.pu-tit{font-size:25px;margin:0 0 8px;color:#FAF6F0;text-shadow:0 1px 10px rgba(0,0,0,.5)}
+.pu-sub{font-size:13px;line-height:1.5;color:#f3e9e6;margin:0 0 10px;text-shadow:0 1px 6px rgba(0,0,0,.45)}
+.pu-divider{display:flex;align-items:center;justify-content:center;gap:10px;color:#e8d5c8;opacity:.7;margin:8px 0}
+.pu-divider::before,.pu-divider::after{content:"";height:1px;width:44px;background:currentColor}
+.pu-kicker{font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:#f0e2dc;margin-bottom:2px}
+.pu-off{font-size:60px;line-height:.95;color:#FAF6F0;text-shadow:0 2px 14px rgba(0,0,0,.55);font-weight:400}
+.pu-off-pct{font-size:34px;vertical-align:top}
+.pu-off-sub{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:#f0e2dc;margin-top:2px;margin-bottom:14px}
+.pu-input{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.55);border-radius:999px;padding:12px 18px;margin-bottom:10px}
+.pu-input-ico{opacity:.85;font-size:14px}
+.pu-input input{flex:1;min-width:0;background:none;border:none;outline:none;color:#fff;font-size:15px}
+.pu-input input::placeholder{color:rgba(255,255,255,.75)}
+.pu-msg{font-size:12.5px;color:#ffd9d3;margin:-2px 0 8px;text-align:left}
+.pu-btn{display:block;width:100%;padding:14px;background:#7a2a3c;color:#fff;border:none;border-radius:999px;font-size:14px;font-weight:700;letter-spacing:.05em;cursor:pointer;transition:filter .15s;text-align:center}
+.pu-btn:hover{filter:brightness(1.1)}
+.pu-btn:disabled{opacity:.7;cursor:default}
+.pu-badges{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-top:14px;font-size:10.5px;color:#efe2dc}
+.pu-fine{font-size:10px;color:#d9cbc5;margin:10px 0 0;line-height:1.4}
+.pu-code{display:inline-flex;align-items:center;gap:12px;margin:12px 0;padding:12px 20px;background:rgba(255,255,255,.14);border:2px dashed #FAF6F0;border-radius:12px;font-size:22px;font-weight:800;letter-spacing:.06em;color:#FAF6F0;cursor:pointer}
+.pu-code span{font-size:11px;font-weight:600;color:#f0e2dc;background:rgba(0,0,0,.28);padding:3px 9px;border-radius:20px}
+.pu-bottom-ok{margin:auto 0}
+@media (max-width:420px){.pu-card{max-height:94vh}.pu-off{font-size:54px}.pu-content{min-height:520px}}
