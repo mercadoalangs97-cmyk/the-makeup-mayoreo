@@ -7,8 +7,9 @@ import { imgOpt } from "../lib/img";
 //
 // IMG_BRUSHES: Unsplash (licencia Unsplash — uso comercial gratuito, sin
 // atribución obligatoria). Servida desde su CDN oficial images.unsplash.com.
-const IMG_BRUSHES =
-  "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=1100&h=460&fit=crop&q=70&auto=format";
+// Banner ancho: foto propia (bucket product-photos/sitio) — servida optimizada.
+const IMG_BANNER =
+  "https://yekvehkmgunoafccwmyp.supabase.co/storage/v1/object/public/product-photos/sitio/banner-ojos.jpg";
 // Imagen propia (bucket product-photos/sitio) — se sirve optimizada con imgOpt.
 const IMG_ELF_GLOW =
   "https://yekvehkmgunoafccwmyp.supabase.co/storage/v1/object/public/product-photos/sitio/elf-glow-reviver.jpg";
@@ -51,8 +52,8 @@ export default function HomeSeo() {
       <section className="hs-banner">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={IMG_BRUSHES}
-          alt="Brochas y maquillaje de marcas originales — AMAREA México"
+          src={imgOpt(IMG_BANNER, 1100) ?? IMG_BANNER}
+          alt="Mirada con sombra malva — maquillaje de ojos de marcas originales en AMAREA México"
           loading="lazy"
           decoding="async"
         />

@@ -90,7 +90,7 @@ export const LOTES: Lote[] = [
     tag: "Lote Mixto - 20 piezas",
     nombre: "Lote de 20 Piezas",
     piezas: 20,
-    precio: 2200,
+    precio: 2140,
     tipo: "mixto",
     popular: false,
     wppOnly: false,
