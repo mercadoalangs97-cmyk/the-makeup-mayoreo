@@ -65,6 +65,7 @@ export default function ProductoDetalle({
   // Galería de fotos (si el bucket tiene más de una). Si no, cae a la principal.
   const galeria = fotos.length > 0 ? fotos : producto.foto ? [producto.foto] : [];
   const [imgActiva, setImgActiva] = useState(0);
+  const [tonoHover, setTonoHover] = useState<string | null>(null);
 
   // GA4: ver producto (una vez por ficha).
   useEffect(() => {
@@ -214,7 +215,7 @@ export default function ProductoDetalle({
           {variantes.length > 1 && (
             <div className="tonos-wrap">
               <div className="tonos-label">
-                Tono: <b>{producto.variante || "Único"}</b>
+                Tono: <b>{tonoHover || producto.variante || "Único"}</b>
                 <span className="tonos-count">
                   {variantes.length} tonos disponibles
                 </span>
@@ -230,6 +231,10 @@ export default function ProductoDetalle({
                       title={v.variante || nombreDisplay(v)}
                       aria-label={"Tono " + (v.variante || "")}
                       aria-current={activo ? "true" : undefined}
+                      onMouseEnter={() => setTonoHover(v.variante || null)}
+                      onMouseLeave={() => setTonoHover(null)}
+                      onFocus={() => setTonoHover(v.variante || null)}
+                      onBlur={() => setTonoHover(null)}
                       scroll
                     >
                       {v.foto ? (

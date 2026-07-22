@@ -843,3 +843,8 @@ footer{padding:76px 16px 34px;background:var(--rose-dk);color:#F7E9E3}
 .pu-code span{font-size:11px;font-weight:600;color:#f0e2dc;background:rgba(0,0,0,.28);padding:3px 9px;border-radius:20px}
 .pu-bottom-ok{margin:auto 0}
 @media (max-width:420px){.pu-card{max-height:94vh}.pu-off{font-size:54px}.pu-content{min-height:520px}}
+
+/* Badge "N tonos" en tarjeta de base agrupada + botón-link "Elegir tono" */
+.prod-tonos{position:absolute;top:8px;left:8px;background:rgba(44,36,32,.82);color:#fff;font-size:10px;font-weight:600;padding:3px 9px;border-radius:var(--radius-pill);letter-spacing:.02em;backdrop-filter:blur(2px)}
+a.prod-add{text-decoration:none;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}
+a.prod-add:hover{background:var(--rose-dk)}

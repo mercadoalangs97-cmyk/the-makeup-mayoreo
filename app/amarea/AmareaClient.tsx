@@ -5,7 +5,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { fmx } from "../lib/lotes";
 import { useCart } from "../lib/cart";
 import { imgOpt } from "../lib/img";
-import { nombreDisplay, nombreCorto, type Producto } from "../lib/productos";
+import {
+  nombreDisplay,
+  nombreCorto,
+  claveVariante,
+  type Producto,
+} from "../lib/productos";
 import { gaSearch } from "../lib/analytics";
 
 // Normaliza para búsqueda tolerante: minúsculas, sin acentos, signos → espacio.
@@ -94,9 +99,41 @@ export default function ShopClient({
     return () => clearTimeout(t);
   }, [query]);
 
+  // Agrupa SOLO las bases por tono: una tarjeta por base (con su número de tonos).
+  // Los demás productos quedan igual. Cada tono conserva su propia ficha/URL (SEO).
+  const productosVista = useMemo(() => {
+    const conteo = new Map<string, number>();
+    const rep = new Map<string, Producto>();
+    for (const p of productos) {
+      if (p.categoria !== "Base") continue;
+      const k = claveVariante(p);
+      conteo.set(k, (conteo.get(k) || 0) + 1);
+      const cur = rep.get(k);
+      const mejor =
+        !cur ||
+        (p.foto ? 1 : 0) - (cur.foto ? 1 : 0) > 0 ||
+        ((p.foto ? 1 : 0) === (cur.foto ? 1 : 0) &&
+          (p.stock || 0) > (cur.stock || 0));
+      if (mejor) rep.set(k, p);
+    }
+    const vistos = new Set<string>();
+    const out: Array<Producto & { tonos: number }> = [];
+    for (const p of productos) {
+      if (p.categoria === "Base") {
+        const k = claveVariante(p);
+        if (vistos.has(k)) continue;
+        vistos.add(k);
+        out.push({ ...(rep.get(k) || p), tonos: conteo.get(k) || 1 });
+      } else {
+        out.push({ ...p, tonos: 1 });
+      }
+    }
+    return out;
+  }, [productos]);
+
   const indice = useMemo(
     () =>
-      productos.map((p) => {
+      productosVista.map((p) => {
         const spaced = norm(
           [
             nombreDisplay(p),
@@ -112,7 +149,7 @@ export default function ShopClient({
         );
         return { p, spaced, compact: spaced.replace(/ /g, "") };
       }),
-    [productos]
+    [productosVista]
   );
 
   const qn = norm(query);
@@ -145,20 +182,20 @@ export default function ShopClient({
   // DESTACADOS de la home: selección variada (una por marca, hasta 8). Lista
   // para pasar a "Más vendidos" reales cuando haya datos de ventas.
   const destacados = useMemo(() => {
-    const porMarca = new Map<string, Producto>();
-    for (const p of productos) {
+    const porMarca = new Map<string, Producto & { tonos: number }>();
+    for (const p of productosVista) {
       if (!porMarca.has(p.marcaNorm)) porMarca.set(p.marcaNorm, p);
     }
     const sel = [...porMarca.values()];
     if (sel.length < 8) {
       const ya = new Set(sel.map((p) => p.sku));
-      for (const p of productos) {
+      for (const p of productosVista) {
         if (sel.length >= 8) break;
         if (!ya.has(p.sku)) sel.push(p);
       }
     }
     return sel.slice(0, 8);
-  }, [productos]);
+  }, [productosVista]);
 
   const hayFiltro = query.trim().length > 0 || activos > 0;
 
@@ -203,9 +240,11 @@ export default function ShopClient({
     );
   }
 
-  const renderCard = (p: Producto) => {
+  const renderCard = (p: Producto & { tonos?: number }) => {
     const nombre = nombreDisplay(p);
-    const corto = nombreCorto(p);
+    const multi = (p.tonos ?? 1) > 1;
+    // En una base agrupada mostramos el nombre SIN el tono (representa a todos).
+    const corto = multi ? p.nombre : nombreCorto(p);
     return (
       <div key={p.sku} className="prod-card">
         <Link href={`/amarea/${p.sku}`} className="prod-link">
@@ -221,6 +260,7 @@ export default function ShopClient({
             ) : (
               <div className="prod-img-ph">💄</div>
             )}
+            {multi && <span className="prod-tonos">🎨 {p.tonos} tonos</span>}
           </div>
           <div className="prod-marca">{p.marcaNorm}</div>
           <div className="prod-nombre" title={nombre}>
@@ -232,13 +272,19 @@ export default function ShopClient({
           <div className="prod-precio serif">
             {p.precio_mxn ? fmx(p.precio_mxn) : "—"}
           </div>
-          <button
-            className="prod-add"
-            onClick={() => agregar(p)}
-            aria-label={"Agregar " + p.nombre}
-          >
-            Agregar
-          </button>
+          {multi ? (
+            <Link href={`/amarea/${p.sku}`} className="prod-add">
+              Elegir tono →
+            </Link>
+          ) : (
+            <button
+              className="prod-add"
+              onClick={() => agregar(p)}
+              aria-label={"Agregar " + p.nombre}
+            >
+              Agregar
+            </button>
+          )}
         </div>
       </div>
     );
