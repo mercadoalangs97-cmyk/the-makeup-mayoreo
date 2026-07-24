@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { SITE_URL } from "../lib/site";
+import Link from "next/link";
+import { SITE_URL, NEGOCIO, NEGOCIO_DIR } from "../lib/site";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 
@@ -47,13 +48,19 @@ export default function Contacto() {
           respondemos el siguiente día hábil.
         </p>
 
-        <h2>Negocio</h2>
+        <h2>Domicilio del negocio</h2>
         <p>
-          The Makeup · AMAREA
+          {NEGOCIO.nombre}
           <br />
-          Ciudad de México, México
+          {NEGOCIO_DIR}
           <br />
           Maquillaje original por pieza y al mayoreo · Envíos a todo México.
+        </p>
+
+        <h2>Privacidad</h2>
+        <p>
+          Consulta cómo cuidamos tus datos en nuestro{" "}
+          <Link href="/privacidad">Aviso de Privacidad</Link>.
         </p>
       </main>
       <SiteFooter />

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { NEGOCIO, NEGOCIO_DIR } from "../lib/site";
 
 export default function SiteFooter() {
   return (
@@ -12,6 +13,16 @@ export default function SiteFooter() {
               Las mejores marcas de beauty para revendedoras y consumidoras:
               e.l.f, NYX, Maybelline, L&apos;Oréal, Pixi y más.
             </p>
+            <address className="footer-contacto">
+              📍 {NEGOCIO_DIR}
+              <br />
+              📱{" "}
+              <a href={`https://wa.me/${NEGOCIO.whatsapp}`} target="_blank" rel="noreferrer">
+                {NEGOCIO.telefono}
+              </a>
+              <br />
+              ✉️ <a href={`mailto:${NEGOCIO.email}`}>{NEGOCIO.email}</a>
+            </address>
           </div>
           <div>
             <div className="footer-links-title">Tienda</div>
@@ -40,6 +51,9 @@ export default function SiteFooter() {
             <div className="footer-links-title">Ayuda</div>
             <ul className="footer-links">
               <li>
+                <Link href="/nosotros">Quiénes somos</Link>
+              </li>
+              <li>
                 <Link href="/contacto">Contacto</Link>
               </li>
               <li>
@@ -47,6 +61,9 @@ export default function SiteFooter() {
               </li>
               <li>
                 <Link href="/terminos">Términos y condiciones</Link>
+              </li>
+              <li>
+                <Link href="/privacidad">Aviso de Privacidad</Link>
               </li>
             </ul>
             <div className="footer-pay">

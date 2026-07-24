@@ -3,7 +3,7 @@ import Script from "next/script";
 import "./globals.css";
 import { CartProvider } from "./lib/cart";
 import { GA_ID, META_PIXEL_ID } from "./lib/analytics";
-import { SITE_URL, SITE_NAME } from "./lib/site";
+import { SITE_URL, SITE_NAME, NEGOCIO } from "./lib/site";
 import CartDrawer from "./components/CartDrawer";
 import Toast from "./components/Toast";
 import WppFloat from "./components/WppFloat";
@@ -117,7 +117,16 @@ fbq('init', '${META_PIXEL_ID}');fbq('track', 'PageView');`}
               url: SITE_URL,
               description:
                 "Tienda de maquillaje original por pieza: e.l.f, NYX, Maybelline, L'Oréal y más. Envío a todo México.",
-              telephone: "+525543813568",
+              telephone: NEGOCIO.telefono,
+              email: NEGOCIO.email,
+              address: {
+                "@type": "PostalAddress",
+                streetAddress: NEGOCIO.calle,
+                addressLocality: NEGOCIO.ciudad,
+                addressRegion: NEGOCIO.estado,
+                postalCode: NEGOCIO.cp,
+                addressCountry: "MX",
+              },
               areaServed: "MX",
               currenciesAccepted: "MXN",
               paymentAccepted: "Mercado Pago, Visa, Mastercard, SPEI, OXXO",
