@@ -5,9 +5,9 @@ import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 
 export const metadata: Metadata = {
-  title: "Quiénes somos · The Makeup / AMAREA",
+  title: "Quiénes somos · The Makeup / AMARÉA",
   description:
-    "Conoce a AMAREA (The Makeup): tienda mexicana de maquillaje 100% original de marcas importadas, por pieza y al mayoreo, con envío a todo México.",
+    "Conoce a AMARÉA (The Makeup): tienda mexicana de maquillaje 100% original de marcas importadas, por pieza y al mayoreo, con envío a todo México.",
   alternates: { canonical: `${SITE_URL}/nosotros` },
 };
 
@@ -17,10 +17,10 @@ export default function Nosotros() {
       <SiteHeader variant="landing" />
       <main className="legal-page">
         <h1 className="serif">Quiénes somos</h1>
-        <p className="legal-updated">The Makeup · AMAREA</p>
+        <p className="legal-updated">The Makeup · AMARÉA</p>
 
         <p>
-          <strong>AMAREA</strong> es la tienda en línea de{" "}
+          <strong>AMARÉA</strong> es la tienda en línea de{" "}
           <strong>The Makeup</strong>, un negocio mexicano dedicado a acercarte
           maquillaje <strong>100% original</strong> de las mejores marcas
           importadas —e.l.f, NYX, Maybelline, L&apos;Oréal, Pixi, Starface y

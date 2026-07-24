@@ -9,7 +9,7 @@ import SiteFooter from "../components/SiteFooter";
 export const metadata: Metadata = {
   title: "Guías de maquillaje · The Makeup CDMX",
   description:
-    "Guías prácticas de maquillaje: cómo elegir tu base, saber si un producto es original, vender al mayoreo y elegir labiales. Por AMAREA.",
+    "Guías prácticas de maquillaje: cómo elegir tu base, saber si un producto es original, vender al mayoreo y elegir labiales. Por AMARÉA.",
   alternates: { canonical: `${SITE_URL}/guias` },
 };
 

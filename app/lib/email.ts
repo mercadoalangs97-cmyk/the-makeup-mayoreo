@@ -117,7 +117,7 @@ function totalRow(label: string, valor: string, fuerte = false): string {
 
 // HTML del correo al CLIENTE
 export function htmlCliente(o: OrdenCorreo): string {
-  const marca = o.items.some((i) => i.tipo === "lote") ? "The Makeup Mayoreo" : "AMAREA";
+  const marca = o.items.some((i) => i.tipo === "lote") ? "The Makeup Mayoreo" : "AMARÉA";
   const nombre = o.cliente || o.envio?.nombre || "";
   const coordinar = o.envio?.modo === "coordinar";
   const envioCobrado = o.envio?.costo_cobrado ?? 0;
@@ -150,7 +150,7 @@ export function htmlCliente(o: OrdenCorreo): string {
 // HTML del correo al NEGOCIO
 export function htmlNegocio(o: OrdenCorreo): string {
   const hayLote = o.items.some((i) => i.tipo === "lote");
-  const marca = hayLote ? "The Makeup Mayoreo" : "AMAREA";
+  const marca = hayLote ? "The Makeup Mayoreo" : "AMARÉA";
   const coordinar = o.envio?.modo === "coordinar";
   const envioCobrado = o.envio?.costo_cobrado ?? 0;
   const filaEnvio = coordinar
@@ -178,7 +178,7 @@ export async function enviarCorreosVenta(o: OrdenCorreo): Promise<void> {
     return;
   }
   const resend = new Resend(process.env.RESEND_API_KEY);
-  const marca = o.items.some((i) => i.tipo === "lote") ? "The Makeup Mayoreo" : "AMAREA";
+  const marca = o.items.some((i) => i.tipo === "lote") ? "The Makeup Mayoreo" : "AMARÉA";
   const from = `${marca} <${EMAIL_NEGOCIO}>`;
 
   if (o.email) {
@@ -211,7 +211,7 @@ export type DatosGuia = {
 };
 
 function htmlGuiaCliente(o: OrdenCorreo, g: DatosGuia): string {
-  const marca = o.items.some((i) => i.tipo === "lote") ? "The Makeup Mayoreo" : "AMAREA";
+  const marca = o.items.some((i) => i.tipo === "lote") ? "The Makeup Mayoreo" : "AMARÉA";
   const nombre = o.cliente || o.envio?.nombre || "";
   const paq = g.paqueteria ? g.paqueteria.charAt(0).toUpperCase() + g.paqueteria.slice(1) : "la paquetería";
   const botonRastreo = g.trackingUrl
@@ -238,7 +238,7 @@ function htmlGuiaCliente(o: OrdenCorreo, g: DatosGuia): string {
 
 // ---- Correo de CARRITO ABANDONADO (punto 4) ----
 function htmlCarritoAbandonado(o: OrdenCorreo): string {
-  const marca = o.items.some((i) => i.tipo === "lote") ? "The Makeup Mayoreo" : "AMAREA";
+  const marca = o.items.some((i) => i.tipo === "lote") ? "The Makeup Mayoreo" : "AMARÉA";
   const nombre = o.cliente || o.envio?.nombre || "";
   const cuerpo = `
     <p style="color:${C.text};font-size:15px;margin:0 0 16px">¡Hola ${nombre}! Notamos que dejaste estos productos en tu carrito. Todavía te esperan 💄</p>
@@ -261,7 +261,7 @@ function htmlCarritoAbandonado(o: OrdenCorreo): string {
 export async function enviarCorreoCarrito(o: OrdenCorreo): Promise<boolean> {
   if (!emailConfigurado() || !o.email) return false;
   const resend = new Resend(process.env.RESEND_API_KEY);
-  const marca = o.items.some((i) => i.tipo === "lote") ? "The Makeup Mayoreo" : "AMAREA";
+  const marca = o.items.some((i) => i.tipo === "lote") ? "The Makeup Mayoreo" : "AMARÉA";
   try {
     await resend.emails.send({
       from: `${marca} <${EMAIL_NEGOCIO}>`,
@@ -279,7 +279,7 @@ export async function enviarCorreoCarrito(o: OrdenCorreo): Promise<boolean> {
 export async function enviarCorreoGuia(o: OrdenCorreo, g: DatosGuia): Promise<void> {
   if (!emailConfigurado() || !o.email) return;
   const resend = new Resend(process.env.RESEND_API_KEY);
-  const marca = o.items.some((i) => i.tipo === "lote") ? "The Makeup Mayoreo" : "AMAREA";
+  const marca = o.items.some((i) => i.tipo === "lote") ? "The Makeup Mayoreo" : "AMARÉA";
   try {
     await resend.emails.send({
       from: `${marca} <${EMAIL_NEGOCIO}>`,

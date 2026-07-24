@@ -21,7 +21,7 @@ type Params = { params: Promise<{ sku: string }> };
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { sku } = await params;
   const { producto } = await fetchProductoPorSku(decodeURIComponent(sku));
-  if (!producto) return { title: "Producto no encontrado | AMAREA" };
+  if (!producto) return { title: "Producto no encontrado | AMARÉA" };
 
   const nombre = nombreDisplay(producto);
   const desc =
@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
     ).slice(0, 160);
 
   return {
-    title: `${nombre} | AMAREA`,
+    title: `${nombre} | AMARÉA`,
     description: desc,
     keywords: [
       nombre,
@@ -42,7 +42,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
     ],
     alternates: { canonical: `${SITE_URL}/amarea/${producto.sku}` },
     openGraph: {
-      title: `${nombre} | AMAREA`,
+      title: `${nombre} | AMARÉA`,
       description: desc,
       type: "website",
       images: producto.foto ? [{ url: producto.foto }] : undefined,

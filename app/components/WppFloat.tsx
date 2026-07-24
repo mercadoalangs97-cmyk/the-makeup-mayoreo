@@ -5,7 +5,7 @@ import { gaLead } from "../lib/analytics";
 
 export default function WppFloat() {
   const pathname = usePathname();
-  // AMAREA es solo Mercado Pago: ocultar la burbuja de WhatsApp ahí.
+  // AMARÉA es solo Mercado Pago: ocultar la burbuja de WhatsApp ahí.
   if (pathname && pathname.startsWith("/amarea")) return null;
 
   return (

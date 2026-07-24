@@ -10,7 +10,7 @@ export const SITE_NAME = "The Makeup Mayoreo CDMX";
 // Datos del negocio (usar SIEMPRE estos para que coincidan en todo el sitio y en
 // Merchant Center — la consistencia es clave contra "Misrepresentation").
 export const NEGOCIO = {
-  nombre: "The Makeup · AMAREA",
+  nombre: "The Makeup · AMARÉA",
   calle: "Bosque de Checoslovaquia 78",
   colonia: "Bosques de Aragón",
   cp: "57170",

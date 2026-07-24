@@ -18,7 +18,7 @@ export default function SiteHeader({
   const esAmarea = variant === "amarea";
   const logoHref =
     variant === "amarea" ? "/" : variant === "mayoreo" ? "/mayoreo" : "/";
-  const logoNombre = esAmarea ? "AMAREA" : "The Makeup Mayoreo";
+  const logoNombre = esAmarea ? "AMARÉA" : "The Makeup Mayoreo";
   const logoSub = esAmarea ? "Belleza por pieza" : null;
 
   // C.P. (estilo DAX)
@@ -151,13 +151,13 @@ export default function SiteHeader({
               <>
                 <Link href="/mayoreo">Mayoreo · Lotes</Link>
                 <Link href="/amarea" className="nav-amarea">
-                  AMAREA · Productos
+                  AMARÉA · Productos
                 </Link>
               </>
             )}
           </div>
           <div className="nav-actions">
-            {/* AMAREA es solo Mercado Pago: sin botón de WhatsApp en su header */}
+            {/* AMARÉA es solo Mercado Pago: sin botón de WhatsApp en su header */}
             {!esAmarea && (
               <a
                 href="https://wa.me/5215543813568?text=Hola!%20Me%20interesa%20un%20producto"

@@ -9,7 +9,7 @@ export const WPP = "5215543813568";
 // Umbral de envio gratis MAYOREO (MXN) — hero de /mayoreo (lotes grandes).
 export const ENVIO_GRATIS_DESDE = 2500;
 
-// Envío AMAREA (consumidor): GRATIS desde $599, si no $129 fijo.
+// Envío AMARÉA (consumidor): GRATIS desde $599, si no $129 fijo.
 // El cliente NO ve la tarifa real de Skydropx; eso se usa internamente.
 export const ENVIO_AMAREA_GRATIS_DESDE = 599;
 export const ENVIO_AMAREA_TARIFA = 129;
@@ -17,7 +17,7 @@ export const ENVIO_AMAREA_TARIFA = 129;
 // Calcula el envío que VE y PAGA el cliente (NO el costo real de Skydropx).
 //  - Si el carrito tiene algún lote de mayoreo → se coordina por WhatsApp
 //    (devuelve null, no se cobra tarifa fija).
-//  - Solo productos AMAREA → gratis desde $599, si no $129 fijo.
+//  - Solo productos AMARÉA → gratis desde $599, si no $129 fijo.
 export function calcularEnvio(
   items: { tipo: "lote" | "producto"; precio: number; qty: number }[]
 ): number | null {
@@ -28,7 +28,7 @@ export function calcularEnvio(
 }
 
 // Precio de referencia por pieza (el lote mas chico, 10 pzs = $115/pieza).
-// Precio promedio REAL de venta individual (~275 productos AMAREA; promedio
+// Precio promedio REAL de venta individual (~275 productos AMARÉA; promedio
 // $232, mediana $230). Base para calcular el % de descuento por volumen del lote.
 export const PPU_REFERENCIA = 230;
 

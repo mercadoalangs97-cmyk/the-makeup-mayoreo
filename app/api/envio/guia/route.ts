@@ -131,7 +131,7 @@ export async function POST(req: Request) {
     const todas = await cotizarEnvioReal(destino, parcels);
     const rates = filtrarPaqueterias(todas);
     if (!rates.length) return json({ error: "Sin paqueterías disponibles para ese C.P." }, 502);
-    let recomendada = rates[0].servicioCode; // AMAREA: la más barata
+    let recomendada = rates[0].servicioCode; // AMARÉA: la más barata
     if (hayLote && env.servicio_code) {
       const m = rates.find((r) => r.servicioCode === env.servicio_code);
       if (m) recomendada = m.servicioCode; // LOTE: la que eligió el cliente

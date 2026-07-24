@@ -348,7 +348,7 @@ footer{background:var(--charcoal);padding:48px 16px 22px;color:var(--nude)}
 }
 
 /* ============================================================
-   AMAREA / TIENDA (/amarea)
+   AMARÉA / TIENDA (/amarea)
    ============================================================ */
 .nav-amarea{color:var(--rose-dk) !important;font-weight:600 !important;background:var(--rose-soft);padding:6px 12px;border-radius:var(--radius-pill)}
 .nav-amarea:hover{background:var(--gold-soft)}
@@ -545,7 +545,7 @@ footer{background:var(--charcoal);padding:48px 16px 22px;color:var(--nude)}
 }
 
 /* ============================================================
-   LOGO AMAREA (identidad propia)
+   LOGO AMARÉA (identidad propia)
    ============================================================ */
 .nav-logo-amarea{font-family:"Cormorant Garamond",serif;letter-spacing:.22em;font-weight:600;text-transform:uppercase}
 .nav-logo-amarea span{letter-spacing:.14em;text-transform:none;font-style:italic;color:var(--rose)}
@@ -565,7 +565,7 @@ footer{background:var(--charcoal);padding:48px 16px 22px;color:var(--nude)}
 .store-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg)}
 .store-card > img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .5s}
 .store-card:hover > img{transform:scale(1.05)}
-/* Collage 2x2 de productos (tarjeta AMAREA) */
+/* Collage 2x2 de productos (tarjeta AMARÉA) */
 .store-collage{position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:2px;background:#fff}
 .store-collage img{width:100%;height:100%;object-fit:cover;display:block;background:#fff;transition:transform .5s}
 .store-card:hover .store-collage img{transform:scale(1.06)}
@@ -649,7 +649,7 @@ footer{background:var(--charcoal);padding:48px 16px 22px;color:var(--nude)}
   .co-field.co-col2{grid-column:auto}
 }
 
-/* ===== Footer más grande y con color propio (rosa AMAREA, resalta) ===== */
+/* ===== Footer más grande y con color propio (rosa AMARÉA, resalta) ===== */
 footer{padding:76px 16px 34px;background:var(--rose-dk);color:#F7E9E3}
 .footer-grid{gap:48px;margin-bottom:42px}
 .footer-brand{font-size:30px;color:#FFF7F2}
@@ -694,7 +694,7 @@ footer{padding:76px 16px 34px;background:var(--rose-dk);color:#F7E9E3}
   .hs-banner{margin-top:32px}
 }
 
-/* ===== Home AMAREA: Destacados + Ver todos + Orden + Paginación ===== */
+/* ===== Home AMARÉA: Destacados + Ver todos + Orden + Paginación ===== */
 .shop-destacados-head{max-width:var(--maxw);margin:6px auto 18px;display:flex;align-items:center;gap:8px}
 .shop-destacados-head h2{font-size:clamp(22px,3.4vw,30px);color:var(--charcoal);margin:0;font-weight:600}
 .shop-vertodos-wrap{text-align:center;margin:36px 0 12px}

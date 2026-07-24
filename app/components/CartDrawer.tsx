@@ -37,7 +37,7 @@ export default function CartDrawer() {
           </button>
         </div>
 
-        {/* Barra de envío gratis: solo para carritos AMAREA (sin lotes) */}
+        {/* Barra de envío gratis: solo para carritos AMARÉA (sin lotes) */}
         {count > 0 && !hayLote && (
           <div className="fs-progress">
             {tieneEnvioGratis ? (

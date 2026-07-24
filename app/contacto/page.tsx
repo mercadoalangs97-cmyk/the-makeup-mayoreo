@@ -7,7 +7,7 @@ import SiteFooter from "../components/SiteFooter";
 export const metadata: Metadata = {
   title: "Contacto · The Makeup CDMX",
   description:
-    "Contáctanos: WhatsApp y correo de The Makeup / AMAREA. Atención a consumidoras y revendedoras en todo México.",
+    "Contáctanos: WhatsApp y correo de The Makeup / AMARÉA. Atención a consumidoras y revendedoras en todo México.",
   alternates: { canonical: `${SITE_URL}/contacto` },
 };
 

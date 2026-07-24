@@ -7,7 +7,7 @@ import SiteFooter from "../components/SiteFooter";
 export const metadata: Metadata = {
   title: "Términos y condiciones · The Makeup CDMX",
   description:
-    "Términos y condiciones de compra en The Makeup / AMAREA: productos originales, precios en MXN, pago seguro con Mercado Pago y envíos a todo México.",
+    "Términos y condiciones de compra en The Makeup / AMARÉA: productos originales, precios en MXN, pago seguro con Mercado Pago y envíos a todo México.",
   alternates: { canonical: `${SITE_URL}/terminos` },
 };
 
@@ -21,7 +21,7 @@ export default function Terminos() {
 
         <h2>1. Sobre la tienda</h2>
         <p>
-          {SITE_NAME} (AMAREA) es una tienda en línea de maquillaje que vende por
+          {SITE_NAME} (AMARÉA) es una tienda en línea de maquillaje que vende por
           pieza a consumidoras y al mayoreo a revendedoras, con envíos a toda la
           República Mexicana. Al realizar una compra, aceptas estos términos.
         </p>

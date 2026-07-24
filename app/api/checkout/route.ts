@@ -192,7 +192,7 @@ export async function POST(req: Request) {
     }
   }
 
-  // ---- Cupón de descuento (aplica solo a productos individuales / AMAREA) ----
+  // ---- Cupón de descuento (aplica solo a productos individuales / AMARÉA) ----
   let cupon: string | null = null;
   let descuento = 0;
   const codigoCupon = (body.cupon || "").trim().toUpperCase();
@@ -351,7 +351,7 @@ export async function POST(req: Request) {
       unit_price: it.precio,
       currency_id: "MXN",
     }));
-    // Cobrar el envío como una línea más (solo AMAREA con tarifa > 0)
+    // Cobrar el envío como una línea más (solo AMARÉA con tarifa > 0)
     if (envioMonto > 0) {
       mpItems.push({
         id: "envio",

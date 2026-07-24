@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: "The Makeup Mayoreo CDMX · Maquillaje al mayoreo y por pieza",
   description:
-    "Las mejores marcas de beauty: e.l.f, NYX, Maybelline, L'Oréal y más. Lotes al mayoreo y productos por pieza (AMAREA). Envío a todo México.",
+    "Las mejores marcas de beauty: e.l.f, NYX, Maybelline, L'Oréal y más. Lotes al mayoreo y productos por pieza (AMARÉA). Envío a todo México.",
   keywords: [
     "lotes maquillaje",
     "maquillaje mayoreo",
@@ -29,8 +29,8 @@ export const metadata: Metadata = {
     "CDMX",
   ],
   openGraph: {
-    siteName: "AMAREA · The Makeup CDMX",
-    title: "AMAREA — Las mejores marcas de beauty a un clic",
+    siteName: "AMARÉA · The Makeup CDMX",
+    title: "AMARÉA — Las mejores marcas de beauty a un clic",
     description:
       "Maquillaje 100% original por pieza: e.l.f, NYX, Maybelline, L'Oréal y más. Envío a todo México y pago seguro.",
     url: SITE_URL,
@@ -41,13 +41,13 @@ export const metadata: Metadata = {
         url: OG_IMG,
         width: 1200,
         height: 630,
-        alt: "AMAREA — Maquillaje original, las mejores marcas de beauty",
+        alt: "AMARÉA — Maquillaje original, las mejores marcas de beauty",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "AMAREA — Las mejores marcas de beauty a un clic",
+    title: "AMARÉA — Las mejores marcas de beauty a un clic",
     description:
       "Maquillaje 100% original por pieza. Envío a todo México, pago seguro.",
     images: [OG_IMG],

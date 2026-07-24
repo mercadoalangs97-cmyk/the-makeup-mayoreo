@@ -63,7 +63,7 @@ export const ORIGEN = {
   referencia: "Casa, llamar al llegar",
 };
 
-// Paquete típico de un pedido AMAREA (ajustable después).
+// Paquete típico de un pedido AMARÉA (ajustable después).
 export const PAQUETE_DEFAULT = { length: 20, width: 15, height: 10, weight: 0.5 };
 
 export type Paquete = { length: number; width: number; height: number; weight: number };

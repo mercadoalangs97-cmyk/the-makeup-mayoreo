@@ -147,7 +147,7 @@ export default function Home() {
                 Ver lotes disponibles →
               </a>
               <a href="/amarea" className="btn-outline">
-                Comprar por pieza (AMAREA)
+                Comprar por pieza (AMARÉA)
               </a>
             </div>
             <div className="hero-social">

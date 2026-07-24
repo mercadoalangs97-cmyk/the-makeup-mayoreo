@@ -26,7 +26,7 @@ function norm(s: string): string {
 type Orden = "destacados" | "precio-asc" | "precio-desc";
 const PER_PAGE = 24;
 
-// Banner de la home (imagen de modelo, tonos AMAREA). Se sirve optimizada (WebP)
+// Banner de la home (imagen de modelo, tonos AMARÉA). Se sirve optimizada (WebP)
 // vía imgOpt. El espacio libre queda a la izquierda para el texto.
 const HERO_IMG =
   "https://yekvehkmgunoafccwmyp.supabase.co/storage/v1/object/public/product-photos/sitio/hero-amarea.png";
@@ -381,13 +381,13 @@ export default function ShopClient({
             <img
               className="hero-banner-img"
               src={imgOpt(HERO_IMG, 1600) ?? HERO_IMG}
-              alt="Maquillaje de las mejores marcas de beauty — AMAREA"
+              alt="Maquillaje de las mejores marcas de beauty — AMARÉA"
               fetchPriority="high"
             />
           </div>
           <div className="hero-banner-inner">
             <div className="hero-banner-content">
-              <div className="hero-banner-eyebrow">AMAREA · Belleza por pieza</div>
+              <div className="hero-banner-eyebrow">AMARÉA · Belleza por pieza</div>
               <h1 className="hero-banner-h1 serif">
                 Las mejores marcas de beauty <em>a un clic</em>
               </h1>
@@ -406,7 +406,7 @@ export default function ShopClient({
           <div className="shop-hero-inner">
             <h1 className="shop-hero-h1 serif">Todos los productos</h1>
             <p className="shop-hero-sub">
-              Catálogo completo de AMAREA — filtra por categoría, marca y precio.
+              Catálogo completo de AMARÉA — filtra por categoría, marca y precio.
             </p>
           </div>
         </section>

@@ -68,7 +68,7 @@ export function ordenarCategorias(cats: string[]): string[] {
   });
 }
 
-// Trae los productos elegibles para la tienda AMAREA:
+// Trae los productos elegibles para la tienda AMARÉA:
 // con foto del bucket product-photos Y stock > 0.
 export async function fetchProductosTienda(): Promise<{
   productos: Producto[];

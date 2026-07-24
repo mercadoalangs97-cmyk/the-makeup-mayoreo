@@ -58,7 +58,7 @@ ${tieneGtin ? `    <g:gtin>${esc(bc)}</g:gtin>\n` : ""}    <g:identifier_exists>
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">
 <channel>
-  <title>${esc(SITE_NAME)} · AMAREA — Maquillaje por pieza</title>
+  <title>${esc(SITE_NAME)} · AMARÉA — Maquillaje por pieza</title>
   <link>${SITE_URL}</link>
   <description>Catálogo de maquillaje original por pieza: e.l.f, NYX, Maybelline, L'Oréal y más.</description>
 ${items}

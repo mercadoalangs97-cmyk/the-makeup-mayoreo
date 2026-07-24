@@ -25,7 +25,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     // Home informativa (contenido SEO + destacados).
     { url: SITE_URL, lastModified: now, changeFrequency: "weekly", priority: 1 },
-    // Catálogo completo AMAREA (todos los productos por pieza). Cambia seguido.
+    // Catálogo completo AMARÉA (todos los productos por pieza). Cambia seguido.
     {
       url: `${SITE_URL}/amarea`,
       lastModified: now,

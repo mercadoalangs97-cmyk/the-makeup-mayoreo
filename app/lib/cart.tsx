@@ -137,7 +137,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   );
   const hayLotes = useMemo(() => items.some((it) => it.tipo === "lote"), [items]);
   const envioCobrado = useMemo(() => calcularEnvio(items), [items]);
-  // Mecánica de "envío gratis" del carrito (umbral AMAREA $599 para el consumidor).
+  // Mecánica de "envío gratis" del carrito (umbral AMARÉA $599 para el consumidor).
   const faltaEnvioGratis = Math.max(0, ENVIO_AMAREA_GRATIS_DESDE - total);
   const tieneEnvioGratis = total >= ENVIO_AMAREA_GRATIS_DESDE && total > 0;
   const progresoEnvio = Math.min(100, (total / ENVIO_AMAREA_GRATIS_DESDE) * 100);

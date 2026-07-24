@@ -48,12 +48,12 @@ export default function HomeSeo() {
 
   return (
     <>
-      {/* Banner visual (brochas rosas — combina con la identidad AMAREA) */}
+      {/* Banner visual (brochas rosas — combina con la identidad AMARÉA) */}
       <section className="hs-banner">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={imgOpt(IMG_BANNER, 1100) ?? IMG_BANNER}
-          alt="Mirada con sombra malva — maquillaje de ojos de marcas originales en AMAREA México"
+          alt="Mirada con sombra malva — maquillaje de ojos de marcas originales en AMARÉA México"
           loading="lazy"
           decoding="async"
         />
@@ -65,7 +65,7 @@ export default function HomeSeo() {
           <div className="hs-editorial-txt">
             <h2 className="serif">Maquillaje original, sin pagar de más</h2>
             <p>
-              En <strong>AMAREA</strong> encuentras <strong>maquillaje 100%
+              En <strong>AMARÉA</strong> encuentras <strong>maquillaje 100%
               original</strong> de las marcas que amas — <strong>e.l.f
               Cosmetics, NYX Professional Makeup, Maybelline New York,
               L&apos;Oréal Paris y Pixi</strong> — pieza por pieza y con envío a

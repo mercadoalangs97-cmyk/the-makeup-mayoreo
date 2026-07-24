@@ -8,9 +8,9 @@ import { GUIAS } from "../lib/guias";
 export const dynamic = "force-dynamic";
 
 export function GET() {
-  const txt = `# ${SITE_NAME} · AMAREA — Maquillaje original por pieza y al mayoreo en México
+  const txt = `# ${SITE_NAME} · AMARÉA — Maquillaje original por pieza y al mayoreo en México
 
-> AMAREA (${SITE_NAME}) es una tienda en línea mexicana de maquillaje 100% original de marcas importadas —e.l.f, NYX Professional Makeup, Maybelline, L'Oréal Paris y Pixi—. Vende por pieza a consumidoras y en lotes al mayoreo a revendedoras, con envío a toda la República Mexicana y pago 100% seguro por Mercado Pago (tarjeta, transferencia SPEI y efectivo en OXXO).
+> AMARÉA (${SITE_NAME}) es una tienda en línea mexicana de maquillaje 100% original de marcas importadas —e.l.f, NYX Professional Makeup, Maybelline, L'Oréal Paris y Pixi—. Vende por pieza a consumidoras y en lotes al mayoreo a revendedoras, con envío a toda la República Mexicana y pago 100% seguro por Mercado Pago (tarjeta, transferencia SPEI y efectivo en OXXO).
 
 ## Qué ofrece
 - Maquillaje original por pieza: labiales, bases, correctores, sombras, rubores, máscaras de pestañas, productos para cejas y skincare.
@@ -21,7 +21,7 @@ export function GET() {
 ## Diferenciadores
 - Productos 100% originales de marcas importadas (no imitaciones).
 - Precios accesibles por importación directa.
-- Dos formas de comprar: por pieza (AMAREA) o al mayoreo (lotes) para revender.
+- Dos formas de comprar: por pieza (AMARÉA) o al mayoreo (lotes) para revender.
 - Empaque protegido y número de rastreo.
 
 ## Páginas principales
@@ -35,7 +35,7 @@ export function GET() {
 ${GUIAS.map((g) => `- [${g.titulo}](${SITE_URL}/guias/${g.slug}): ${g.descripcion}`).join("\n")}
 
 ## Datos del negocio
-- Nombre: ${SITE_NAME} (marca de venta al consumidor: AMAREA).
+- Nombre: ${SITE_NAME} (marca de venta al consumidor: AMARÉA).
 - Ubicación: Ciudad de México, México. Envíos a toda la República.
 - Marcas que vende: e.l.f, NYX, Maybelline, L'Oréal, Pixi.
 - Feed de productos (para catálogos): ${SITE_URL}/feed.xml
