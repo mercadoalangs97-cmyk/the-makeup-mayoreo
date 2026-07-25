@@ -3,6 +3,14 @@ export const GA_ID = process.env.NEXT_PUBLIC_GA_ID || "G-FX6JGB8NGC";
 // Meta (Facebook) Pixel — vacío hasta poner el ID en NEXT_PUBLIC_META_PIXEL_ID
 // (Vercel). Mientras esté vacío, no carga y los eventos de Meta son no-op.
 export const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID || "";
+// Google Ads — vacío hasta configurarlo en Vercel (inerte mientras tanto).
+// NEXT_PUBLIC_GOOGLE_ADS_ID = "AW-XXXXXXXXXX"; los LABEL salen de cada acción
+// de conversión que crees en Google Ads (compra / contacto).
+export const GOOGLE_ADS_ID = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID || "";
+export const GOOGLE_ADS_LABEL_COMPRA =
+  process.env.NEXT_PUBLIC_GOOGLE_ADS_LABEL_COMPRA || "";
+export const GOOGLE_ADS_LABEL_LEAD =
+  process.env.NEXT_PUBLIC_GOOGLE_ADS_LABEL_LEAD || "";
 
 type Params = Record<string, unknown>;
 
@@ -19,6 +27,17 @@ function fbq(name: string, params: Params = {}): void {
   if (typeof window === "undefined") return;
   const w = window as unknown as { fbq?: (...a: unknown[]) => void };
   if (typeof w.fbq === "function") w.fbq("track", name, params);
+}
+
+// Conversión de Google Ads (si hay ID + label). Reutiliza el mismo gtag de GA4.
+function adsConversion(label: string, params: Params = {}): void {
+  if (typeof window === "undefined" || !GOOGLE_ADS_ID || !label) return;
+  const w = window as unknown as { gtag?: (...a: unknown[]) => void };
+  if (typeof w.gtag === "function")
+    w.gtag("event", "conversion", {
+      send_to: `${GOOGLE_ADS_ID}/${label}`,
+      ...params,
+    });
 }
 
 // ---- Eventos de e-commerce (GA4 estándar + espejo en Meta) ----
@@ -120,6 +139,11 @@ export function gaPurchase(data: {
     value: data.value,
     currency: "MXN",
   });
+  adsConversion(GOOGLE_ADS_LABEL_COMPRA, {
+    value: data.value,
+    currency: "MXN",
+    transaction_id: data.id || undefined,
+  });
 }
 
 // ---- Lead (contacto por WhatsApp/correo/tel) — clave para el MAYOREO ----
@@ -129,6 +153,7 @@ export function gaLead(fuente: string): void {
   gaEvent("generate_lead", { method: fuente });
   gaEvent("contacto_whatsapp", { fuente });
   fbq("Lead", { content_name: fuente });
+  adsConversion(GOOGLE_ADS_LABEL_LEAD, { currency: "MXN" });
 }
 
 // ---- Búsqueda en el catálogo ----

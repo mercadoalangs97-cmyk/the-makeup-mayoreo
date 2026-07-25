@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import "./globals.css";
 import { CartProvider } from "./lib/cart";
-import { GA_ID, META_PIXEL_ID } from "./lib/analytics";
+import { GA_ID, META_PIXEL_ID, GOOGLE_ADS_ID } from "./lib/analytics";
 import { SITE_URL, SITE_NAME, NEGOCIO } from "./lib/site";
 import CartDrawer from "./components/CartDrawer";
 import Toast from "./components/Toast";
@@ -89,7 +89,7 @@ export default function RootLayout({
           {`window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
-gtag('config', '${GA_ID}');`}
+gtag('config', '${GA_ID}');${GOOGLE_ADS_ID ? `\ngtag('config', '${GOOGLE_ADS_ID}');` : ""}`}
         </Script>
 
         {/* Meta (Facebook) Pixel — solo si hay ID configurado. Al ponerlo en
