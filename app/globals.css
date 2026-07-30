@@ -852,3 +852,84 @@ a.prod-add:hover{background:var(--rose-dk)}
 /* Contacto visible en el footer (señal de confianza para Merchant) */
 .footer-contacto{font-style:normal;font-size:12.5px;line-height:1.75;margin-top:14px;opacity:.9}
 .footer-contacto a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+
+/* ===== Garantías (sustituyen a los testimonios) ===== */
+.garantia-card{text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px}
+.garantia-ico{font-size:30px;line-height:1}
+.garantia-tit{font-size:14.5px;color:var(--charcoal);display:block}
+
+/* ===== Ganancia estimada (tarjeta de lote) ===== */
+.ganancia-box{display:flex;flex-direction:column;align-items:center;gap:1px;margin-top:8px;padding:9px 10px;
+  background:color-mix(in srgb,#1e8a4c 8%,transparent);border:1px solid color-mix(in srgb,#1e8a4c 28%,transparent);
+  border-radius:12px}
+.ganancia-lbl{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:#1e8a4c;font-weight:700}
+.ganancia-monto{font-family:var(--font-serif,Georgia),serif;font-size:22px;color:#157a41;line-height:1.15}
+.ganancia-det{font-size:10.5px;color:var(--text3,#8a7068);text-align:center;line-height:1.35}
+
+/* ===== Ganancia en el modal ===== */
+.modal-ganancia{margin-top:12px;padding:13px 14px;background:color-mix(in srgb,#1e8a4c 7%,transparent);
+  border:1px solid color-mix(in srgb,#1e8a4c 25%,transparent);border-radius:14px}
+.mg-tit{font-size:13px;font-weight:700;color:#157a41;margin-bottom:8px}
+.mg-row{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:3px 0;color:var(--text,#3A2E2A)}
+.mg-row b{font-family:'DM Mono',monospace;white-space:nowrap}
+.mg-total{border-top:1px solid color-mix(in srgb,#1e8a4c 25%,transparent);margin-top:5px;padding-top:7px;
+  font-weight:700;color:#157a41;font-size:14.5px}
+.mg-nota{font-size:10.5px;color:var(--text3,#8a7068);margin:8px 0 0;line-height:1.45}
+
+/* ===== Error POR CAMPO (antes solo había banner arriba) ===== */
+.co-field-err{display:block;margin-top:5px;font-size:12px;color:#c0392b;font-style:normal;font-weight:600}
+.co-field:has(.co-field-err) input,
+.co-field:has(.co-field-err) select{border-color:#c0392b;background:color-mix(in srgb,#c0392b 4%,transparent)}
+
+/* ===== Pasos del checkout ===== */
+.co-pasos{display:flex;gap:8px;list-style:none;padding:0;margin:0 0 18px;flex-wrap:wrap}
+.co-pasos li{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--text3,#8a7068);
+  padding:7px 13px;border:1px solid var(--border);border-radius:var(--radius-pill);background:#fff}
+.co-pasos li span{width:19px;height:19px;border-radius:50%;background:var(--bg3,#efe7e2);color:var(--text3,#8a7068);
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.co-pasos li.ok{color:#1e8a4c;border-color:color-mix(in srgb,#1e8a4c 35%,transparent)}
+.co-pasos li.ok span{background:#1e8a4c;color:#fff}
+.co-pasos li.actual{color:var(--rose-dk);border-color:var(--rose-dk);font-weight:700}
+.co-pasos li.actual span{background:var(--rose-dk);color:#fff}
+@media (max-width:520px){.co-pasos li{font-size:11.5px;padding:6px 10px}}
+
+/* ===== Aviso de envío en /mayoreo (antes de dar datos) ===== */
+.envio-aviso{display:flex;gap:10px;align-items:flex-start;max-width:760px;margin:18px auto 0;
+  padding:13px 16px;background:var(--paper,#fff);border:1px solid var(--border);border-radius:14px}
+.envio-aviso-ico{font-size:20px;line-height:1.2}
+.envio-aviso b{display:block;font-size:13.5px;margin-bottom:2px;color:var(--charcoal,#2C2420)}
+.envio-aviso p{margin:0;font-size:12.5px;color:var(--text2,#6b5d57);line-height:1.5}
+
+/* ===== Repetir último pedido ===== */
+.repetir-box{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+  margin:0 0 16px;padding:13px 16px;background:color-mix(in srgb,var(--gold) 12%,transparent);
+  border:1px solid color-mix(in srgb,var(--gold) 40%,transparent);border-radius:14px}
+.repetir-txt{font-size:13px;color:var(--text,#3A2E2A);flex:1;min-width:220px}
+.repetir-btn{background:var(--charcoal);color:var(--gold-lt);border:none;border-radius:var(--radius-pill);
+  padding:10px 18px;font-family:inherit;font-size:12.5px;font-weight:700;letter-spacing:.03em;cursor:pointer;
+  white-space:nowrap;transition:background .2s}
+.repetir-btn:hover{background:var(--rose-dk)}
+
+/* ===== Página de rastreo ===== */
+.ras-form{display:flex;flex-direction:column;gap:14px;max-width:420px;margin:22px 0 8px}
+.ras-btn{width:100%;justify-content:center;margin-top:2px}
+.ras-result{margin-top:26px;padding:20px;border:1px solid var(--border);border-radius:16px;background:var(--paper,#fff)}
+.ras-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:18px}
+.ras-num{font-size:15px;font-weight:700;color:var(--charcoal)}
+.ras-fecha{font-size:12px;color:var(--text3,#8a7068);margin-top:2px}
+.ras-total{font-size:22px;color:var(--rose-dk)}
+.ras-pasos{display:flex;list-style:none;padding:0;margin:0 0 14px;gap:6px;flex-wrap:wrap}
+.ras-pasos li{flex:1;min-width:78px;display:flex;flex-direction:column;align-items:center;gap:5px;
+  font-size:11px;color:var(--text3,#8a7068);text-align:center}
+.ras-pasos li span{width:27px;height:27px;border-radius:50%;background:var(--bg3,#efe7e2);
+  display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.ras-pasos li.ok{color:#1e8a4c;font-weight:700}
+.ras-pasos li.ok span{background:#1e8a4c;color:#fff}
+.ras-texto{font-size:14.5px;color:var(--text,#3A2E2A);text-align:center;margin:6px 0 0;font-weight:600}
+.ras-guia{margin-top:18px;padding-top:16px;border-top:1px solid var(--border);display:flex;
+  flex-wrap:wrap;gap:14px;align-items:flex-end}
+.ras-guia small{display:block;font-size:10.5px;color:var(--text3,#8a7068);text-transform:uppercase;letter-spacing:.05em}
+.ras-guia b{font-size:14px}
+.ras-mono{font-family:'DM Mono',monospace}
+.ras-track{margin-left:auto}
+.ras-ayuda{font-size:12.5px;color:var(--text3,#8a7068);margin:16px 0 0;text-align:center}

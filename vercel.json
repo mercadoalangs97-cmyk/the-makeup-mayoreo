@@ -7,6 +7,10 @@
     {
       "path": "/api/carritos/recordatorio",
       "schedule": "0 17 * * *"
+    },
+    {
+      "path": "/api/resenas/solicitar",
+      "schedule": "0 18 * * *"
     }
   ]
 }

@@ -18,30 +18,32 @@ type Filtro = "todos" | "mixto" | "labiales" | "grande";
 
 const AVATAR_COLORS = ["#C9807A", "#9E5550", "#C9A96E", "#D4B8A8", "#2C2420"];
 
-const RESENAS = [
+// Hechos verificables del servicio (NO testimonios). Las opiniones reales de
+// clientas se agregarán aquí cuando existan, con su nombre y autorización.
+const GARANTIAS = [
   {
-    inicial: "K",
-    nombre: "Karla M.",
-    lugar: "Guadalajara",
-    color: "#C9807A",
+    icono: "💄",
+    titulo: "Marcas originales",
     texto:
-      "Compre mi segundo lote de 100 piezas. Calidad increible, mis clientas siempre preguntan de donde saco el maquillaje.",
+      "e.l.f, NYX Professional Makeup, Maybelline, L'Oréal Paris, Pixi y Starface. Nunca imitaciones.",
   },
   {
-    inicial: "S",
-    nombre: "Sofia R.",
-    lugar: "CDMX",
-    color: "#9E5550",
+    icono: "📦",
+    titulo: "Lotes surtidos desde 10 piezas",
     texto:
-      "Empece con el lote de 10 y ya voy en mi quinto pedido. El precio por pieza no tiene competencia en Mexico.",
+      "Empiezas con lo que puedas invertir y creces a tu ritmo, hasta lotes de 500 piezas.",
   },
   {
-    inicial: "A",
-    nombre: "Ana G.",
-    lugar: "Monterrey",
-    color: "#C9A96E",
+    icono: "🚚",
+    titulo: "Envío con número de guía",
     texto:
-      "Los lotes siempre vienen con marcas increibles: e.l.f, NYX, Maybelline... mis clientas los adoran y se venden rapido.",
+      "A toda la República por Estafeta, con rastreo y empaque protegido.",
+  },
+  {
+    icono: "🔒",
+    titulo: "Pago seguro con Mercado Pago",
+    texto:
+      "Tarjeta, transferencia SPEI o efectivo en OXXO. Tu dinero protegido por la plataforma.",
   },
 ];
 
@@ -55,6 +57,13 @@ const CATEGORIAS = [
 function descuentoPorLote(l: Lote): number {
   const ppu = l.precio / l.piezas;
   return Math.max(0, Math.round((1 - ppu / PPU_REFERENCIA) * 100));
+}
+
+// Ganancia estimada si la revendedora vende cada pieza al precio promedio de
+// tienda (PPU_REFERENCIA). Es un ESTIMADO y así se comunica en la página.
+function gananciaEstimada(l: Lote): { venta: number; ganancia: number } {
+  const venta = PPU_REFERENCIA * l.piezas;
+  return { venta, ganancia: Math.max(0, venta - l.precio) };
 }
 
 export default function Home() {
@@ -268,8 +277,23 @@ export default function Home() {
         <div className="freeship-bar">
           <span className="fs-ico">🚚</span>
           <span className="fs-main">
-            <b>ENVÍO POR PAQUETERÍA</b> · se calcula según tu ubicación al pagar
+            <b>ENVÍO POR PAQUETERÍA</b> · aprox. $137 a $250 según tu C.P.
           </span>
+        </div>
+
+        {/* Costo y tiempo de envío ANTES de pedir datos (evita la sorpresa final) */}
+        <div className="envio-aviso">
+          <span className="envio-aviso-ico">📦</span>
+          <div>
+            <b>¿Cuánto cuesta el envío?</b>
+            <p>
+              Enviamos por <strong>Estafeta</strong> a toda la República con número
+              de guía. Según el tamaño del lote y tu C.P., normalmente entre{" "}
+              <strong>$137 y $250 MXN</strong>, con entrega de{" "}
+              <strong>1 a 5 días hábiles</strong>. El costo exacto lo calculamos con
+              tu código postal antes de pagar — sin sorpresas al final.
+            </p>
+          </div>
         </div>
 
         <div className="filters">
@@ -309,6 +333,8 @@ export default function Home() {
                       alt={l.nombre}
                       loading="lazy"
                       decoding="async"
+                      width={520}
+                      height={520}
                     />
                   ) : (
                     <div className="lote-img-ph">
@@ -344,6 +370,18 @@ export default function Home() {
                         ✓ Ahorras {ahorro}% vs. comprar individual
                       </div>
                     )}
+                    {(() => {
+                      const g = gananciaEstimada(l);
+                      return g.ganancia > 0 ? (
+                        <div className="ganancia-box">
+                          <span className="ganancia-lbl">Tu ganancia estimada</span>
+                          <b className="ganancia-monto">{fmx(g.ganancia)}</b>
+                          <span className="ganancia-det">
+                            si vendes las {l.piezas} piezas a ${PPU_REFERENCIA} c/u
+                          </span>
+                        </div>
+                      ) : null;
+                    })()}
                     {l.wppOnly ? (
                       <button
                         className="lote-btn-wpp"
@@ -456,29 +494,20 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ===== TESTIMONIOS ===== */}
+      {/* ===== GARANTÍAS (hechos verificables, no testimonios) ===== */}
       <section className="testi-section" id="opiniones">
         <div className="section-header">
-          <div className="section-eyebrow">Revendedoras reales</div>
+          <div className="section-eyebrow">Por qué comprarnos</div>
           <h2 className="section-title serif">
-            Lo que dicen <em>nuestras clientas</em>
+            Lo que <em>sí te garantizamos</em>
           </h2>
         </div>
         <div className="testi-grid">
-          {RESENAS.map((r) => (
-            <div className="testi-card" key={r.nombre}>
-              <div className="testi-top">
-                <div className="testi-avatar" style={{ background: r.color }}>
-                  {r.inicial}
-                </div>
-                <div className="testi-meta">
-                  <b>{r.nombre}</b>
-                  <span>Revendedora · {r.lugar}</span>
-                </div>
-              </div>
-              <div className="testi-stars">★★★★★</div>
-              <p className="testi-text">&quot;{r.texto}&quot;</p>
-              <div className="verified">✓ Compra verificada</div>
+          {GARANTIAS.map((g) => (
+            <div className="testi-card garantia-card" key={g.titulo}>
+              <div className="garantia-ico">{g.icono}</div>
+              <b className="garantia-tit">{g.titulo}</b>
+              <p className="testi-text">{g.texto}</p>
             </div>
           ))}
         </div>
@@ -547,6 +576,33 @@ export default function Home() {
                   ✓ Ahorras {descuentoPorLote(loteActivo)}% comprando por pieza
                 </div>
               )}
+              {(() => {
+                const g = gananciaEstimada(loteActivo);
+                if (g.ganancia <= 0) return null;
+                return (
+                  <div className="modal-ganancia">
+                    <div className="mg-tit">💰 Tu negocio con este lote</div>
+                    <div className="mg-row">
+                      <span>Inviertes</span>
+                      <b>{fmx(loteActivo.precio * qtyActual)}</b>
+                    </div>
+                    <div className="mg-row">
+                      <span>
+                        Vendes {loteActivo.piezas * qtyActual} pzas a ${PPU_REFERENCIA}
+                      </span>
+                      <b>{fmx(g.venta * qtyActual)}</b>
+                    </div>
+                    <div className="mg-row mg-total">
+                      <span>Ganancia estimada</span>
+                      <b>{fmx(g.ganancia * qtyActual)}</b>
+                    </div>
+                    <p className="mg-nota">
+                      Estimado con el precio promedio de tienda (${PPU_REFERENCIA} por
+                      pieza). Tu ganancia real depende del precio al que vendas.
+                    </p>
+                  </div>
+                );
+              })()}
               <div className="modal-div"></div>
               <div className="modal-sec">Incluye</div>
               <ul className="modal-features">

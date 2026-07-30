@@ -33,6 +33,7 @@ export default function CheckoutPage() {
   const { items, total, count } = useCart();
   const [f, setF] = useState({ ...VACIO });
   const [error, setError] = useState("");
+  const [errores, setErrores] = useState<Record<string, string>>({});
   const [enviando, setEnviando] = useState(false);
 
   // Modo de envío del carrito:
@@ -154,6 +155,13 @@ export default function CheckoutPage() {
 
   function set(campo: string, valor: string) {
     setF((prev) => ({ ...prev, [campo]: valor }));
+    // Al corregir un campo, su mensaje de error desaparece al instante.
+    setErrores((prev) => {
+      if (!prev[campo]) return prev;
+      const n = { ...prev };
+      delete n[campo];
+      return n;
+    });
   }
 
   async function aplicarCupon() {
@@ -230,26 +238,33 @@ export default function CheckoutPage() {
     }
   }
 
-  function validar(): string | null {
-    if (f.nombre.trim().length < 3) return "Escribe tu nombre completo.";
+  // Valida campo por campo: el mensaje se muestra JUNTO al campo, no en un
+  // banner arriba (en celular el banner ni se ve y la clienta abandona).
+  function validarCampos(): Record<string, string> {
+    const e: Record<string, string> = {};
+    if (f.nombre.trim().length < 3) e.nombre = "Escribe tu nombre completo.";
     if (f.telefono.replace(/\D/g, "").length !== 10)
-      return "El WhatsApp debe tener 10 dígitos.";
+      e.telefono = "Deben ser 10 dígitos.";
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim()))
-      return "Escribe un correo válido.";
-    if (!f.calle.trim()) return "Falta la calle.";
-    if (!f.numero.trim()) return "Falta el número.";
-    if (!f.colonia.trim()) return "Falta la colonia.";
-    if (f.cp.replace(/\D/g, "").length !== 5) return "El C.P. debe tener 5 dígitos.";
-    if (!f.ciudad.trim()) return "Falta la ciudad.";
-    if (!f.estado) return "Selecciona tu estado.";
-    return null;
+      e.email = "Escribe un correo válido.";
+    if (!f.calle.trim()) e.calle = "Falta la calle.";
+    if (!f.numero.trim()) e.numero = "Falta el número.";
+    if (!f.colonia.trim()) e.colonia = "Falta la colonia.";
+    if (f.cp.replace(/\D/g, "").length !== 5) e.cp = "Deben ser 5 dígitos.";
+    if (!f.ciudad.trim()) e.ciudad = "Falta la ciudad.";
+    if (!f.estado) e.estado = "Selecciona tu estado.";
+    return e;
   }
 
   async function pagar(ev: React.FormEvent) {
     ev.preventDefault();
-    const err = validar();
-    if (err) {
-      setError(err);
+    const errs = validarCampos();
+    setErrores(errs);
+    if (Object.keys(errs).length > 0) {
+      // Llevar a la clienta al primer campo con problema.
+      const primero = document.querySelector<HTMLElement>("[data-err='1']");
+      primero?.scrollIntoView({ behavior: "smooth", block: "center" });
+      setError("Revisa los campos marcados en rojo.");
       return;
     }
     if (modo === "cotizar" && !envioSel) {
@@ -311,6 +326,19 @@ export default function CheckoutPage() {
           </div>
         ) : (
           <>
+            {/* Pasos: le dice a la clienta dónde va y cuánto le falta */}
+            <ol className="co-pasos" aria-label="Progreso de tu compra">
+              <li className="ok">
+                <span>1</span> Carrito
+              </li>
+              <li className="actual">
+                <span>2</span> Datos de envío
+              </li>
+              <li>
+                <span>3</span> Pago seguro
+              </li>
+            </ol>
+
             <h1 className="co-titulo serif">Datos de envío</h1>
             <p className="co-sub">
               {modo === "coordinar"
@@ -326,6 +354,7 @@ export default function CheckoutPage() {
                 <label className="co-field co-col2">
                   <span>Nombre completo *</span>
                   <input value={f.nombre} onChange={(e) => set("nombre", e.target.value)} autoComplete="name" />
+                  {errores.nombre && <em className="co-field-err" data-err="1">{errores.nombre}</em>}
                 </label>
                 <label className="co-field">
                   <span>WhatsApp (10 dígitos) *</span>
@@ -334,18 +363,22 @@ export default function CheckoutPage() {
                     onChange={(e) => set("telefono", e.target.value.replace(/\D/g, "").slice(0, 10))}
                     autoComplete="tel"
                   />
+                  {errores.telefono && <em className="co-field-err" data-err="1">{errores.telefono}</em>}
                 </label>
                 <label className="co-field">
                   <span>Correo electrónico *</span>
                   <input value={f.email} type="email" onChange={(e) => set("email", e.target.value)} autoComplete="email" />
+                  {errores.email && <em className="co-field-err" data-err="1">{errores.email}</em>}
                 </label>
                 <label className="co-field">
                   <span>Calle *</span>
                   <input value={f.calle} onChange={(e) => set("calle", e.target.value)} autoComplete="address-line1" />
+                  {errores.calle && <em className="co-field-err" data-err="1">{errores.calle}</em>}
                 </label>
                 <label className="co-field">
                   <span>Número *</span>
                   <input value={f.numero} onChange={(e) => set("numero", e.target.value)} />
+                  {errores.numero && <em className="co-field-err" data-err="1">{errores.numero}</em>}
                 </label>
                 <label className="co-field">
                   <span>C.P. (5 dígitos) *</span>
@@ -357,6 +390,7 @@ export default function CheckoutPage() {
                   {(cpLoading || cpMsg) && (
                     <small className="co-cp-msg">{cpLoading ? "Buscando C.P.…" : cpMsg}</small>
                   )}
+                  {errores.cp && <em className="co-field-err" data-err="1">{errores.cp}</em>}
                 </label>
                 <label className="co-field">
                   <span>Colonia *</span>
@@ -383,10 +417,12 @@ export default function CheckoutPage() {
                       onChange={(e) => set("colonia", e.target.value)}
                     />
                   )}
+                  {errores.colonia && <em className="co-field-err" data-err="1">{errores.colonia}</em>}
                 </label>
                 <label className="co-field">
                   <span>Ciudad / Municipio *</span>
                   <input value={f.ciudad} onChange={(e) => set("ciudad", e.target.value)} />
+                  {errores.ciudad && <em className="co-field-err" data-err="1">{errores.ciudad}</em>}
                 </label>
                 <label className="co-field">
                   <span>Estado *</span>
@@ -396,6 +432,7 @@ export default function CheckoutPage() {
                       <option key={s} value={s}>{s}</option>
                     ))}
                   </select>
+                  {errores.estado && <em className="co-field-err" data-err="1">{errores.estado}</em>}
                 </label>
                 <label className="co-field co-col2">
                   <span>Referencias (opcional)</span>

@@ -21,7 +21,24 @@ export default function CheckoutExito() {
     try {
       const raw = sessionStorage.getItem("amarea_ga_purchase");
       if (raw) {
-        gaPurchase(JSON.parse(raw));
+        const data = JSON.parse(raw);
+        gaPurchase(data);
+        // Guardamos el pedido para ofrecer "Repetir mi último pedido" después.
+        // (Sin cuentas de usuario, el navegador de la clienta es el registro.)
+        try {
+          const items = (data.items || [])
+            .map((i: { item_id?: string; quantity?: number }) => ({
+              id: i.item_id,
+              qty: i.quantity || 1,
+            }))
+            .filter((i: { id?: string }) => i.id);
+          if (items.length) {
+            localStorage.setItem(
+              "amarea_ultimo_pedido",
+              JSON.stringify({ items, fecha: Date.now() })
+            );
+          }
+        } catch {}
         sessionStorage.removeItem("amarea_ga_purchase");
       }
     } catch {}

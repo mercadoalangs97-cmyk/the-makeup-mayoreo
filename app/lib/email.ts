@@ -232,8 +232,58 @@ function htmlGuiaCliente(o: OrdenCorreo, g: DatosGuia): string {
     ${botonRastreo}
     <h3 style="color:${C.charcoal};font-size:15px;margin:22px 0 6px">📦 Se envía a</h3>
     ${bloqueEnvio(o.envio)}
-    <p style="color:${C.muted};font-size:12px;margin-top:16px">Si algún dato es incorrecto, respóndenos este correo lo antes posible.</p>`;
+    <p style="text-align:center;color:${C.muted};font-size:12.5px;margin-top:16px">
+      También puedes consultar tu pedido cuando quieras en
+      <a href="${SITE_URL}/rastreo" style="color:${C.roseDk}">${SITE_URL.replace(/^https?:\/\//, "")}/rastreo</a>
+      con tu número de pedido ${pedidoNum(o.id)} y tu correo.
+    </p>
+    <p style="color:${C.muted};font-size:12px;margin-top:10px">Si algún dato es incorrecto, respóndenos este correo lo antes posible.</p>`;
   return envoltura(marca, "🚚 ¡Tu pedido va en camino!", `Pedido ${pedidoNum(o.id)}`, cuerpo);
+}
+
+// ---- Correo de SOLICITUD DE OPINIÓN (a los ~7 días de la compra) ----
+// Pide la opinión por WhatsApp/correo. Con su autorización, esas opiniones
+// REALES son las que después se publican en el sitio.
+function htmlResena(o: OrdenCorreo): string {
+  const marca = o.items.some((i) => i.tipo === "lote") ? "The Makeup Mayoreo" : "AMARÉA";
+  const nombre = o.cliente || o.envio?.nombre || "";
+  const hayLote = o.items.some((i) => i.tipo === "lote");
+  const cuerpo = `
+    <p style="color:${C.text};font-size:15px;margin:0 0 16px">¡Hola ${nombre}! Hace unos días recibiste tu pedido ${pedidoNum(o.id)} y nos encantaría saber cómo te fue. 💬</p>
+    <p style="color:${C.text};font-size:14px;margin:0 0 18px">
+      ¿Nos regalas <b>una o dos líneas</b> contándonos qué te pareció${hayLote ? " el lote y cómo te está yendo con tus ventas" : " el producto"}?
+      Nos ayuda muchísimo y nos toma menos de un minuto.
+    </p>
+    <p style="text-align:center;margin:22px 0 6px">
+      <a href="https://wa.me/${WPP}?text=${encodeURIComponent("Hola! Les comparto mi opinión sobre mi pedido " + pedidoNum(o.id) + ": ")}" style="display:inline-block;background:#1DA851;color:#fff;text-decoration:none;padding:13px 28px;border-radius:999px;font-size:15px;font-weight:bold">Dejar mi opinión por WhatsApp</a>
+    </p>
+    <p style="text-align:center;color:${C.muted};font-size:13px;margin:14px 0 0">
+      O simplemente responde a este correo. ${hayLote ? "" : "¿Ya se te acabó algo? "}
+      <a href="${SITE_URL}${hayLote ? "/mayoreo" : "/amarea"}" style="color:${C.roseDk}">Volver a la tienda</a>
+    </p>
+    <p style="color:${C.muted};font-size:11.5px;margin-top:20px;text-align:center">
+      Si nos autorizas, publicaríamos tu comentario con tu nombre de pila en nuestro sitio.
+    </p>`;
+  return envoltura(marca, "¿Cómo te fue con tu pedido?", `Pedido ${pedidoNum(o.id)}`, cuerpo);
+}
+
+export async function enviarCorreoResena(o: OrdenCorreo): Promise<boolean> {
+  if (!emailConfigurado() || !o.email) return false;
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  const marca = o.items.some((i) => i.tipo === "lote") ? "The Makeup Mayoreo" : "AMARÉA";
+  try {
+    await resend.emails.send({
+      from: `${marca} <${EMAIL_NEGOCIO}>`,
+      to: o.email,
+      replyTo: EMAIL_AVISOS,
+      subject: `¿Cómo te fue con tu pedido ${pedidoNum(o.id)}? 💬`,
+      html: htmlResena(o),
+    });
+    return true;
+  } catch (err) {
+    console.error("[email] solicitud de opinión falló:", err);
+    return false;
+  }
 }
 
 // ---- Correo de CARRITO ABANDONADO (punto 4) ----

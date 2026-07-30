@@ -48,6 +48,9 @@ export default function SiteFooter() {
             <div className="footer-links-title">Ayuda</div>
             <ul className="footer-links">
               <li>
+                <Link href="/rastreo">Rastrea tu pedido</Link>
+              </li>
+              <li>
                 <Link href="/nosotros">Quiénes somos</Link>
               </li>
               <li>

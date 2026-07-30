@@ -157,7 +157,7 @@ export default function ProductoDetalle({
           <div className="pd-img">
             {galeria.length > 0 ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={imgOpt(galeria[imgActiva], 820)} alt={nombre} />
+              <img src={imgOpt(galeria[imgActiva], 820)} alt={nombre} width={820} height={820} />
             ) : (
               <div className="pd-img-ph">💄</div>
             )}
@@ -179,7 +179,7 @@ export default function ProductoDetalle({
                   aria-current={i === imgActiva ? "true" : undefined}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={imgOpt(f, 150)} alt={`${nombre} foto ${i + 1}`} loading="lazy" />
+                  <img src={imgOpt(f, 150)} alt={`${nombre} foto ${i + 1}`} loading="lazy" width={150} height={150} />
                 </button>
               ))}
             </div>

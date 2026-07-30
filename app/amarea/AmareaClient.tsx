@@ -12,6 +12,7 @@ import {
   type Producto,
 } from "../lib/productos";
 import { gaSearch } from "../lib/analytics";
+import RepetirPedido from "../components/RepetirPedido";
 
 // Normaliza para búsqueda tolerante: minúsculas, sin acentos, signos → espacio.
 function norm(s: string): string {
@@ -256,6 +257,8 @@ export default function ShopClient({
                 alt={nombre}
                 loading="lazy"
                 decoding="async"
+                width={420}
+                height={420}
               />
             ) : (
               <div className="prod-img-ph">💄</div>
@@ -553,6 +556,9 @@ export default function ShopClient({
                 </button>
               </div>
             </aside>
+
+            {/* Recompra en 1 clic (solo aparece si ya compró antes) */}
+            <RepetirPedido productos={productos} />
 
             {/* TOOLBAR: filtros + orden + conteo */}
             <div className="shop-toolbar">
