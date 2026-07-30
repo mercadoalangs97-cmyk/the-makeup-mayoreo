@@ -10,6 +10,7 @@ import {
 } from "../lib/lotes";
 import { useCart } from "../lib/cart";
 import { imgOpt } from "../lib/img";
+import { gaLead } from "../lib/analytics";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 
@@ -115,6 +116,7 @@ export default function Home() {
       ppu +
       "/pieza)" +
       "\n\n¿Me confirma disponibilidad y datos de pago?";
+    gaLead("whatsapp_lote_" + l.piezas + "pz"); // mide el contacto (conversión de mayoreo)
     window.open(
       "https://wa.me/" + WPP + "?text=" + encodeURIComponent(msg),
       "_blank"
@@ -487,14 +489,15 @@ export default function Home() {
         <div className="b-eyebrow">Para distribuidoras</div>
         <h2 className="serif">¿Necesitas el lote de 500 piezas?</h2>
         <p>
-          El precio por pieza más bajo: $87 MXN. Coordinamos un envío especial y
+          El precio por pieza más bajo: $91 MXN. Coordinamos un envío especial y
           atención personalizada para tu negocio.
         </p>
         <a
-          href="https://wa.me/5215543813568?text=Hola!%20Me%20interesa%20el%20lote%20de%20500%20piezas%20(%2443%2C500%20MXN).%20Podemos%20coordinar%3F"
+          href="https://wa.me/5215543813568?text=Hola!%20Me%20interesa%20el%20lote%20de%20500%20piezas%20(%2445%2C700%20MXN).%20Podemos%20coordinar%3F"
           className="banner-btn"
           target="_blank"
           rel="noreferrer"
+          onClick={() => gaLead("whatsapp_lote_500pz")}
         >
           Cotizar lote de 500 piezas →
         </a>

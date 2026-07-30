@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { NEGOCIO, NEGOCIO_DIR } from "../lib/site";
+import WppLink from "./WppLink";
 
 export default function SiteFooter() {
   return (
@@ -17,9 +18,9 @@ export default function SiteFooter() {
               📍 {NEGOCIO_DIR}
               <br />
               📱{" "}
-              <a href={`https://wa.me/${NEGOCIO.whatsapp}`} target="_blank" rel="noreferrer">
+              <WppLink href={`https://wa.me/${NEGOCIO.whatsapp}`} fuente="whatsapp_footer_tel">
                 {NEGOCIO.telefono}
-              </a>
+              </WppLink>
               <br />
               ✉️ <a href={`mailto:${NEGOCIO.email}`}>{NEGOCIO.email}</a>
             </address>
@@ -37,13 +38,9 @@ export default function SiteFooter() {
                 <Link href="/guias">Guías de maquillaje</Link>
               </li>
               <li>
-                <a
-                  href="https://wa.me/5215543813568"
-                  target="_blank"
-                  rel="noreferrer"
-                >
+                <WppLink href="https://wa.me/5215543813568" fuente="whatsapp_footer">
                   WhatsApp
-                </a>
+                </WppLink>
               </li>
             </ul>
           </div>

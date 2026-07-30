@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useCart } from "../lib/cart";
 import { ENVIO_AMAREA_GRATIS_DESDE, fmx } from "../lib/lotes";
+import { gaLead } from "../lib/analytics";
 
 type Variante = "landing" | "mayoreo" | "amarea";
 
@@ -164,6 +165,7 @@ export default function SiteHeader({
                 className="nav-btn wpp"
                 target="_blank"
                 rel="noreferrer"
+                onClick={() => gaLead("whatsapp_header")}
               >
                 WhatsApp
               </a>

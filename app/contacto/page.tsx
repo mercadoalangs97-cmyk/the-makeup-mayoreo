@@ -3,6 +3,7 @@ import Link from "next/link";
 import { SITE_URL, NEGOCIO, NEGOCIO_DIR } from "../lib/site";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
+import WppLink from "../components/WppLink";
 
 export const metadata: Metadata = {
   title: "Contacto · The Makeup CDMX",
@@ -26,13 +27,9 @@ export default function Contacto() {
 
         <h2>WhatsApp</h2>
         <p>
-          <a
-            href="https://wa.me/5215543813568"
-            target="_blank"
-            rel="noreferrer"
-          >
+          <WppLink href="https://wa.me/5215543813568" fuente="whatsapp_contacto">
             +52 55 4381 3568
-          </a>{" "}
+          </WppLink>{" "}
           — la forma más rápida de contactarnos.
         </p>
 
