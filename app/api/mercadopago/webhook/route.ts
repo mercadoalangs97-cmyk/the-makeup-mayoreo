@@ -126,6 +126,26 @@ async function manejar(req: Request): Promise<NextResponse> {
     );
   }
 
+  // Si la venta vino de una cotización, márcala como pagada (para el panel).
+  if (resultado === "ok") {
+    try {
+      const { data: ord } = await supabase
+        .from("ordenes_web")
+        .select("envio")
+        .eq("id", ordenId)
+        .single();
+      const cotId = (ord?.envio as Record<string, unknown> | null)?.cotizacion;
+      if (cotId) {
+        await supabase
+          .from("cotizaciones")
+          .update({ pagada: true })
+          .eq("id", String(cotId));
+      }
+    } catch (e) {
+      console.error("[webhook] marcar cotización pagada:", e);
+    }
+  }
+
   // Correos de confirmación SOLO en el primer procesamiento (idempotente):
   // si MP reenvía el webhook, la función SQL devuelve 'ya_procesada' y no
   // volvemos a enviar. Best-effort: si el correo falla, no rompe el webhook.

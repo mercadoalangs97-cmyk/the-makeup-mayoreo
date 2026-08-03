@@ -7,7 +7,7 @@ import { LOTES, fmx, PPU_REFERENCIA, WPP } from "../lib/lotes";
 import { useCart } from "../lib/cart";
 import { imgOpt } from "../lib/img";
 import { gaLead } from "../lib/analytics";
-import { NEGOCIO, NEGOCIO_DIR } from "../lib/site";
+import { NEGOCIO } from "../lib/site";
 
 export default function CotizacionClient({
   loteId,
@@ -156,10 +156,6 @@ export default function CotizacionClient({
         </p>
 
         <div className="cot-conf">
-          <div>
-            <b>Somos un negocio real</b>
-            <span>{NEGOCIO_DIR}</span>
-          </div>
           <div className="cot-conf-links">
             <a href={`https://wa.me/${WPP}`} target="_blank" rel="noreferrer">
               📱 {NEGOCIO.telefono}
