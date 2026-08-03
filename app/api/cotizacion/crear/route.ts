@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminSupabase, createServerSupabase } from "../../../lib/supabase";
 import { cotizarEnvioReal, filtrarPaqueterias } from "../../../lib/skydropx";
-import { LOTES, parcelsDeItems } from "../../../lib/lotes";
+import { LOTES, parcelsDeItems, type Paquete } from "../../../lib/lotes";
 
 // Crea una COTIZACIÓN desde la app de inventario (otro dominio → CORS abierto,
 // pero protegido por el token de sesión Supabase: solo personal logueado).
@@ -50,6 +50,8 @@ export async function POST(req: Request) {
     envio?: Record<string, string>;
     cotizarEnvio?: boolean;
     servicioCode?: string;
+    paquete?: { length?: number; width?: number; height?: number; weight?: number };
+    cajas?: number;
   };
   try {
     body = await req.json();
@@ -102,10 +104,30 @@ export async function POST(req: Request) {
   const items = [
     { tipo: "lote" as const, id: "lote:" + lote.id, qty, piezas: lote.piezas },
   ];
+
+  // Caja: si la dueña eligió/midió una, esa manda. Si no, la típica del lote.
+  const lim = (v: unknown, min: number, max: number) =>
+    Math.min(max, Math.max(min, Number(v) || 0));
+  let paqueteUsado: Paquete | null = null;
+  let parcels: Paquete[];
+  if (body.paquete && Number(body.paquete.weight) > 0) {
+    paqueteUsado = {
+      length: lim(body.paquete.length, 1, 150),
+      width: lim(body.paquete.width, 1, 150),
+      height: lim(body.paquete.height, 1, 150),
+      weight: lim(body.paquete.weight, 0.1, 70),
+    };
+    const nCajas = Math.min(20, Math.max(1, Math.floor(Number(body.cajas) || qty)));
+    parcels = Array.from({ length: nCajas }, () => paqueteUsado as Paquete);
+  } else {
+    parcels = parcelsDeItems(items);
+  }
+
   try {
+    if (!parcels.length) throw new Error("sin_caja");
     const todas = await cotizarEnvioReal(
       { cp: envio.cp, estado: envio.estado, ciudad: envio.ciudad, colonia: envio.colonia },
-      parcelsDeItems(items)
+      parcels
     );
     const rates = filtrarPaqueterias(todas);
     if (rates.length) {
@@ -138,7 +160,9 @@ export async function POST(req: Request) {
     lote_id: lote.id,
     qty,
     cliente_nombre: (body.clienteNombre || envio.nombre).trim().slice(0, 60),
-    envio,
+    // Guardamos la caja usada: al generar la guía se reutiliza la misma medida
+    // con la que se cotizó, para que el costo no cambie.
+    envio: paqueteUsado ? { ...envio, paquete: paqueteUsado } : envio,
     envio_costo: costo,
     envio_paqueteria: paqueteria,
     envio_servicio: servicio,
