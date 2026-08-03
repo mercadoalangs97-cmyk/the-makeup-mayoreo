@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 export const dynamic = "force-dynamic";
 
-type Props = { searchParams: Promise<{ p?: string; n?: string }> };
+type Props = { searchParams: Promise<{ p?: string; n?: string; c?: string }> };
 
 export default async function OpinarPage({ searchParams }: Props) {
   const sp = await searchParams;
@@ -21,6 +21,7 @@ export default async function OpinarPage({ searchParams }: Props) {
         <OpinarClient
           pedido={(sp.p || "").slice(0, 12)}
           nombre={(sp.n || "").slice(0, 40)}
+          compra={(sp.c || "").slice(0, 80)}
         />
       </main>
       <SiteFooter />

@@ -15,6 +15,7 @@ export async function POST(req: Request) {
     texto?: string;
     autoriza?: boolean;
     pedido?: string;
+    compra?: string;
   };
   try {
     body = await req.json();
@@ -43,6 +44,7 @@ export async function POST(req: Request) {
   const sb = createAdminSupabase();
   const { error } = await sb.from("opiniones").insert({
     orden_id: (body.pedido || "").trim().slice(0, 12) || null,
+    compra: (body.compra || "").trim().slice(0, 80) || null,
     nombre,
     ciudad: ciudad || null,
     calificacion,

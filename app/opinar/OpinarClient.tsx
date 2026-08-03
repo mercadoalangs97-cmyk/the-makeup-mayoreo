@@ -9,9 +9,11 @@ const ESTRELLAS = [1, 2, 3, 4, 5];
 export default function OpinarClient({
   pedido,
   nombre: nombreInicial,
+  compra,
 }: {
   pedido: string;
   nombre: string;
+  compra: string;
 }) {
   const [nombre, setNombre] = useState(nombreInicial);
   const [ciudad, setCiudad] = useState("");
@@ -41,6 +43,7 @@ export default function OpinarClient({
           texto,
           autoriza,
           pedido,
+          compra,
         }),
       });
       const data = await res.json();
@@ -96,7 +99,14 @@ export default function OpinarClient({
             : "¿Cómo te fue con tu pedido?"}
         </h1>
         <p className="op-sub">
-          Nos toma menos de un minuto y nos ayuda más de lo que imaginas.
+          {compra ? (
+            <>
+              Cuéntanos qué te pareció <b>{compra}</b>. Nos toma menos de un
+              minuto y nos ayuda más de lo que imaginas.
+            </>
+          ) : (
+            "Nos toma menos de un minuto y nos ayuda más de lo que imaginas."
+          )}
         </p>
 
         <label className="op-label">¿Cuántas estrellas nos das?</label>
