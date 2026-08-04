@@ -17,6 +17,14 @@ import ProductoDetalle from "./ProductoDetalle";
 // Ficha de producto: se cachea 60 s (es la página a la que llegan los anuncios).
 export const revalidate = 60;
 
+// Sin esto Next trata la ruta como dinámica y la vuelve a construir en CADA
+// visita (revalidate se ignora). Con la lista vacía no se genera nada en el
+// build: cada SKU se arma la primera vez que alguien lo abre y de ahí se cachea.
+export const dynamicParams = true;
+export function generateStaticParams() {
+  return [];
+}
+
 type Params = { params: Promise<{ sku: string }> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
