@@ -83,7 +83,12 @@ export async function POST(req: Request) {
   const faltan: string[] = [];
   if (envio.nombre.length < 3) faltan.push("nombre");
   if (envio.telefono.length !== 10) faltan.push("WhatsApp (10 dígitos)");
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(envio.email)) faltan.push("correo");
+  // El correo es OPCIONAL: muchas clientas solo dan WhatsApp. Si lo pagan,
+  // Mercado Pago nos da el correo del pagador y el webhook lo completa solo.
+  // Pero si lo escriben, tiene que estar bien.
+  if (envio.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(envio.email)) {
+    faltan.push("correo bien escrito (o déjalo vacío)");
+  }
   if (!envio.calle) faltan.push("calle");
   if (!envio.numero) faltan.push("número");
   if (!envio.colonia) faltan.push("colonia");

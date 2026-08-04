@@ -130,9 +130,11 @@ export async function POST(req: Request) {
         items: mpItems,
         external_reference: ordenId,
         metadata: { orden_id: ordenId, cotizacion: id },
+        // El correo es opcional: si no lo tenemos, NO mandamos la llave vacía
+        // (Mercado Pago la rechaza) y él lo captura al pagar.
         payer: {
           name: env.nombre || "",
-          email: env.email || "",
+          ...(env.email ? { email: env.email } : {}),
           phone: { area_code: "", number: env.telefono || "" },
         },
         back_urls: {
