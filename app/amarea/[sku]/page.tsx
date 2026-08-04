@@ -14,7 +14,8 @@ import SiteFooter from "../../components/SiteFooter";
 import FilaProductos from "../../components/FilaProductos";
 import ProductoDetalle from "./ProductoDetalle";
 
-export const dynamic = "force-dynamic";
+// Ficha de producto: se cachea 60 s (es la página a la que llegan los anuncios).
+export const revalidate = 60;
 
 type Params = { params: Promise<{ sku: string }> };
 

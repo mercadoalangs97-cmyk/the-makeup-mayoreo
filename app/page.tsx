@@ -13,8 +13,11 @@ export const metadata: Metadata = {
   alternates: { canonical: SITE_URL },
 };
 
-// El stock cambia, así que no cacheamos la página.
-export const dynamic = "force-dynamic";
+// La portada se guarda hecha y se refresca cada 60 s: el servidor contesta al
+// instante en vez de consultar el inventario en cada visita. El stock puede
+// verse hasta 1 min viejo, pero /api/checkout revalida existencias antes de
+// cobrar, así que nunca se vende algo que ya no hay.
+export const revalidate = 60;
 
 export default async function Home() {
   const { productos, error } = await fetchProductosTienda();

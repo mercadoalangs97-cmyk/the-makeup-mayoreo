@@ -12,8 +12,8 @@ export const metadata: Metadata = {
   alternates: { canonical: `${SITE_URL}/amarea` },
 };
 
-// El stock cambia, así que no cacheamos la página.
-export const dynamic = "force-dynamic";
+// Igual que la portada: se guarda hecha y se refresca cada 60 s.
+export const revalidate = 60;
 
 export default async function AmareaCatalogo() {
   const { productos, error } = await fetchProductosTienda();
