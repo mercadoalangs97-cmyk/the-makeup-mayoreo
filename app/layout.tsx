@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
+import { Cormorant_Garamond, Jost } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "./lib/cart";
 import { GA_ID, META_PIXEL_ID, GOOGLE_ADS_ID } from "./lib/analytics";
@@ -8,6 +9,23 @@ import CartDrawer from "./components/CartDrawer";
 import Toast from "./components/Toast";
 import WppFloat from "./components/WppFloat";
 import PopupSuscripcion from "./components/PopupSuscripcion";
+
+// Fuentes AUTO-ALOJADAS por Next: se sirven desde nuestro dominio, sin pedirle
+// nada a fonts.googleapis.com. Eso quita ~1.9 s de bloqueo del renderizado en
+// móvil y evita el salto de texto al cambiar de fuente (CLS).
+const jost = Jost({
+  subsets: ["latin"],
+  weight: ["300", "400", "500"],
+  display: "swap",
+  variable: "--font-jost",
+});
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600"],
+  style: ["normal", "italic"],
+  display: "swap",
+  variable: "--font-cormorant",
+});
 
 // Imagen que aparece al compartir el link (WhatsApp, Facebook, iMessage…).
 const OG_IMG =
@@ -65,17 +83,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es">
+    <html lang="es" className={`${jost.variable} ${cormorant.variable}`}>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        {/* Las fotos viven en Supabase Storage: abrir la conexión desde el
+            principio adelanta la carga de la imagen principal (LCP). */}
         <link
           rel="preconnect"
-          href="https://fonts.gstatic.com"
+          href="https://yekvehkmgunoafccwmyp.supabase.co"
           crossOrigin=""
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap"
-          rel="stylesheet"
         />
       </head>
       <body>

@@ -14,8 +14,8 @@
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{font-family:"Jost",sans-serif;background:var(--cream);color:var(--text);overflow-x:hidden;-webkit-font-smoothing:antialiased}
-.serif{font-family:"Cormorant Garamond",serif}
+body{font-family:var(--font-jost),sans-serif;background:var(--cream);color:var(--text);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+.serif{font-family:var(--font-cormorant),serif}
 img{max-width:100%}
 .wrap{max-width:var(--maxw);margin:0 auto;width:100%}
 
@@ -45,8 +45,8 @@ img{max-width:100%}
 /* ===== NAV ===== */
 nav{position:sticky;top:0;z-index:100;background:rgba(250,246,240,0.94);backdrop-filter:blur(14px);border-bottom:1px solid var(--border)}
 .nav-inner{max-width:var(--maxw);margin:0 auto;padding:0 16px;display:flex;align-items:center;justify-content:space-between;gap:16px;height:66px}
-.nav-logo{font-family:"Cormorant Garamond",serif;font-size:22px;font-weight:600;color:var(--charcoal);letter-spacing:.02em;line-height:1;cursor:pointer}
-.nav-logo span{display:block;font-size:9.5px;font-family:"Jost",sans-serif;letter-spacing:.18em;color:var(--gold);font-weight:500;text-transform:uppercase;margin-top:3px}
+.nav-logo{font-family:var(--font-cormorant),serif;font-size:22px;font-weight:600;color:var(--charcoal);letter-spacing:.02em;line-height:1;cursor:pointer}
+.nav-logo span{display:block;font-size:9.5px;font-family:var(--font-jost),sans-serif;letter-spacing:.18em;color:var(--gold);font-weight:500;text-transform:uppercase;margin-top:3px}
 .nav-cats{display:flex;gap:26px;align-items:center}
 .nav-cats a{font-size:13px;letter-spacing:.04em;color:var(--text);text-decoration:none;font-weight:400;transition:color .2s;position:relative}
 .nav-cats a:hover{color:var(--rose)}
@@ -63,7 +63,7 @@ nav{position:sticky;top:0;z-index:100;background:rgba(250,246,240,0.94);backdrop
 .hero{position:relative;overflow:hidden;background:linear-gradient(160deg,var(--rose-soft),var(--cream) 60%)}
 .hero-inner{max-width:var(--maxw);margin:0 auto;display:grid;grid-template-columns:1.05fr .95fr;gap:32px;align-items:center;padding:54px 16px}
 .hero-eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--rose-dk);font-weight:600;background:#fff;border:1px solid var(--border);padding:6px 14px;border-radius:var(--radius-pill);margin-bottom:20px;box-shadow:var(--shadow-sm)}
-.hero-h1{font-family:"Cormorant Garamond",serif;font-size:clamp(40px,5.6vw,66px);font-weight:600;line-height:1.04;color:var(--charcoal);margin-bottom:18px;letter-spacing:-.01em}
+.hero-h1{font-family:var(--font-cormorant),serif;font-size:clamp(40px,5.6vw,66px);font-weight:600;line-height:1.04;color:var(--charcoal);margin-bottom:18px;letter-spacing:-.01em}
 .hero-h1 em{color:var(--rose);font-style:italic;font-weight:500}
 .hero-desc{font-size:16px;font-weight:300;line-height:1.65;color:var(--muted);max-width:440px;margin-bottom:22px}
 .hero-ship{display:inline-flex;align-items:center;gap:9px;background:var(--gold-soft);border:1px dashed var(--gold);border-radius:var(--radius-sm);padding:9px 15px;font-size:13px;color:var(--rose-dk);font-weight:500;margin-bottom:26px}
@@ -88,8 +88,8 @@ nav{position:sticky;top:0;z-index:100;background:rgba(250,246,240,0.94);backdrop
 .hcard-1{top:7%;left:5%;transform:rotate(-3deg)}
 .hcard-2{bottom:8%;right:5%;transform:rotate(2deg);width:160px}
 .hcard-tag{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:5px;font-weight:600}
-.hcard-name{font-family:"Cormorant Garamond",serif;font-size:17px;font-weight:600;color:var(--charcoal);line-height:1.1;margin-bottom:3px}
-.hcard-price{font-family:"Cormorant Garamond",serif;font-size:21px;color:var(--rose);font-weight:600}
+.hcard-name{font-family:var(--font-cormorant),serif;font-size:17px;font-weight:600;color:var(--charcoal);line-height:1.1;margin-bottom:3px}
+.hcard-price{font-family:var(--font-cormorant),serif;font-size:21px;color:var(--rose);font-weight:600}
 .hcard-unit{font-size:10px;color:var(--muted)}
 
 /* ===== TRUST BADGES ===== */
@@ -106,14 +106,14 @@ nav{position:sticky;top:0;z-index:100;background:rgba(250,246,240,0.94);backdrop
 .cat-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:26px 16px;text-align:center;cursor:pointer;transition:transform .25s,box-shadow .25s;text-decoration:none;display:block}
 .cat-card:hover{transform:translateY(-4px);box-shadow:var(--shadow)}
 .cat-emoji{width:64px;height:64px;margin:0 auto 12px;border-radius:50%;background:linear-gradient(145deg,var(--rose-soft),var(--gold-soft));display:flex;align-items:center;justify-content:center;font-size:30px}
-.cat-name{font-family:"Cormorant Garamond",serif;font-size:21px;font-weight:600;color:var(--charcoal);margin-bottom:2px}
+.cat-name{font-family:var(--font-cormorant),serif;font-size:21px;font-weight:600;color:var(--charcoal);margin-bottom:2px}
 .cat-sub{font-size:11.5px;color:var(--muted);letter-spacing:.03em}
 
 /* ===== SECTION HEADERS ===== */
 .section{padding:44px 16px 56px}
 .section-header{text-align:center;max-width:600px;margin:0 auto 34px}
 .section-eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--rose);font-weight:600;margin-bottom:10px}
-.section-title{font-family:"Cormorant Garamond",serif;font-size:clamp(30px,4.6vw,46px);font-weight:600;color:var(--charcoal);line-height:1.1}
+.section-title{font-family:var(--font-cormorant),serif;font-size:clamp(30px,4.6vw,46px);font-weight:600;color:var(--charcoal);line-height:1.1}
 .section-title em{color:var(--rose);font-style:italic;font-weight:500}
 .section-sub{font-size:14.5px;color:var(--muted);margin-top:12px;font-weight:300;line-height:1.6}
 
@@ -147,11 +147,11 @@ nav{position:sticky;top:0;z-index:100;background:rgba(250,246,240,0.94);backdrop
 .badge-save-img{background:var(--gold);color:var(--charcoal)}
 .lote-body{padding:18px;display:flex;flex-direction:column;flex:1}
 .lote-tag{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;font-weight:600}
-.lote-name{font-family:"Cormorant Garamond",serif;font-size:24px;font-weight:600;color:var(--charcoal);line-height:1.1;margin-bottom:6px}
+.lote-name{font-family:var(--font-cormorant),serif;font-size:24px;font-weight:600;color:var(--charcoal);line-height:1.1;margin-bottom:6px}
 .lote-desc{font-size:12.5px;color:var(--muted);line-height:1.5;margin-bottom:14px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .price-block{margin-top:auto}
 .price-row{display:flex;align-items:baseline;gap:7px}
-.lote-price{font-family:"Cormorant Garamond",serif;font-size:32px;font-weight:600;color:var(--charcoal);line-height:1}
+.lote-price{font-family:var(--font-cormorant),serif;font-size:32px;font-weight:600;color:var(--charcoal);line-height:1}
 .lote-currency{font-size:12px;color:var(--muted)}
 .ppu-pill{display:inline-flex;align-items:center;gap:6px;background:var(--rose-soft);color:var(--rose-dk);font-size:12.5px;font-weight:600;padding:5px 12px;border-radius:var(--radius-pill);margin-top:9px}
 .ppu-pill b{font-size:14px;color:var(--rose)}
@@ -167,7 +167,7 @@ nav{position:sticky;top:0;z-index:100;background:rgba(250,246,240,0.94);backdrop
 /* ===== SOCIAL PROOF BAND ===== */
 .proof{background:var(--charcoal);padding:44px 16px}
 .proof-grid{max-width:880px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:18px;text-align:center}
-.proof-num{font-family:"Cormorant Garamond",serif;font-size:clamp(32px,5vw,46px);font-weight:600;color:var(--gold-lt);line-height:1}
+.proof-num{font-family:var(--font-cormorant),serif;font-size:clamp(32px,5vw,46px);font-weight:600;color:var(--gold-lt);line-height:1}
 .proof-num em{color:var(--rose);font-style:normal}
 .proof-label{font-size:12px;color:var(--nude);letter-spacing:.05em;margin-top:6px}
 
@@ -176,8 +176,8 @@ nav{position:sticky;top:0;z-index:100;background:rgba(250,246,240,0.94);backdrop
 .steps-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;max-width:980px;margin:0 auto}
 .step{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:26px 22px;transition:transform .2s,box-shadow .2s}
 .step:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
-.step-num{width:42px;height:42px;border-radius:50%;background:var(--charcoal);color:var(--gold-lt);font-family:"Cormorant Garamond",serif;font-size:22px;font-weight:600;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
-.step-title{font-family:"Cormorant Garamond",serif;font-size:21px;font-weight:600;color:var(--charcoal);margin-bottom:6px}
+.step-num{width:42px;height:42px;border-radius:50%;background:var(--charcoal);color:var(--gold-lt);font-family:var(--font-cormorant),serif;font-size:22px;font-weight:600;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.step-title{font-family:var(--font-cormorant),serif;font-size:21px;font-weight:600;color:var(--charcoal);margin-bottom:6px}
 .step-desc{font-size:13px;color:var(--muted);line-height:1.6;font-weight:300}
 
 /* ===== TESTIMONIOS ===== */
@@ -189,13 +189,13 @@ nav{position:sticky;top:0;z-index:100;background:rgba(250,246,240,0.94);backdrop
 .testi-meta b{display:block;font-size:13px;color:var(--charcoal);font-weight:600}
 .testi-meta span{font-size:11px;color:var(--muted)}
 .testi-stars{color:var(--gold);font-size:13px;letter-spacing:2px;margin-bottom:10px}
-.testi-text{font-family:"Cormorant Garamond",serif;font-size:17px;font-style:italic;color:var(--charcoal);line-height:1.5}
+.testi-text{font-family:var(--font-cormorant),serif;font-size:17px;font-style:italic;color:var(--charcoal);line-height:1.5}
 .verified{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--success);font-weight:600;margin-top:12px}
 
 /* ===== BANNER MAYOREO ===== */
 .banner-mayoreo{max-width:var(--maxw);margin:54px auto;background:linear-gradient(120deg,var(--rose-dk),var(--charcoal));padding:54px 28px;text-align:center;border-radius:var(--radius);box-shadow:var(--shadow-lg)}
 .banner-mayoreo .b-eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:10px}
-.banner-mayoreo h2{font-family:"Cormorant Garamond",serif;font-size:clamp(28px,4.4vw,44px);color:var(--gold-lt);font-weight:600;margin-bottom:10px;line-height:1.1}
+.banner-mayoreo h2{font-family:var(--font-cormorant),serif;font-size:clamp(28px,4.4vw,44px);color:var(--gold-lt);font-weight:600;margin-bottom:10px;line-height:1.1}
 .banner-mayoreo p{font-size:15px;color:rgba(232,213,168,0.85);margin-bottom:26px;font-weight:300;max-width:520px;margin-left:auto;margin-right:auto}
 .banner-btn{display:inline-flex;align-items:center;gap:9px;background:var(--gold-lt);color:var(--charcoal);padding:15px 34px;border-radius:var(--radius-pill);font-family:inherit;font-size:13px;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;transition:all .2s;font-weight:600;box-shadow:var(--shadow)}
 .banner-btn:hover{background:#fff;transform:translateY(-2px)}
@@ -204,7 +204,7 @@ nav{position:sticky;top:0;z-index:100;background:rgba(250,246,240,0.94);backdrop
 footer{background:var(--charcoal);padding:48px 16px 22px;color:var(--nude)}
 .footer-inner{max-width:var(--maxw);margin:0 auto}
 .footer-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:36px;margin-bottom:30px}
-.footer-brand{font-family:"Cormorant Garamond",serif;font-size:24px;color:var(--gold-lt);font-weight:600}
+.footer-brand{font-family:var(--font-cormorant),serif;font-size:24px;color:var(--gold-lt);font-weight:600}
 .footer-brand-sub{font-size:10px;letter-spacing:.16em;color:var(--gold);text-transform:uppercase;margin-top:3px}
 .footer-desc{font-size:12.5px;color:rgba(212,184,168,0.75);line-height:1.65;margin-top:12px;font-weight:300;max-width:320px}
 .footer-links-title{font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--gold);margin-bottom:14px;font-weight:600}
@@ -230,7 +230,7 @@ footer{background:var(--charcoal);padding:48px 16px 22px;color:var(--nude)}
 .cart-drawer{position:fixed;top:0;right:0;height:100vh;height:100dvh;width:min(430px,100vw);background:var(--cream);z-index:401;transform:translateX(100%);transition:transform .35s cubic-bezier(.22,.6,.3,1);display:flex;flex-direction:column}
 .cart-drawer.open{transform:translateX(0)}
 .cart-header{padding:20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.cart-title{font-family:"Cormorant Garamond",serif;font-size:24px;font-weight:600;color:var(--charcoal)}
+.cart-title{font-family:var(--font-cormorant),serif;font-size:24px;font-weight:600;color:var(--charcoal)}
 .cart-close-btn{background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer;width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:50%;transition:background .2s}
 .cart-close-btn:hover{background:var(--blush)}
 /* progreso envío gratis */
@@ -248,7 +248,7 @@ footer{background:var(--charcoal);padding:48px 16px 22px;color:var(--nude)}
 .cart-item img{width:72px;height:72px;object-fit:contain;background:var(--blush);padding:4px;border-radius:var(--radius-sm)}
 .seo-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .cart-item-ph{width:72px;height:72px;background:var(--blush);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:24px}
-.cart-item-name{font-family:"Cormorant Garamond",serif;font-size:16px;font-weight:600;color:var(--charcoal);margin-bottom:3px}
+.cart-item-name{font-family:var(--font-cormorant),serif;font-size:16px;font-weight:600;color:var(--charcoal);margin-bottom:3px}
 .cart-item-price{font-size:13px;color:var(--rose);margin-bottom:8px;font-weight:500}
 .qty-ctrl{display:flex;align-items:center;gap:8px}
 .qty-btn{width:26px;height:26px;border:1px solid var(--border);border-radius:50%;background:#fff;color:var(--text);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;line-height:1}
@@ -259,7 +259,7 @@ footer{background:var(--charcoal);padding:48px 16px 22px;color:var(--nude)}
 .cart-footer{padding:18px 20px max(24px,env(safe-area-inset-bottom));border-top:1px solid var(--border);flex-shrink:0;background:#fff}
 .cart-total-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
 .cart-total-label{font-size:13px;color:var(--muted)}
-.cart-total-val{font-family:"Cormorant Garamond",serif;font-size:30px;font-weight:600;color:var(--charcoal)}
+.cart-total-val{font-family:var(--font-cormorant),serif;font-size:30px;font-weight:600;color:var(--charcoal)}
 .btn-mp{width:100%;padding:14px;background:#009EE3;color:#fff;border:none;border-radius:var(--radius-pill);font-family:inherit;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;margin-bottom:8px;transition:background .2s;font-weight:600}
 .btn-mp:hover{background:#007AB8}
 .btn-wpp-checkout{width:100%;padding:14px;background:var(--success);color:#fff;border:none;border-radius:var(--radius-pill);font-family:inherit;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:background .2s;font-weight:600}
@@ -275,8 +275,8 @@ footer{background:var(--charcoal);padding:48px 16px 22px;color:var(--nude)}
 .modal-img{width:100%;height:auto;background:var(--blush);border-radius:var(--radius-sm);margin-bottom:16px;display:block}
 .modal-img-ph{width:100%;height:90px;background:var(--blush);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;margin-bottom:16px;font-size:30px}
 .modal-etiq{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:5px;font-weight:600}
-.modal-nombre{font-family:"Cormorant Garamond",serif;font-size:28px;font-weight:600;color:var(--charcoal);margin-bottom:6px}
-.modal-precio{font-family:"Cormorant Garamond",serif;font-size:34px;color:var(--charcoal);font-weight:600;display:inline}
+.modal-nombre{font-family:var(--font-cormorant),serif;font-size:28px;font-weight:600;color:var(--charcoal);margin-bottom:6px}
+.modal-precio{font-family:var(--font-cormorant),serif;font-size:34px;color:var(--charcoal);font-weight:600;display:inline}
 .modal-ppu{display:inline-flex;align-items:center;gap:6px;background:var(--rose-soft);color:var(--rose-dk);font-size:13px;font-weight:600;padding:5px 12px;border-radius:var(--radius-pill);margin-left:10px;vertical-align:middle}
 .modal-save{font-size:13px;color:var(--success);font-weight:600;margin-top:10px;display:flex;align-items:center;gap:6px}
 .modal-div{height:1px;background:var(--border);margin:18px 0}
@@ -294,7 +294,7 @@ footer{background:var(--charcoal);padding:48px 16px 22px;color:var(--nude)}
 .total-box{background:var(--charcoal);border-radius:var(--radius-sm);padding:16px;margin:16px 0;display:flex;justify-content:space-between;align-items:center}
 .total-label{font-size:12px;color:var(--nude)}
 .total-sub{font-size:11px;color:rgba(212,184,168,0.7);margin-top:2px}
-.total-val{font-family:"Cormorant Garamond",serif;font-size:30px;color:var(--gold-lt);font-weight:600}
+.total-val{font-family:var(--font-cormorant),serif;font-size:30px;color:var(--gold-lt);font-weight:600}
 .btn-add-cart{width:100%;background:var(--charcoal);color:var(--gold-lt);padding:15px;border:none;border-radius:var(--radius-pill);font-family:inherit;font-size:13px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:background .2s;margin-bottom:9px;font-weight:600}
 .btn-add-cart:hover{background:var(--rose-dk)}
 .modal-btns{display:grid;grid-template-columns:1fr 1fr;gap:9px}
@@ -396,7 +396,7 @@ footer{background:var(--charcoal);padding:48px 16px 22px;color:var(--nude)}
 .shop-filtros-drawer{position:fixed;top:0;right:0;height:100vh;height:100dvh;width:min(360px,86vw);background:var(--cream);z-index:451;transform:translateX(100%);transition:transform .35s cubic-bezier(.22,.6,.3,1);display:flex;flex-direction:column}
 .shop-filtros-drawer.open{transform:translateX(0)}
 .shop-filtros-drawer-head{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.shop-filtros-drawer-head .serif{font-family:"Cormorant Garamond",serif;font-size:22px;color:var(--charcoal);font-weight:600}
+.shop-filtros-drawer-head .serif{font-family:var(--font-cormorant),serif;font-size:22px;color:var(--charcoal);font-weight:600}
 .shop-filtros-x{background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer;line-height:1}
 .shop-filtros-drawer-body{flex:1;overflow-y:auto;padding:18px 20px;display:flex;flex-direction:column;gap:22px}
 .shop-filtros-drawer-body .filter-group{flex-direction:column;align-items:stretch;gap:9px}
@@ -488,7 +488,7 @@ footer{background:var(--charcoal);padding:48px 16px 22px;color:var(--nude)}
 .pd-nombre{font-size:clamp(28px,4vw,40px);font-weight:600;color:var(--charcoal);line-height:1.1;margin-bottom:6px}
 .pd-categoria{display:inline-block;font-size:11px;color:var(--muted);background:var(--rose-soft);padding:4px 12px;border-radius:var(--radius-pill);margin-bottom:18px}
 .pd-precio{font-size:38px;font-weight:600;color:var(--charcoal);line-height:1;margin-bottom:12px}
-.pd-moneda{font-size:14px;color:var(--muted);font-family:"Jost",sans-serif}
+.pd-moneda{font-size:14px;color:var(--muted);font-family:var(--font-jost),sans-serif}
 .pd-stock{margin-bottom:22px;font-size:13.5px;font-weight:500}
 .pd-stock-ok{color:var(--success)}
 .pd-stock-low{color:var(--rose-dk);font-weight:600}
@@ -517,8 +517,8 @@ footer{background:var(--charcoal);padding:48px 16px 22px;color:var(--nude)}
 /* Acordeón estilo Ginebra */
 .accordion{margin-top:14px}
 .acc-item{border-bottom:1px solid var(--border)}
-.acc-head{width:100%;background:none;border:none;display:flex;align-items:center;justify-content:space-between;padding:18px 2px;font-family:"Cormorant Garamond",serif;font-size:19px;font-weight:600;color:var(--charcoal);cursor:pointer;text-align:left}
-.acc-icon{font-size:22px;color:var(--rose);font-family:"Jost",sans-serif;line-height:1;flex-shrink:0;margin-left:12px}
+.acc-head{width:100%;background:none;border:none;display:flex;align-items:center;justify-content:space-between;padding:18px 2px;font-family:var(--font-cormorant),serif;font-size:19px;font-weight:600;color:var(--charcoal);cursor:pointer;text-align:left}
+.acc-icon{font-size:22px;color:var(--rose);font-family:var(--font-jost),sans-serif;line-height:1;flex-shrink:0;margin-left:12px}
 .acc-body{padding:0 2px 20px;font-size:14px;color:var(--muted);line-height:1.7;font-weight:300;animation:fadeUp .25s ease both}
 .pd-list{list-style:none;display:flex;flex-direction:column;gap:8px}
 .pd-list li{position:relative;padding-left:20px}
@@ -547,7 +547,7 @@ footer{background:var(--charcoal);padding:48px 16px 22px;color:var(--nude)}
 /* ============================================================
    LOGO AMARÉA (identidad propia)
    ============================================================ */
-.nav-logo-amarea{font-family:"Cormorant Garamond",serif;letter-spacing:.22em;font-weight:600;text-transform:uppercase}
+.nav-logo-amarea{font-family:var(--font-cormorant),serif;letter-spacing:.22em;font-weight:600;text-transform:uppercase}
 .nav-logo-amarea span{letter-spacing:.14em;text-transform:none;font-style:italic;color:var(--rose)}
 
 /* ============================================================
@@ -623,7 +623,7 @@ footer{background:var(--charcoal);padding:48px 16px 22px;color:var(--nude)}
 .co-item-p{color:var(--charcoal);font-weight:600;white-space:nowrap}
 .co-subtotal-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted);padding:5px 0}
 .co-total-row{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);padding-top:14px;margin-top:6px;font-size:14px;color:var(--muted)}
-.co-total{font-family:"Cormorant Garamond",serif;font-size:26px;font-weight:600;color:var(--charcoal)}
+.co-total{font-family:var(--font-cormorant),serif;font-size:26px;font-weight:600;color:var(--charcoal)}
 .co-envio-nota{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5}
 .co-cp-msg{display:block;margin-top:4px;font-size:11px;color:var(--muted)}
 .co-cotiza{margin:8px 0 4px}

@@ -381,11 +381,22 @@ export default function ShopClient({
         <section className="hero-banner">
           <div className="hero-banner-media">
             {/* eslint-disable-next-line @next/next/no-img-element */}
+            {/* srcset: el celular baja la versión de 640px, no la de 1600.
+                Es la imagen más grande de la página (define el LCP). */}
             <img
               className="hero-banner-img"
               src={imgOpt(HERO_IMG, 1600) ?? HERO_IMG}
+              srcSet={
+                [640, 900, 1280, 1600]
+                  .map((w) => `${imgOpt(HERO_IMG, w)} ${w}w`)
+                  .join(", ") || undefined
+              }
+              sizes="100vw"
               alt="Maquillaje de las mejores marcas de beauty — AMARÉA"
               fetchPriority="high"
+              decoding="async"
+              width={1600}
+              height={900}
             />
           </div>
           <div className="hero-banner-inner">

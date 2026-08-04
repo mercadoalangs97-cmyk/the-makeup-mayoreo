@@ -56,6 +56,8 @@ export default function HomeSeo() {
           alt="Mirada con sombra malva — maquillaje de ojos de marcas originales en AMARÉA México"
           loading="lazy"
           decoding="async"
+          width={1023}
+          height={472}
         />
       </section>
 
@@ -94,6 +96,8 @@ export default function HomeSeo() {
               alt="Lip oils e.l.f Glow Reviver en tonos Wild Cherry, Pink Quartz, Cherry Cola y Cinnamon Dreamz — labiales e.l.f originales en México"
               loading="lazy"
               decoding="async"
+              width={1254}
+              height={1254}
             />
           </div>
         </div>

@@ -2,6 +2,7 @@
 
 import { useCart } from "../lib/cart";
 import { fmx, ENVIO_AMAREA_GRATIS_DESDE, ENVIO_AMAREA_TARIFA, modoEnvio } from "../lib/lotes";
+import { imgOpt } from "../lib/img";
 
 export default function CartDrawer() {
   const {
@@ -71,7 +72,14 @@ export default function CartDrawer() {
               <div key={item.id} className="cart-item">
                 {item.foto ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={item.foto} alt={item.nombre} />
+                  <img
+                    src={imgOpt(item.foto, 144)}
+                    alt={item.nombre}
+                    loading="lazy"
+                    decoding="async"
+                    width={72}
+                    height={72}
+                  />
                 ) : (
                   <div className="cart-item-ph">💄</div>
                 )}

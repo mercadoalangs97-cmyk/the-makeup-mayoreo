@@ -4,6 +4,7 @@ import Link from "next/link";
 import { fmx } from "../lib/lotes";
 import { useCart } from "../lib/cart";
 import { nombreDisplay, type Producto } from "../lib/productos";
+import { imgOpt } from "../lib/img";
 
 export default function FilaProductos({
   titulo,
@@ -32,7 +33,14 @@ export default function FilaProductos({
                 <div className="prod-img">
                   {p.foto ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={p.foto} alt={nombre} loading="lazy" />
+                    <img
+                      src={imgOpt(p.foto, 420)}
+                      alt={nombre}
+                      loading="lazy"
+                      decoding="async"
+                      width={420}
+                      height={420}
+                    />
                   ) : (
                     <div className="prod-img-ph">💄</div>
                   )}
