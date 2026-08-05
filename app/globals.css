@@ -1026,3 +1026,16 @@ a.prod-add:hover{background:var(--rose-dk)}
 .op-btn-wpp{background:#1DA851}
 .op-gracias{text-align:center}
 .op-check{font-size:46px;line-height:1}
+
+/* ---- Formulario corto dentro de la cotización (solo lo que falta) ---- */
+.cot-form{padding:16px;background:var(--bg2,#faf6f0);border:1px solid var(--border);
+  border-radius:14px;margin-bottom:18px}
+.cot-form-tit{font-size:14.5px;font-weight:700;color:var(--charcoal);margin-bottom:4px}
+.cot-form-sub{font-size:12px;color:var(--text2,#6b5d57);margin:0 0 12px;line-height:1.5}
+.cot-lb{display:block;font-size:12px;font-weight:600;color:var(--charcoal);margin:11px 0 5px}
+.cot-opt{font-weight:400;color:var(--text3,#8a7068)}
+.cot-in{width:100%;padding:11px 13px;border:1px solid var(--border);border-radius:10px;
+  font-family:inherit;font-size:15px;color:var(--charcoal);background:#fff}
+.cot-in:focus{outline:none;border-color:var(--rose-dk)}
+.cot-row{display:grid;grid-template-columns:1fr 110px;gap:9px}
+.cot-col-chica{min-width:0}

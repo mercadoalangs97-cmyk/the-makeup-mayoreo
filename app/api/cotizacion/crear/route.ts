@@ -80,21 +80,20 @@ export async function POST(req: Request) {
     referencias: (e.referencias || "").trim(),
   };
 
+  // Para COTIZAR el envío basta el C.P.: la paquetería cobra por zona, no por
+  // calle. Lo demás (calle, número, correo) lo puede llenar la clienta en el
+  // link antes de pagar, así no tiene que dar su domicilio por WhatsApp.
   const faltan: string[] = [];
-  if (envio.nombre.length < 3) faltan.push("nombre");
-  if (envio.telefono.length !== 10) faltan.push("WhatsApp (10 dígitos)");
-  // El correo es OPCIONAL: muchas clientas solo dan WhatsApp. Si lo pagan,
-  // Mercado Pago nos da el correo del pagador y el webhook lo completa solo.
-  // Pero si lo escriben, tiene que estar bien.
+  if (envio.cp.length !== 5) faltan.push("C.P. (5 dígitos)");
+  if (!envio.estado || !envio.ciudad) {
+    faltan.push("estado y ciudad (se llenan solos al escribir el C.P.)");
+  }
+  if (envio.telefono && envio.telefono.length !== 10) {
+    faltan.push("WhatsApp de 10 dígitos (o déjalo vacío)");
+  }
   if (envio.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(envio.email)) {
     faltan.push("correo bien escrito (o déjalo vacío)");
   }
-  if (!envio.calle) faltan.push("calle");
-  if (!envio.numero) faltan.push("número");
-  if (!envio.colonia) faltan.push("colonia");
-  if (envio.cp.length !== 5) faltan.push("C.P.");
-  if (!envio.ciudad) faltan.push("ciudad");
-  if (!envio.estado) faltan.push("estado");
   if (faltan.length) {
     return json({ error: "Faltan datos: " + faltan.join(", ") }, 400);
   }
@@ -182,9 +181,18 @@ export async function POST(req: Request) {
     return json({ error: "No se pudo guardar la cotización: " + error.message }, 500);
   }
 
+  // Lo que la clienta tendrá que completar en el link antes de pagar.
+  const faltaCliente: string[] = [];
+  if (!envio.calle || !envio.numero) faltaCliente.push("calle y número");
+  if (!envio.colonia) faltaCliente.push("colonia");
+  if (!envio.nombre) faltaCliente.push("nombre");
+  if (envio.telefono.length !== 10) faltaCliente.push("teléfono");
+  if (!envio.email) faltaCliente.push("correo");
+
   return json({
     ok: true,
     id,
+    falta_cliente: faltaCliente,
     lote: lote.nombre,
     piezas: lote.piezas * qty,
     subtotal,

@@ -50,7 +50,18 @@ export default async function CotizacionPorId({ params }: Params) {
     total: subtotal + envioCosto,
     ciudad: env.ciudad || "",
     estado: env.estado || "",
+    cp: env.cp || "",
     pagada: !!cot.pagada,
+    // Lo que NO le pedimos por WhatsApp: lo llena aquí antes de pagar.
+    yaTiene: {
+      nombre: (env.nombre || "").trim(),
+      telefono: (env.telefono || "").trim(),
+      email: (env.email || "").trim(),
+      calle: (env.calle || "").trim(),
+      numero: (env.numero || "").trim(),
+      colonia: (env.colonia || "").trim(),
+      referencias: (env.referencias || "").trim(),
+    },
   };
 
   return (

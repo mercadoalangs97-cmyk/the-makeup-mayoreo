@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     );
   }
 
-  let body: { id?: string };
+  let body: { id?: string; datos?: Record<string, string> };
   try {
     body = await req.json();
   } catch {
@@ -60,7 +60,39 @@ export async function POST(req: Request) {
     );
   }
 
-  const env = (cot.envio || {}) as Record<string, string>;
+  // La cotización pudo crearse SOLO con el C.P. (para no pedirle el domicilio
+  // por WhatsApp). Lo que falte lo completa la clienta aquí, y se valida antes
+  // de cobrar: sin dirección completa no se puede generar la guía.
+  const guardado = (cot.envio || {}) as Record<string, string>;
+  const d = body.datos || {};
+  const txt = (a: unknown, b: unknown) => String(a ?? b ?? "").trim();
+  const env: Record<string, string> = {
+    ...guardado,
+    nombre: txt(d.nombre, guardado.nombre),
+    telefono: txt(d.telefono, guardado.telefono).replace(/\D/g, ""),
+    email: txt(d.email, guardado.email),
+    calle: txt(d.calle, guardado.calle),
+    numero: txt(d.numero, guardado.numero),
+    colonia: txt(d.colonia, guardado.colonia),
+    referencias: txt(d.referencias, guardado.referencias),
+  };
+
+  const faltan: string[] = [];
+  if (env.nombre.length < 3) faltan.push("tu nombre completo");
+  if (env.telefono.length !== 10) faltan.push("tu teléfono a 10 dígitos");
+  if (!env.calle) faltan.push("tu calle");
+  if (!env.numero) faltan.push("el número");
+  if (!env.colonia) faltan.push("tu colonia");
+  if (env.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(env.email)) {
+    faltan.push("un correo bien escrito");
+  }
+  if (faltan.length) {
+    return NextResponse.json(
+      { error: "Nos falta " + faltan.join(", ") + ".", faltan },
+      { status: 400 }
+    );
+  }
+
   const itemsOrden = [
     {
       tipo: "lote" as const,
@@ -154,7 +186,13 @@ export async function POST(req: Request) {
       .eq("id", ordenId);
     await sb
       .from("cotizaciones")
-      .update({ orden_id: ordenId, vista_en: Date.now() })
+      .update({
+        orden_id: ordenId,
+        vista_en: Date.now(),
+        // Guardamos la dirección ya completa por la clienta
+        envio: env,
+        cliente_nombre: env.nombre || cot.cliente_nombre,
+      })
       .eq("id", id);
 
     const initPoint = result.init_point || result.sandbox_init_point;

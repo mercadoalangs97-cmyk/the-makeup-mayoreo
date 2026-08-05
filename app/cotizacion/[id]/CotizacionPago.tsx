@@ -22,12 +22,32 @@ export type CotData = {
   total: number;
   ciudad: string;
   estado: string;
+  cp: string;
   pagada: boolean;
+  yaTiene: {
+    nombre: string;
+    telefono: string;
+    email: string;
+    calle: string;
+    numero: string;
+    colonia: string;
+    referencias: string;
+  };
 };
 
 export default function CotizacionPago({ c }: { c: CotData }) {
   const [yendo, setYendo] = useState(false);
   const [err, setErr] = useState("");
+  const [datos, setDatos] = useState(c.yaTiene);
+  // Si la cotización se armó solo con el C.P., aquí completa lo que falta.
+  const faltaDireccion =
+    !c.yaTiene.calle ||
+    !c.yaTiene.numero ||
+    !c.yaTiene.colonia ||
+    !c.yaTiene.nombre ||
+    c.yaTiene.telefono.replace(/\D/g, "").length !== 10;
+  const set = (k: keyof typeof datos) => (v: string) =>
+    setDatos((d) => ({ ...d, [k]: v }));
 
   const ventaEstimada = PPU_REFERENCIA * c.piezas;
   const ganancia = Math.max(0, ventaEstimada - c.subtotal);
@@ -41,7 +61,7 @@ export default function CotizacionPago({ c }: { c: CotData }) {
       const res = await fetch("/api/cotizacion/pagar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: c.id }),
+        body: JSON.stringify({ id: c.id, datos }),
       });
       const data = await res.json();
       if (!res.ok || !data.init_point) {
@@ -82,8 +102,9 @@ export default function CotizacionPago({ c }: { c: CotData }) {
             {c.nombre ? `Hola ${c.nombre}, esto es lo tuyo` : "Tu cotización"}
           </h1>
           <p className="cot-sub">
-            Ya está todo listo: solo elige cómo pagar. No tienes que llenar
-            ningún formulario.
+            {faltaDireccion
+              ? "Tu envío ya está cotizado con tu código postal. Solo falta a dónde te lo mandamos."
+              : "Ya está todo listo: solo elige cómo pagar. No tienes que llenar ningún formulario."}
           </p>
         </div>
 
@@ -147,6 +168,108 @@ export default function CotizacionPago({ c }: { c: CotData }) {
               Estimado con el precio promedio de tienda. Tu ganancia real depende
               del precio al que vendas.
             </p>
+          </div>
+        )}
+
+        {!c.pagada && faltaDireccion && (
+          <div className="cot-form">
+            <div className="cot-form-tit">📍 ¿A dónde te lo enviamos?</div>
+            <p className="cot-form-sub">
+              El costo del envío ya no cambia — lo calculamos con tu C.P.{" "}
+              {c.cp && <b>{c.cp}</b>}
+              {c.ciudad ? `, ${c.ciudad}` : ""}.
+            </p>
+
+            <label className="cot-lb" htmlFor="f-nombre">
+              Tu nombre completo
+            </label>
+            <input
+              id="f-nombre"
+              className="cot-in"
+              value={datos.nombre}
+              onChange={(e) => set("nombre")(e.target.value)}
+              placeholder="Karla Martínez"
+              autoComplete="name"
+            />
+
+            <div className="cot-row">
+              <div>
+                <label className="cot-lb" htmlFor="f-calle">
+                  Calle
+                </label>
+                <input
+                  id="f-calle"
+                  className="cot-in"
+                  value={datos.calle}
+                  onChange={(e) => set("calle")(e.target.value)}
+                  placeholder="Av. Juárez"
+                  autoComplete="address-line1"
+                />
+              </div>
+              <div className="cot-col-chica">
+                <label className="cot-lb" htmlFor="f-num">
+                  Número
+                </label>
+                <input
+                  id="f-num"
+                  className="cot-in"
+                  value={datos.numero}
+                  onChange={(e) => set("numero")(e.target.value)}
+                  placeholder="123 int 4"
+                />
+              </div>
+            </div>
+
+            <label className="cot-lb" htmlFor="f-col">
+              Colonia
+            </label>
+            <input
+              id="f-col"
+              className="cot-in"
+              value={datos.colonia}
+              onChange={(e) => set("colonia")(e.target.value)}
+              placeholder="Centro"
+              autoComplete="address-level3"
+            />
+
+            <label className="cot-lb" htmlFor="f-tel">
+              Teléfono (para la paquetería)
+            </label>
+            <input
+              id="f-tel"
+              className="cot-in"
+              value={datos.telefono}
+              onChange={(e) =>
+                set("telefono")(e.target.value.replace(/\D/g, "").slice(0, 10))
+              }
+              placeholder="5512345678"
+              inputMode="numeric"
+              autoComplete="tel"
+            />
+
+            <label className="cot-lb" htmlFor="f-mail">
+              Correo <span className="cot-opt">(para tu comprobante y rastreo)</span>
+            </label>
+            <input
+              id="f-mail"
+              className="cot-in"
+              value={datos.email}
+              onChange={(e) => set("email")(e.target.value)}
+              placeholder="tucorreo@ejemplo.com"
+              type="email"
+              autoComplete="email"
+            />
+
+            <label className="cot-lb" htmlFor="f-ref">
+              Referencias <span className="cot-opt">(opcional)</span>
+            </label>
+            <input
+              id="f-ref"
+              className="cot-in"
+              value={datos.referencias}
+              onChange={(e) => set("referencias")(e.target.value)}
+              placeholder="Casa blanca, portón negro"
+            />
           </div>
         )}
 
