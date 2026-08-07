@@ -11,6 +11,9 @@ export type Bloque =
 export type Guia = {
   slug: string;
   titulo: string;
+  /** Solo para el <title> del buscador: máx 60 caracteres, con la palabra
+   *  clave al principio. El `titulo` largo se sigue usando como H1 visible. */
+  tituloSeo: string;
   descripcion: string;
   fecha: string; // ISO (YYYY-MM-DD)
   emoji: string;
@@ -22,8 +25,9 @@ export const GUIAS: Guia[] = [
   {
     slug: "como-elegir-base-de-maquillaje",
     titulo: "Cómo elegir tu base de maquillaje según tu tipo de piel",
+    tituloSeo: "Cómo elegir tu base de maquillaje según tu piel",
     descripcion:
-      "Aprende a elegir la base perfecta para piel grasa, seca o mixta, y cómo acertar con tu tono. Guía práctica de AMARÉA.",
+      "Cómo elegir la base ideal para piel grasa, seca o mixta y acertar con tu tono a la primera. Guía práctica con bases de e.l.f, NYX y Maybelline.",
     fecha: "2026-07-14",
     emoji: "💧",
     keywords: ["base de maquillaje", "tipo de piel", "base para piel grasa", "cómo elegir base"],
@@ -47,8 +51,9 @@ export const GUIAS: Guia[] = [
   {
     slug: "maquillaje-original-como-saber-si-es-autentico",
     titulo: "Maquillaje original vs. imitación: 5 señales para saber si es auténtico",
+    tituloSeo: "Maquillaje original o pirata: 5 señales para saberlo",
     descripcion:
-      "¿Cómo saber si tu maquillaje es original y no pirata? 5 señales para comprar auténtico y no arriesgar tu piel.",
+      "¿Cómo saber si tu maquillaje es original y no pirata? 5 señales en el empaque, el precio y la textura para comprar auténtico sin arriesgar tu piel.",
     fecha: "2026-07-14",
     emoji: "✅",
     keywords: ["maquillaje original", "cómo saber si es original", "maquillaje pirata", "e.l.f original"],
@@ -70,8 +75,9 @@ export const GUIAS: Guia[] = [
   {
     slug: "como-vender-maquillaje-al-mayoreo",
     titulo: "Guía para revendedoras: cómo empezar a vender maquillaje al mayoreo",
+    tituloSeo: "Cómo vender maquillaje al mayoreo: guía para empezar",
     descripcion:
-      "Cómo empezar tu negocio de maquillaje: qué lote comprar, cómo poner precios y dónde vender. Guía de mayoreo AMARÉA.",
+      "Cómo empezar tu negocio de maquillaje desde cero: qué lote comprar, cómo poner precios que dejen ganancia y dónde vender. Guía para revendedoras.",
     fecha: "2026-07-14",
     emoji: "🛍️",
     keywords: ["vender maquillaje", "maquillaje al mayoreo", "revender maquillaje", "negocio de maquillaje"],
@@ -96,8 +102,9 @@ export const GUIAS: Guia[] = [
   {
     slug: "labiales-mate-satinado-o-gloss",
     titulo: "Labiales: mate, satinado o gloss — ¿cuál te conviene?",
+    tituloSeo: "Labial mate, satinado o gloss: cuál te conviene",
     descripcion:
-      "Diferencias entre labial mate, satinado y gloss, y cómo elegir tu acabado y tono ideal. Guía de labiales AMARÉA.",
+      "Diferencias entre labial mate, satinado y gloss: cuánto duran, cómo se sienten y cuál le va mejor a tus labios. Guía para elegir acabado y tono.",
     fecha: "2026-07-14",
     emoji: "💄",
     keywords: ["labiales", "labial mate", "gloss", "cómo elegir labial", "tono de labial"],

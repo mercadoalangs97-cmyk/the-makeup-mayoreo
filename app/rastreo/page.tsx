@@ -7,7 +7,7 @@ import RastreoClient from "./RastreoClient";
 export const metadata: Metadata = {
   title: "Rastrea tu pedido · The Makeup / AMARÉA",
   description:
-    "Consulta el estado de tu pedido de AMARÉA con tu número de pedido y tu correo: preparación, envío y número de guía.",
+    "Rastrea tu pedido de AMARÉA con tu número de pedido y tu correo: consulta si está en preparación, ya salió y cuál es tu número de guía de Estafeta.",
   alternates: { canonical: `${SITE_URL}/rastreo` },
 };
 

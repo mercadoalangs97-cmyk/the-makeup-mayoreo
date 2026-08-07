@@ -6,7 +6,7 @@ import SiteFooter from "../components/SiteFooter";
 export const metadata: Metadata = {
   title: "Aviso de Privacidad · The Makeup / AMARÉA",
   description:
-    "Aviso de Privacidad de The Makeup / AMARÉA: qué datos recabamos, para qué los usamos y cómo ejercer tus derechos ARCO.",
+    "Aviso de Privacidad de The Makeup / AMARÉA: qué datos recabamos, para qué los usamos, con quién los compartimos y cómo ejercer tus derechos ARCO.",
   alternates: { canonical: `${SITE_URL}/privacidad` },
 };
 

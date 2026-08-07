@@ -7,7 +7,8 @@ import HomeSeo from "./components/HomeSeo";
 import AmareaClient from "./amarea/AmareaClient";
 
 export const metadata: Metadata = {
-  title: "The Makeup CDMX · Maquillaje por pieza — e.l.f, NYX, Maybelline",
+  // ≤60 caracteres: arriba de eso Google y Bing lo cortan.
+  title: "Maquillaje por pieza en CDMX · e.l.f, NYX, Maybelline",
   description:
     "Compra tus marcas de beauty favoritas por pieza: e.l.f, NYX, Maybelline, L'Oréal y más. Envío a todo México, pago seguro.",
   alternates: { canonical: SITE_URL },

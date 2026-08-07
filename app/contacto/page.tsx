@@ -8,7 +8,7 @@ import WppLink from "../components/WppLink";
 export const metadata: Metadata = {
   title: "Contacto · The Makeup CDMX",
   description:
-    "Contáctanos: WhatsApp y correo de The Makeup / AMARÉA. Atención a consumidoras y revendedoras en todo México.",
+    "Contáctanos por WhatsApp o correo. Atendemos a consumidoras y a revendedoras en todo México: dudas de productos, lotes al mayoreo y pedidos.",
   alternates: { canonical: `${SITE_URL}/contacto` },
 };
 

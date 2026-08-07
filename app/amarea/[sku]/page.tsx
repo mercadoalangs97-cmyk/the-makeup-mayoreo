@@ -7,6 +7,8 @@ import {
   extrasFicha,
   variantesDe,
   nombreDisplay,
+  tituloFicha,
+  descripcionFicha,
 } from "../../lib/productos";
 import { SITE_URL, SITE_NAME } from "../../lib/site";
 import SiteHeader from "../../components/SiteHeader";
@@ -33,14 +35,13 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   if (!producto) return { title: "Producto no encontrado | AMARÉA" };
 
   const nombre = nombreDisplay(producto);
-  const desc =
-    (producto.notas && producto.notas.trim()
-      ? producto.notas.trim()
-      : `${nombre} de ${producto.marcaNorm}. Cómpralo por pieza con envío a todo México.`
-    ).slice(0, 160);
+  // Título ≤60 y descripción 120-160 cortada en punto o espacio (nunca a mitad
+  // de palabra). Ver tituloFicha/descripcionFicha en lib/productos.
+  const titulo = tituloFicha(producto);
+  const desc = descripcionFicha(producto);
 
   return {
-    title: `${nombre} | AMARÉA`,
+    title: titulo,
     description: desc,
     keywords: [
       nombre,

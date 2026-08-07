@@ -18,7 +18,9 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const g = getGuia(slug);
   if (!g) return { title: "Guía no encontrada · The Makeup CDMX" };
   return {
-    title: `${g.titulo} · The Makeup CDMX`,
+    // tituloSeo (≤60) en vez del titulo largo: el buscador corta ahí y el
+    // sufijo de marca se comía la parte útil. El titulo largo sigue en el H1.
+    title: g.tituloSeo,
     description: g.descripcion,
     keywords: g.keywords,
     alternates: { canonical: `${SITE_URL}/guias/${g.slug}` },

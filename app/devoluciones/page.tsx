@@ -7,7 +7,7 @@ import SiteFooter from "../components/SiteFooter";
 export const metadata: Metadata = {
   title: "Cambios y devoluciones · The Makeup CDMX",
   description:
-    "Política de cambios y devoluciones de The Makeup / AMARÉA. Por higiene los cosméticos no admiten devolución; resolvemos productos dañados, defectuosos o equivocados.",
+    "Política de cambios y devoluciones. Por higiene los cosméticos no admiten devolución, pero resolvemos productos dañados, defectuosos o equivocados.",
   alternates: { canonical: `${SITE_URL}/devoluciones` },
 };
 

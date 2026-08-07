@@ -266,3 +266,98 @@ export function extrasFicha(
 
   return { relacionados, completaTuLook };
 }
+
+// ============================================================================
+//  TÍTULOS Y DESCRIPCIONES PARA BUSCADORES
+//  Google y Bing cortan el <title> alrededor de los 60 caracteres y la
+//  descripción alrededor de los 160. Lo que se corta, se pierde: por eso la
+//  palabra clave va SIEMPRE al principio y nunca dejamos relleno fijo al final.
+// ============================================================================
+
+/** Tope duro del <title>. No subirlo: arriba de esto el buscador corta. */
+export const TOPE_TITULO = 60;
+/** Rango sano de la meta description. */
+export const MIN_DESC = 120;
+export const MAX_DESC = 160;
+
+const largo = (s: string) => [...s].length;
+
+/** Recorta sin partir palabras a la mitad. */
+export function recortaPorPalabra(texto: string, max: number): string {
+  const s = texto.trim();
+  if (largo(s) <= max) return s;
+  let out = "";
+  for (const w of s.split(/\s+/)) {
+    const t = out ? out + " " + w : w;
+    if (largo(t) > max) break;
+    out = t;
+  }
+  return out || [...s].slice(0, max).join("");
+}
+
+/**
+ * Título de una ficha de producto, máximo 60 caracteres.
+ *
+ * Los nombres SEO vienen como "{TIPO} {MARCA} {LÍNEA} – {beneficio} {tono}".
+ * Prioridad: lo que se busca (tipo + marca + línea) va primero y completo; el
+ * tono se añade después porque es lo que distingue una variante de otra y
+ * evita que 3 páginas compartan título. El beneficio es lo prescindible.
+ */
+export function tituloFicha(p: {
+  nombre_seo?: string | null;
+  nombre: string;
+  variante?: string | null;
+}): string {
+  const seo = nombreDisplay(p);
+  const base = seo.split(/\s[–—-]\s/)[0].trim() || seo.trim();
+  const tono = (p.variante || "").trim();
+  if (!tono) return recortaPorPalabra(base, TOPE_TITULO);
+
+  // 1) ¿Cabe el tono completo?
+  const completo = `${base} ${tono}`;
+  if (largo(completo) <= TOPE_TITULO) return completo;
+
+  // 2) ¿Cabe al menos su código (ej. "635", "20")? Distingue la variante.
+  const codigo = (tono.match(/^[0-9]+[A-Za-z]?/) || [])[0];
+  if (codigo && largo(`${base} ${codigo}`) <= TOPE_TITULO) {
+    return `${base} ${codigo}`;
+  }
+
+  // 3) Mete las palabras del tono que quepan.
+  const conPalabras = recortaPorPalabra(completo, TOPE_TITULO);
+  if (largo(conPalabras) > largo(base)) return conPalabras;
+
+  // 4) Último recurso: recorta la base para que quepa algo del tono.
+  const primera = tono.split(/\s+/)[0];
+  const espacio = TOPE_TITULO - largo(primera) - 1;
+  const baseCorta = recortaPorPalabra(base, Math.max(10, espacio));
+  return largo(`${baseCorta} ${primera}`) <= TOPE_TITULO
+    ? `${baseCorta} ${primera}`
+    : recortaPorPalabra(base, TOPE_TITULO);
+}
+
+/**
+ * Descripción de una ficha, entre 120 y 160 caracteres, cortada en un punto
+ * o al menos en un espacio: nunca a mitad de palabra (se veía "…y disimul").
+ */
+export function descripcionFicha(p: {
+  notas?: string | null;
+  nombre_seo?: string | null;
+  nombre: string;
+  marcaNorm?: string;
+  marca?: string | null;
+}): string {
+  const marca = p.marcaNorm || p.marca || "";
+  const base =
+    (p.notas || "").trim() ||
+    `${nombreDisplay(p)}${marca ? " de " + marca : ""}. Cómpralo por pieza con envío a todo México.`;
+
+  if (largo(base) <= MAX_DESC) return base;
+
+  // Preferimos terminar en un punto, si eso no deja el texto demasiado corto.
+  const recorte = [...base].slice(0, MAX_DESC).join("");
+  const punto = Math.max(recorte.lastIndexOf(". "), recorte.lastIndexOf(".\n"));
+  if (punto >= MIN_DESC - 1) return recorte.slice(0, punto + 1).trim();
+
+  return recortaPorPalabra(base, MAX_DESC - 1) + "…";
+}

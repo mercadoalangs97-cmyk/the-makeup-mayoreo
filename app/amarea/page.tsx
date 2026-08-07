@@ -6,7 +6,7 @@ import SiteFooter from "../components/SiteFooter";
 import AmareaClient from "./AmareaClient";
 
 export const metadata: Metadata = {
-  title: "Todos los productos · AMARÉA — Maquillaje por pieza | The Makeup CDMX",
+  title: "Maquillaje original por pieza · Catálogo AMARÉA",
   description:
     "Catálogo completo de maquillaje original por pieza: e.l.f, NYX, Maybelline, L'Oréal y más. Filtra por categoría, marca y precio. Envío a todo México.",
   alternates: { canonical: `${SITE_URL}/amarea` },
