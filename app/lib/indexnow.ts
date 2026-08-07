@@ -5,9 +5,13 @@ import { SITE_URL } from "./site";
 // pasen a rastrear el sitio solos.
 //
 // La llave NO es secreta: vive en un archivo público del propio sitio
-// (/aa4d5aa125c5e635b82b0307db505ee2.txt). Bing la lee de ahí para comprobar
-// que somos dueños del dominio.
-export const INDEXNOW_KEY = "aa4d5aa125c5e635b82b0307db505ee2";
+// (/{llave}.txt). Bing la lee de ahí para comprobar que somos dueños del
+// dominio. Esta es la que generó Bing Webmaster Tools para esta cuenta.
+//
+// Si algún día se cambia: crear el .txt nuevo en public/ ANTES de cambiar esta
+// constante, y dejar el archivo viejo unos días (IndexNow admite varias llaves
+// y así no se rompe ningún aviso ya encolado).
+export const INDEXNOW_KEY = "11bf5f27adfe4fc78ef7bc7225ebcdcd";
 
 const HOST = new URL(SITE_URL).host;
 
