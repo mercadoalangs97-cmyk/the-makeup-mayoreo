@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { fmx, PPU_REFERENCIA, WPP } from "../../lib/lotes";
 import { imgOpt } from "../../lib/img";
@@ -48,6 +48,19 @@ export default function CotizacionPago({ c }: { c: CotData }) {
     c.yaTiene.telefono.replace(/\D/g, "").length !== 10;
   const set = (k: keyof typeof datos) => (v: string) =>
     setDatos((d) => ({ ...d, [k]: v }));
+
+  // Avisa que la clienta abrió su cotización, para saber si el problema está
+  // en que no abren el link o en que lo abren y no pagan. Best-effort.
+  useEffect(() => {
+    gaLead("cotizacion_abierta_" + c.id);
+    fetch("/api/cotizacion/visto", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: c.id }),
+      keepalive: true,
+    }).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [c.id]);
 
   const ventaEstimada = PPU_REFERENCIA * c.piezas;
   const ganancia = Math.max(0, ventaEstimada - c.subtotal);

@@ -188,7 +188,9 @@ export async function POST(req: Request) {
       .from("cotizaciones")
       .update({
         orden_id: ordenId,
-        vista_en: Date.now(),
+        // vista_en lo marca /api/cotizacion/visto al abrir la página; aquí solo
+        // registramos que llegó a darle al botón de pagar.
+        pago_click_en: Date.now(),
         // Guardamos la dirección ya completa por la clienta
         envio: env,
         cliente_nombre: env.nombre || cot.cliente_nombre,
