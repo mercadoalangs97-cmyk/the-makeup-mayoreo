@@ -11,3 +11,6 @@ alter table public.cotizaciones add column if not exists vistas integer not null
 -- Cuándo le dio al botón de pagar (antes esto se guardaba en vista_en, que
 -- por nombre parecía "la abrió" y no lo era).
 alter table public.cotizaciones add column if not exists pago_click_en bigint;
+
+-- Cuándo se editó por última vez (al cambiar de lote se reusa el mismo link).
+alter table public.cotizaciones add column if not exists editada_en bigint;

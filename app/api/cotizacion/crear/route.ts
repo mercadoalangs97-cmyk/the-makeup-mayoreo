@@ -33,6 +33,17 @@ async function verificarUsuario(token: string | undefined) {
   }
 }
 
+// Lo que la clienta tendrá que completar en el link antes de pagar.
+function faltanDelCliente(envio: Record<string, string>): string[] {
+  const falta: string[] = [];
+  if (!envio.calle || !envio.numero) falta.push("calle y número");
+  if (!envio.colonia) falta.push("colonia");
+  if (!envio.nombre) falta.push("nombre");
+  if ((envio.telefono || "").length !== 10) falta.push("teléfono");
+  if (!envio.email) falta.push("correo");
+  return falta;
+}
+
 // Código corto, fácil de dictar por teléfono (sin 0/O ni 1/I).
 function codigoCorto(): string {
   const abc = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -52,6 +63,9 @@ export async function POST(req: Request) {
     servicioCode?: string;
     paquete?: { length?: number; width?: number; height?: number; weight?: number };
     cajas?: number;
+    /** Si viene, se ACTUALIZA esa cotización en vez de crear otra: el link que
+     *  ya se mandó por WhatsApp sigue sirviendo y muestra lo nuevo. */
+    id?: string;
   };
   try {
     body = await req.json();
@@ -151,16 +165,8 @@ export async function POST(req: Request) {
   const total = subtotal + costo;
 
   const sb = createAdminSupabase();
-  // Código único (reintenta si choca).
-  let id = codigoCorto();
-  for (let i = 0; i < 5; i++) {
-    const { data } = await sb.from("cotizaciones").select("id").eq("id", id).maybeSingle();
-    if (!data) break;
-    id = codigoCorto();
-  }
 
-  const { error } = await sb.from("cotizaciones").insert({
-    id,
+  const campos = {
     lote_id: lote.id,
     qty,
     cliente_nombre: (body.clienteNombre || envio.nombre).trim().slice(0, 60),
@@ -174,6 +180,57 @@ export async function POST(req: Request) {
     envio_dias: dias,
     subtotal,
     total,
+  };
+
+  // ---- EDITAR una cotización que ya existe (mismo link) ----
+  const idEditar = (body.id || "").trim().toUpperCase();
+  if (idEditar) {
+    const { data: previa } = await sb
+      .from("cotizaciones")
+      .select("id,pagada")
+      .eq("id", idEditar)
+      .maybeSingle();
+    if (!previa) return json({ error: "Esa cotización ya no existe." }, 404);
+    if (previa.pagada) {
+      return json(
+        { error: "Esa cotización ya fue pagada: haz una nueva." },
+        409
+      );
+    }
+    const { error: errUp } = await sb
+      .from("cotizaciones")
+      .update({ ...campos, editada_en: Date.now(), creada_por: user.email || "" })
+      .eq("id", idEditar);
+    if (errUp) {
+      return json({ error: "No se pudo actualizar: " + errUp.message }, 500);
+    }
+    return json({
+      ok: true,
+      id: idEditar,
+      editada: true,
+      falta_cliente: faltanDelCliente(envio),
+      lote: lote.nombre,
+      piezas: lote.piezas * qty,
+      subtotal,
+      envio_costo: costo,
+      envio_paqueteria: paqueteria,
+      envio_dias: dias,
+      total,
+      sin_envio: costo === 0,
+    });
+  }
+
+  // ---- CREAR una nueva: código único (reintenta si choca) ----
+  let id = codigoCorto();
+  for (let i = 0; i < 5; i++) {
+    const { data } = await sb.from("cotizaciones").select("id").eq("id", id).maybeSingle();
+    if (!data) break;
+    id = codigoCorto();
+  }
+
+  const { error } = await sb.from("cotizaciones").insert({
+    id,
+    ...campos,
     creada_en: Date.now(),
     creada_por: user.email || "",
   });
@@ -181,18 +238,10 @@ export async function POST(req: Request) {
     return json({ error: "No se pudo guardar la cotización: " + error.message }, 500);
   }
 
-  // Lo que la clienta tendrá que completar en el link antes de pagar.
-  const faltaCliente: string[] = [];
-  if (!envio.calle || !envio.numero) faltaCliente.push("calle y número");
-  if (!envio.colonia) faltaCliente.push("colonia");
-  if (!envio.nombre) faltaCliente.push("nombre");
-  if (envio.telefono.length !== 10) faltaCliente.push("teléfono");
-  if (!envio.email) faltaCliente.push("correo");
-
   return json({
     ok: true,
     id,
-    falta_cliente: faltaCliente,
+    falta_cliente: faltanDelCliente(envio),
     lote: lote.nombre,
     piezas: lote.piezas * qty,
     subtotal,
