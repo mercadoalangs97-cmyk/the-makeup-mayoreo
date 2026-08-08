@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { fmx, PPU_REFERENCIA, WPP } from "../../lib/lotes";
+import { LOTES, fmx, PPU_REFERENCIA, WPP } from "../../lib/lotes";
 import { imgOpt } from "../../lib/img";
 import { gaLead } from "../../lib/analytics";
 import { NEGOCIO } from "../../lib/site";
@@ -10,6 +10,7 @@ import { NEGOCIO } from "../../lib/site";
 export type CotData = {
   id: string;
   nombre: string;
+  loteId: string;
   loteNombre: string;
   loteFoto: string | null;
   piezas: number;
@@ -64,6 +65,41 @@ export default function CotizacionPago({ c }: { c: CotData }) {
 
   const ventaEstimada = PPU_REFERENCIA * c.piezas;
   const ganancia = Math.max(0, ventaEstimada - c.subtotal);
+
+  // ---- Siguiente escalón de lote ----
+  // La mayoría cotiza el lote más chico, donde el margen apenas paga la
+  // publicidad. Le mostramos el siguiente tamaño que de verdad le baja el
+  // precio por pieza (al menos $4), no el que sigue en la lista: hay lotes
+  // que cuestan MÁS por pieza que uno más chico y sería venderle peor.
+  const loteActual = LOTES.find((l) => l.id === c.loteId);
+  const esMixto = (id: string) => id.startsWith("mixto-");
+  const ppuActual = loteActual ? loteActual.precio / loteActual.piezas : 0;
+  const siguiente =
+    c.qty === 1 && !c.pagada && loteActual && esMixto(loteActual.id)
+      ? LOTES.filter(
+          (l) =>
+            esMixto(l.id) &&
+            l.piezas > loteActual.piezas &&
+            // Que de verdad le baje el precio por pieza…
+            l.precio / l.piezas <= ppuActual - 4 &&
+            // …y que el salto sea creíble: nunca pedirle más del triple de lo
+            // que ya iba a invertir (si no, se ve absurdo y pierde confianza).
+            l.precio - loteActual.precio <= loteActual.precio * 2
+        ).sort((a, b) => a.piezas - b.piezas)[0]
+      : undefined;
+
+  const sig = siguiente
+    ? {
+        lote: siguiente,
+        ppu: siguiente.precio / siguiente.piezas,
+        ahorroPorPieza: ppuActual - siguiente.precio / siguiente.piezas,
+        invierteMas: siguiente.precio - c.subtotal,
+        ganancia: Math.max(
+          0,
+          PPU_REFERENCIA * siguiente.piezas - siguiente.precio
+        ),
+      }
+    : null;
 
   async function pagar() {
     if (yendo) return;
@@ -180,6 +216,55 @@ export default function CotizacionPago({ c }: { c: CotData }) {
             <p className="cot-g-nota">
               Estimado con el precio promedio de tienda. Tu ganancia real depende
               del precio al que vendas.
+            </p>
+          </div>
+        )}
+
+        {sig && (
+          <div className="cot-up">
+            <div className="cot-up-tit">
+              💡 ¿Y si te llevas el de {sig.lote.piezas} piezas?
+            </div>
+            <p className="cot-up-sub">
+              Es el mismo surtido, pero cada pieza te sale{" "}
+              <b>${Math.round(sig.ahorroPorPieza)} más barata</b>.
+            </p>
+
+            <div className="cot-up-grid">
+              <div className="cot-up-col">
+                <span className="cot-up-lb">Este lote</span>
+                <b>{c.piezas} pzas</b>
+                <span className="cot-up-ppu">${ppuActual.toFixed(0)} c/u</span>
+                <span className="cot-up-gan">Ganas {fmx(ganancia)}</span>
+              </div>
+              <div className="cot-up-flecha">→</div>
+              <div className="cot-up-col cot-up-mejor">
+                <span className="cot-up-lb">El de {sig.lote.piezas}</span>
+                <b>{sig.lote.piezas} pzas</b>
+                <span className="cot-up-ppu">${sig.ppu.toFixed(0)} c/u</span>
+                <span className="cot-up-gan">Ganas {fmx(sig.ganancia)}</span>
+              </div>
+            </div>
+
+            <p className="cot-up-cuenta">
+              Inviertes <b>{fmx(sig.invierteMas)}</b> más y tu ganancia estimada
+              sube <b>{fmx(sig.ganancia - ganancia)}</b>.
+            </p>
+
+            <a
+              className="cot-up-btn"
+              href={`https://wa.me/${WPP}?text=${encodeURIComponent(
+                `Hola! Vi mi cotización ${c.id} y me interesa mejor el lote de ${sig.lote.piezas} piezas. ¿Me lo actualizas?`
+              )}`}
+              target="_blank"
+              rel="noreferrer"
+              onClick={() => gaLead("cotizacion_upsell_" + sig.lote.id)}
+            >
+              Quiero el de {sig.lote.piezas} piezas →
+            </a>
+            <p className="cot-up-nota">
+              Te actualizamos esta misma cotización con el envío recalculado. Si
+              prefieres quedarte con la de arriba, también está perfecto 💕
             </p>
           </div>
         )}

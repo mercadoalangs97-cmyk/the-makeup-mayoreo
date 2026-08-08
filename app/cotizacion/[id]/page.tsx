@@ -38,6 +38,7 @@ export default async function CotizacionPorId({ params }: Params) {
   const c: CotData = {
     id: codigo,
     nombre: (cot.cliente_nombre || env.nombre || "").split(" ")[0] || "",
+    loteId: lote.id,
     loteNombre: lote.nombre,
     loteFoto: lote.foto,
     piezas: lote.piezas * qty,

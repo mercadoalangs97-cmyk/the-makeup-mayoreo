@@ -1039,3 +1039,30 @@ a.prod-add:hover{background:var(--rose-dk)}
 .cot-in:focus{outline:none;border-color:var(--rose-dk)}
 .cot-row{display:grid;grid-template-columns:1fr 110px;gap:9px}
 .cot-col-chica{min-width:0}
+
+/* ---- Salto al siguiente lote dentro de la cotización ---- */
+.cot-up{padding:16px;border-radius:14px;margin-bottom:18px;
+  background:color-mix(in srgb,var(--gold,#c9a96e) 12%,transparent);
+  border:1px solid color-mix(in srgb,var(--gold,#c9a96e) 45%,transparent)}
+.cot-up-tit{font-size:15px;font-weight:700;color:var(--charcoal);margin-bottom:3px}
+.cot-up-sub{font-size:13px;color:var(--text2,#6b5d57);margin:0 0 14px;line-height:1.5}
+.cot-up-grid{display:flex;align-items:center;gap:8px}
+.cot-up-col{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;
+  background:#fff;border:1px solid var(--border);border-radius:11px;padding:11px 12px}
+.cot-up-mejor{border-color:color-mix(in srgb,#1e8a4c 45%,transparent);
+  background:color-mix(in srgb,#1e8a4c 5%,#fff)}
+.cot-up-lb{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3,#8a7068)}
+.cot-up-col b{font-size:17px;color:var(--charcoal);line-height:1.2}
+.cot-up-ppu{font-size:12.5px;color:var(--text2,#6b5d57);font-family:'DM Mono',monospace}
+.cot-up-gan{font-size:12.5px;font-weight:700;color:#157a41;margin-top:3px}
+.cot-up-flecha{font-size:19px;color:var(--text3,#8a7068);flex-shrink:0}
+.cot-up-cuenta{font-size:13px;color:var(--text,#3a302c);margin:13px 0 0;line-height:1.55;text-align:center}
+.cot-up-btn{display:block;margin-top:12px;padding:13px;background:#1DA851;color:#fff;
+  border-radius:999px;font-size:14.5px;font-weight:700;text-align:center;text-decoration:none;
+  transition:filter .15s}
+.cot-up-btn:hover{filter:brightness(1.07)}
+.cot-up-nota{font-size:11px;color:var(--text3,#8a7068);margin:9px 0 0;line-height:1.45;text-align:center}
+@media(max-width:400px){
+  .cot-up-grid{flex-direction:column;align-items:stretch}
+  .cot-up-flecha{transform:rotate(90deg);align-self:center}
+}
