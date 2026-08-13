@@ -38,6 +38,31 @@ function BloqueView({ b }: { b: Bloque }) {
         ))}
       </ul>
     );
+  if (b.t === "tabla")
+    return (
+      <div className="guia-tabla-wrap">
+        <table className="guia-tabla">
+          <thead>
+            <tr>
+              {b.head.map((h) => (
+                <th key={h}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {b.rows.map((fila, i) => (
+              <tr key={i}>
+                {fila.map((celda, j) => (
+                  <td key={j} data-lb={b.head[j]}>
+                    {celda}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
   if (b.t === "cta")
     return (
       <p>

@@ -13,7 +13,8 @@ import { SITE_URL } from "../lib/site";
 export const metadata: Metadata = {
   title: "Proveedor de maquillaje original en México",
   description:
-    "Somos proveedor directo de maquillaje original: e.l.f, NYX, Maybelline, L'Oréal y Pixi. Lotes desde 10 piezas, precios por pieza a la vista y envío a todo México.",
+    // 156 caracteres — el tope sano es 160 (ver TOPE_TITULO/MAX_DESC en lib/productos).
+    "Proveedor directo de maquillaje original: e.l.f, NYX, Maybelline, L'Oréal y Pixi. Lotes desde 10 piezas, precios por pieza a la vista y envío a todo México.",
   keywords: [
     "proveedor de maquillaje",
     "proveedores de maquillaje original",

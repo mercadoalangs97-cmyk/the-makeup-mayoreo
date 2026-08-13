@@ -694,32 +694,37 @@ export default function Home({
             Lo que <em>necesitas saber</em>
           </h2>
         </div>
+        {/* Las 4 que le sirven a una REVENDEDORA. Las de consumidora (base,
+            labiales) viven en /amarea, que es donde compra ella. */}
         <div className="guias-mini-grid">
+          <Link
+            className="guia-mini"
+            href="/guias/cuanto-cuesta-empezar-a-vender-maquillaje"
+          >
+            <span className="guia-mini-ico">💸</span>
+            <b>¿Cuánto cuesta empezar a vender maquillaje?</b>
+            <span>Números reales: lotes, envío, comisiones y ganancia.</span>
+          </Link>
+          <Link className="guia-mini" href="/guias/que-lote-de-maquillaje-comprar">
+            <span className="guia-mini-ico">📦</span>
+            <b>¿Qué lote me conviene?</b>
+            <span>Cuál elegir según tu presupuesto y cómo vendes.</span>
+          </Link>
+          <Link
+            className="guia-mini"
+            href="/guias/maquillaje-centro-cdmx-vs-original-importado"
+          >
+            <span className="guia-mini-ico">⚖️</span>
+            <b>Centro de CDMX vs. original importado</b>
+            <span>Comparativa honesta: cuál negocio es el tuyo.</span>
+          </Link>
           <Link
             className="guia-mini"
             href="/guias/como-vender-maquillaje-al-mayoreo"
           >
             <span className="guia-mini-ico">🛍️</span>
-            <b>Cómo empezar a vender maquillaje al mayoreo</b>
-            <span>Qué lote comprar, cómo poner precios y dónde vender.</span>
-          </Link>
-          <Link
-            className="guia-mini"
-            href="/guias/maquillaje-original-como-saber-si-es-autentico"
-          >
-            <span className="guia-mini-ico">✅</span>
-            <b>Cómo saber si el maquillaje es original</b>
-            <span>5 señales para no comprar pirata ni arriesgar tu piel.</span>
-          </Link>
-          <Link className="guia-mini" href="/guias/como-elegir-base-de-maquillaje">
-            <span className="guia-mini-ico">💧</span>
-            <b>Cómo elegir base según el tipo de piel</b>
-            <span>Para asesorar a tus clientas y vender más rápido.</span>
-          </Link>
-          <Link className="guia-mini" href="/guias/labiales-mate-satinado-o-gloss">
-            <span className="guia-mini-ico">💄</span>
-            <b>Labial mate, satinado o gloss</b>
-            <span>Diferencias, duración y cuál conviene a cada clienta.</span>
+            <b>Cómo empezar a vender al mayoreo</b>
+            <span>Cómo poner precios y dónde vender.</span>
           </Link>
         </div>
       </section>
