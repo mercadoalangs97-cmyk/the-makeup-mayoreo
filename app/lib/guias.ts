@@ -211,7 +211,7 @@ export const GUIAS: Guia[] = [
     titulo: "Maquillaje del Centro de CDMX vs. original importado: cuál te conviene revender",
     tituloSeo: "Maquillaje del Centro CDMX vs. original importado",
     descripcion:
-      "Diferencias reales entre surtirte en el Centro de la CDMX y comprar marcas originales importadas: precio por pieza, a cuánto se revende y para quién es cada uno.",
+      "Diferencias entre surtirte en el Centro de la CDMX y comprar marcas originales importadas: precio por pieza, a cuánto se revende y para quién es cada uno.",
     fecha: "2026-08-13",
     emoji: "⚖️",
     keywords: [
@@ -255,7 +255,7 @@ export const GUIAS: Guia[] = [
     titulo: "¿Qué lote de maquillaje me conviene según mi presupuesto?",
     tituloSeo: "Qué lote de maquillaje comprar según tu presupuesto",
     descripcion:
-      "Cuál lote de maquillaje comprar según cuánto tengas y cómo vendas: de 10 a 500 piezas, con precio por pieza, para quién es cada uno y cuándo conviene dar el salto.",
+      "Cuál lote de maquillaje comprar según cuánto tengas y cómo vendas: de 10 a 500 piezas, con precio por pieza y cuándo conviene dar el salto al siguiente.",
     fecha: "2026-08-13",
     emoji: "📦",
     keywords: [

@@ -70,6 +70,31 @@ export function ordenarCategorias(cats: string[]): string[] {
 
 // Trae los productos elegibles para la tienda AMARÉA:
 // con foto del bucket product-photos Y stock > 0.
+/**
+ * SKUs para el sitemap: TODOS los que tienen foto, con o sin stock.
+ *
+ * El catálogo solo muestra lo que hay disponible, pero el sitemap no debe
+ * seguir esa regla: cuando un producto se agota, su página sigue existiendo
+ * (200, con disponibilidad "agotado" en los datos estructurados). Si lo
+ * sacamos del sitemap se queda además sin enlaces internos, o sea huérfano,
+ * y Google acaba desindexándolo. Cuando vuelve el stock hay que ganarse la
+ * indexación otra vez desde cero.
+ *
+ * Con la rotación de este catálogo eso pasaba a diario: en un solo día 43
+ * fichas salieron del sitemap por quedarse en cero.
+ */
+export async function fetchSkusSitemap(): Promise<string[]> {
+  if (!supabasePublicConfigurado()) return [];
+  const supabase = createServerSupabase();
+  const { data, error } = await supabase
+    .from("productos")
+    .select("sku")
+    .like("foto", "%product-photos%")
+    .order("sku", { ascending: true });
+  if (error) return [];
+  return (data ?? []).map((p) => p.sku as string);
+}
+
 export async function fetchProductosTienda(): Promise<{
   productos: Producto[];
   error: string | null;

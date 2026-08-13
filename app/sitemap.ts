@@ -1,22 +1,23 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "./lib/site";
-import { fetchProductosTienda } from "./lib/productos";
+import { fetchSkusSitemap } from "./lib/productos";
 import { GUIAS } from "./lib/guias";
 
 export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
-  let productos: { sku: string }[] = [];
+  // Todas las fichas con foto, agotadas incluidas: la URL no desaparece
+  // porque el stock baje (ver fetchSkusSitemap).
+  let skus: string[] = [];
   try {
-    const res = await fetchProductosTienda();
-    productos = res.productos;
+    skus = await fetchSkusSitemap();
   } catch {
-    productos = [];
+    skus = [];
   }
 
-  const fichas: MetadataRoute.Sitemap = productos.map((p) => ({
-    url: `${SITE_URL}/amarea/${p.sku}`,
+  const fichas: MetadataRoute.Sitemap = skus.map((sku) => ({
+    url: `${SITE_URL}/amarea/${sku}`,
     lastModified: now,
     changeFrequency: "weekly",
     priority: 0.7,
