@@ -1066,3 +1066,26 @@ a.prod-add:hover{background:var(--rose-dk)}
   .cot-up-grid{flex-direction:column;align-items:stretch}
   .cot-up-flecha{transform:rotate(90deg);align-self:center}
 }
+
+/* ---- Móvil: inputs a 16px para que Safari iOS no haga zoom al tocarlos ----
+   El zoom automático desalinea la página y hace que el usuario tenga que
+   pellizcar para volver. Se sube SOLO el tamaño de letra; el ancho visual se
+   conserva ajustando el padding. */
+@media (max-width: 767px) {
+  .cp-input { font-size: 16px; padding: 4px 10px; width: 96px; }
+  .pop-input, .op-input, .cot-in, .co-input, input[type="email"],
+  input[type="tel"], input[type="text"], input[type="number"], select, textarea {
+    font-size: 16px;
+  }
+}
+
+/* ---- Guías enlazadas desde /mayoreo ---- */
+.guias-mini{max-width:var(--maxw);margin:0 auto;padding:56px 16px 8px}
+.guias-mini-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:26px}
+.guia-mini{display:flex;flex-direction:column;gap:6px;padding:20px 18px;background:var(--paper,#fff);
+  border:1px solid var(--border);border-radius:16px;text-decoration:none;
+  transition:transform .18s,box-shadow .18s}
+.guia-mini:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(44,36,32,.09)}
+.guia-mini-ico{font-size:26px;line-height:1}
+.guia-mini b{font-size:14.5px;color:var(--charcoal);line-height:1.35}
+.guia-mini span:last-child{font-size:12.5px;color:var(--text2,#6b5d57);line-height:1.5}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import {
   LOTES,
   WPP,
@@ -510,6 +511,47 @@ export default function Home() {
               <p className="testi-text">{g.texto}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* ===== GUÍAS (enlazado interno) =====
+          Esta página no enlazaba a ninguna guía: las cuatro estaban aisladas y
+          Google no tenía cómo entender que el sitio sabe del tema. Son además
+          el contenido que los buscadores de IA citan. */}
+      <section className="guias-mini">
+        <div className="section-header">
+          <div className="section-eyebrow">Antes de comprar</div>
+          <h2 className="section-title serif">
+            Lo que <em>necesitas saber</em>
+          </h2>
+        </div>
+        <div className="guias-mini-grid">
+          <Link
+            className="guia-mini"
+            href="/guias/como-vender-maquillaje-al-mayoreo"
+          >
+            <span className="guia-mini-ico">🛍️</span>
+            <b>Cómo empezar a vender maquillaje al mayoreo</b>
+            <span>Qué lote comprar, cómo poner precios y dónde vender.</span>
+          </Link>
+          <Link
+            className="guia-mini"
+            href="/guias/maquillaje-original-como-saber-si-es-autentico"
+          >
+            <span className="guia-mini-ico">✅</span>
+            <b>Cómo saber si el maquillaje es original</b>
+            <span>5 señales para no comprar pirata ni arriesgar tu piel.</span>
+          </Link>
+          <Link className="guia-mini" href="/guias/como-elegir-base-de-maquillaje">
+            <span className="guia-mini-ico">💧</span>
+            <b>Cómo elegir base según el tipo de piel</b>
+            <span>Para asesorar a tus clientas y vender más rápido.</span>
+          </Link>
+          <Link className="guia-mini" href="/guias/labiales-mate-satinado-o-gloss">
+            <span className="guia-mini-ico">💄</span>
+            <b>Labial mate, satinado o gloss</b>
+            <span>Diferencias, duración y cuál conviene a cada clienta.</span>
+          </Link>
         </div>
       </section>
 

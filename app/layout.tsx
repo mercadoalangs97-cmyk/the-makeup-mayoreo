@@ -131,7 +131,21 @@ fbq('init', '${META_PIXEL_ID}');fbq('track', 'PageView');`}
               name: SITE_NAME,
               url: SITE_URL,
               description:
-                "Tienda de maquillaje original por pieza: e.l.f, NYX, Maybelline, L'Oréal y más. Envío a todo México.",
+                "Tienda de maquillaje original por pieza y lotes al mayoreo: e.l.f, NYX, Maybelline, L'Oréal y Pixi. Envío a todo México.",
+              // Logo y knowsAbout son la "credencial" que leen los buscadores
+              // de IA para saber de qué es experta esta marca.
+              logo: `${SITE_URL}/icon.png`,
+              image: OG_IMG,
+              knowsAbout: [
+                "maquillaje al mayoreo",
+                "lotes de maquillaje para revender",
+                "maquillaje original importado",
+                "e.l.f Cosmetics",
+                "NYX Professional Makeup",
+                "Maybelline New York",
+                "L'Oréal Paris",
+                "venta de cosméticos por mayoreo en México",
+              ],
               telephone: NEGOCIO.telefono,
               email: NEGOCIO.email,
               address: {
