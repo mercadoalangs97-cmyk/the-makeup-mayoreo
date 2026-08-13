@@ -82,8 +82,10 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // lang="es-MX" y no "es" a secas: los buscadores usan el idioma como pista
+  // de país, y en "es" genérico competimos contra fuentes de España.
   return (
-    <html lang="es" className={`${jost.variable} ${cormorant.variable}`}>
+    <html lang="es-MX" className={`${jost.variable} ${cormorant.variable}`}>
       <head>
         {/* Las fotos viven en Supabase Storage: abrir la conexión desde el
             principio adelanta la carga de la imagen principal (LCP). */}

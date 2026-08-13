@@ -1,7 +1,30 @@
 import type { Metadata } from "next";
 import { SITE_URL } from "../lib/site";
 import { LOTES } from "../lib/lotes";
-import MayoreoClient from "./MayoreoClient";
+import { createAdminSupabase } from "../lib/supabase";
+import MayoreoClient, { type OpinionPublica } from "./MayoreoClient";
+
+// Se refresca cada 10 min: al marcar una opinión como publicada en el panel,
+// aparece sola en el sitio sin volver a desplegar.
+export const revalidate = 600;
+
+// Solo opiniones REALES: autorizadas por la clienta y marcadas como publicadas
+// a mano desde el panel. Si no hay ninguna, la sección no existe.
+async function opinionesPublicadas(): Promise<OpinionPublica[]> {
+  try {
+    const sb = createAdminSupabase();
+    const { data } = await sb
+      .from("opiniones")
+      .select("id,nombre,ciudad,calificacion,texto")
+      .eq("publicada", true)
+      .eq("autoriza", true)
+      .order("creada_en", { ascending: false })
+      .limit(9);
+    return (data || []) as OpinionPublica[];
+  } catch {
+    return [];
+  }
+}
 
 export const metadata: Metadata = {
   // ≤60 caracteres: la palabra que se busca ("lotes de maquillaje al mayoreo")
@@ -70,14 +93,15 @@ function schemaLotes() {
   };
 }
 
-export default function MayoreoPage() {
+export default async function MayoreoPage() {
+  const opiniones = await opinionesPublicadas();
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaLotes()) }}
       />
-      <MayoreoClient />
+      <MayoreoClient opiniones={opiniones} />
     </>
   );
 }

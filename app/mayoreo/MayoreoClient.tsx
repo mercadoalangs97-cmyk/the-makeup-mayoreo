@@ -19,6 +19,51 @@ type Filtro = "todos" | "mixto" | "labiales" | "grande";
 
 const AVATAR_COLORS = ["#C9807A", "#9E5550", "#C9A96E", "#D4B8A8", "#2C2420"];
 
+// Tabla de precio por pieza, calculada de LOTES (nunca a mano: si cambia un
+// precio, la tabla cambia sola y no se contradice con las tarjetas de arriba).
+const TABLA_PRECIOS = (() => {
+  const filas = LOTES.filter((l) => l.id.startsWith("mixto-"))
+    .slice()
+    .sort((a, b) => a.piezas - b.piezas)
+    .map((l) => ({
+      id: l.id,
+      piezas: l.piezas,
+      precio: l.precio,
+      ppu: Math.round(l.precio / l.piezas),
+      ahorro: 0,
+      mejor: false,
+    }));
+  const caro = Math.max(...filas.map((f) => f.ppu));
+  const barato = Math.min(...filas.map((f) => f.ppu));
+  filas.forEach((f) => {
+    f.ahorro = caro - f.ppu;
+    f.mejor = f.ppu === barato;
+  });
+  return filas;
+})();
+
+// Las 4 preguntas que Google muestra en "Más preguntas" para las búsquedas por
+// las que queremos salir. Responderlas aquí, en texto visible, es lo que hace
+// que la página sea citable (el marcado FAQ ya no da resultados enriquecidos).
+const PREGUNTAS = [
+  {
+    q: "¿Dónde comprar maquillaje original por mayoreo en México?",
+    a: "Con un proveedor que te diga qué marcas maneja y de dónde vienen. Nosotros importamos directo e.l.f Cosmetics, NYX Professional Makeup, Maybelline New York, L'Oréal Paris y Pixi, y vendemos en lotes surtidos desde 10 piezas con envío por Estafeta a toda la República. Todo se paga en línea con Mercado Pago o se coordina por WhatsApp.",
+  },
+  {
+    q: "¿Cuánto cuesta un lote de maquillaje para revender?",
+    a: `Nuestros lotes van de ${fmx(1200)} (10 piezas, ${"$120"} por pieza) a ${fmx(45700)} (500 piezas, $91 por pieza). Entre más grande el lote, más barata te sale la pieza. La tabla completa está arriba, sin registro ni tener que preguntar.`,
+  },
+  {
+    q: "¿Cuánto puedo ganar revendiendo maquillaje?",
+    a: `Depende del precio al que vendas. Tomando ${fmx(PPU_REFERENCIA)} por pieza —el promedio al que se vende esta clase de producto en tienda— un lote de 50 piezas que te cuesta ${fmx(5100)} se vende en ${fmx(PPU_REFERENCIA * 50)}. Tu ganancia real depende de tu precio, tu mercado y qué tan rápido rotes.`,
+  },
+  {
+    q: "¿Cuál es la diferencia con el maquillaje del Centro de la CDMX?",
+    a: "Son mercados distintos. En el Centro encuentras marcas nacionales y de importación económica desde unos pesos la pieza; nosotros vendemos marcas originales de farmacia y tienda departamental (e.l.f, NYX, Maybelline, L'Oréal), que cuestan más por pieza y también se revenden mucho más caro. Ninguno es mejor: depende de a quién le vendas tú.",
+  },
+];
+
 // Hechos verificables del servicio (NO testimonios). Las opiniones reales de
 // clientas se agregarán aquí cuando existan, con su nombre y autorización.
 const GARANTIAS = [
@@ -67,7 +112,21 @@ function gananciaEstimada(l: Lote): { venta: number; ganancia: number } {
   return { venta, ganancia: Math.max(0, venta - l.precio) };
 }
 
-export default function Home() {
+export type OpinionPublica = {
+  id: string;
+  nombre: string;
+  ciudad: string | null;
+  calificacion: number;
+  texto: string;
+};
+
+export default function Home({
+  opiniones = [],
+}: {
+  /** Opiniones REALES autorizadas y marcadas como publicadas en el panel.
+   *  Si no hay ninguna, la sección no se pinta: nunca inventamos testimonios. */
+  opiniones?: OpinionPublica[];
+}) {
   const { add, showToast, checkoutMP } = useCart();
   const [filtro, setFiltro] = useState<Filtro>("todos");
   const [loteActivo, setLoteActivo] = useState<Lote | null>(null);
@@ -424,6 +483,62 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ===== TABLA DE PRECIOS POR PIEZA =====
+          Nadie en el sector publica esto. Es el dato que la clienta quiere
+          antes de escribir y el que los buscadores de IA citan cuando alguien
+          pregunta "cuánto cuesta el maquillaje al mayoreo en México". */}
+      <section className="tabla-section" id="precios">
+        <div className="section-header">
+          <div className="section-eyebrow">Sin letras chiquitas</div>
+          <h2 className="section-title serif">
+            Cuánto te sale <em>cada pieza</em>
+          </h2>
+          <p className="section-sub">
+            Entre más grande el lote, más barata la pieza. Estos son todos
+            nuestros precios, sin registro ni tener que preguntar.
+          </p>
+        </div>
+
+        <div className="tabla-wrap">
+          <table className="tabla-precios">
+            <thead>
+              <tr>
+                <th>Lote</th>
+                <th>Precio</th>
+                <th>Por pieza</th>
+                <th>Ahorro por pieza</th>
+              </tr>
+            </thead>
+            <tbody>
+              {TABLA_PRECIOS.map((f) => (
+                <tr key={f.id} className={f.mejor ? "fila-mejor" : undefined}>
+                  <td data-lb="Lote">
+                    <b>{f.piezas} piezas</b>
+                    {f.mejor && <span className="tag-mejor">mejor precio</span>}
+                  </td>
+                  <td data-lb="Precio">{fmx(f.precio)}</td>
+                  <td data-lb="Por pieza">
+                    <b>${f.ppu}</b>
+                  </td>
+                  <td data-lb="Ahorro">
+                    {f.ahorro > 0 ? (
+                      <span className="ahorro">−${f.ahorro}</span>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="tabla-nota">
+          Precios en pesos mexicanos, IVA incluido. El envío se cotiza aparte
+          por Estafeta según tu código postal (normalmente entre $137 y $250).
+          El lote de 500 piezas se coordina por WhatsApp.
+        </p>
+      </section>
+
       {/* ===== SOCIAL PROOF BAND ===== */}
       <section className="proof">
         <div className="proof-grid">
@@ -510,6 +625,60 @@ export default function Home() {
               <b className="garantia-tit">{g.titulo}</b>
               <p className="testi-text">{g.texto}</p>
             </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ===== OPINIONES REALES (se pinta sola cuando existan) ===== */}
+      {opiniones.length > 0 && (
+        <section className="ops-section">
+          <div className="section-header">
+            <div className="section-eyebrow">Clientas reales</div>
+            <h2 className="section-title serif">
+              Lo que dicen <em>quienes ya compraron</em>
+            </h2>
+          </div>
+          <div className="ops-grid">
+            {opiniones.map((o) => (
+              <figure className="ops-card" key={o.id}>
+                <div
+                  className="ops-stars"
+                  aria-label={`${o.calificacion} de 5 estrellas`}
+                >
+                  {"★".repeat(o.calificacion)}
+                  <span className="ops-off">
+                    {"★".repeat(5 - o.calificacion)}
+                  </span>
+                </div>
+                <blockquote>{o.texto}</blockquote>
+                <figcaption>
+                  <b>{o.nombre}</b>
+                  {o.ciudad ? ` · ${o.ciudad}` : ""}
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+          <p className="ops-nota">
+            Opiniones de clientas que autorizaron publicarlas. No editamos el
+            texto.
+          </p>
+        </section>
+      )}
+
+      {/* ===== PREGUNTAS (respuesta directa, formato citable) ===== */}
+      <section className="faq-section" id="preguntas">
+        <div className="section-header">
+          <div className="section-eyebrow">Lo que más nos preguntan</div>
+          <h2 className="section-title serif">
+            Dudas <em>antes de comprar</em>
+          </h2>
+        </div>
+        <div className="faq-lista">
+          {PREGUNTAS.map((p) => (
+            <details className="faq-item" key={p.q}>
+              <summary>{p.q}</summary>
+              <p>{p.a}</p>
+            </details>
           ))}
         </div>
       </section>

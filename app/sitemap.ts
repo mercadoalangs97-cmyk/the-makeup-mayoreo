@@ -39,6 +39,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 0.8,
     },
+    // Página de intención "busco proveedor" (distinta a "quiero comprar lote").
+    {
+      url: `${SITE_URL}/proveedor-maquillaje`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
     // Guías (blog) — SEO + GEO.
     { url: `${SITE_URL}/guias`, lastModified: now, changeFrequency: "monthly", priority: 0.6 },
     ...GUIAS.map((g) => ({
