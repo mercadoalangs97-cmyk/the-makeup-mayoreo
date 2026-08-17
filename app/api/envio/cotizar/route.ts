@@ -4,6 +4,7 @@ import {
   cotizarEnvioReal,
   filtrarPaqueterias,
   skydropxConfigurado,
+  precioEnvioAlCliente,
 } from "../../../lib/skydropx";
 
 export const runtime = "nodejs";
@@ -96,7 +97,7 @@ export async function POST(req: Request) {
       proveedor: r.proveedor,
       servicio: r.servicio,
       servicioCode: r.servicioCode,
-      total: Math.round(r.total),
+      total: precioEnvioAlCliente(r.total),
       dias: r.dias,
     }));
     return NextResponse.json({ opciones, cajas: parcels.length });

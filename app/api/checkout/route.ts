@@ -9,7 +9,9 @@ import {
   modoEnvio,
   parcelsDeItems,
 } from "../../lib/lotes";
-import { cotizarEnvioReal, filtrarPaqueterias } from "../../lib/skydropx";
+import { cotizarEnvioReal, filtrarPaqueterias,
+  precioEnvioAlCliente,
+} from "../../lib/skydropx";
 import { SITE_URL } from "../../lib/site";
 
 export const runtime = "nodejs";
@@ -301,7 +303,7 @@ export async function POST(req: Request) {
         { status: 409 }
       );
     }
-    envioMonto = Math.round(elegida.total);
+    envioMonto = precioEnvioAlCliente(elegida.total);
     envioExtra.paqueteria = elegida.proveedor;
     envioExtra.servicio = elegida.servicio;
     envioExtra.servicio_code = elegida.servicioCode;

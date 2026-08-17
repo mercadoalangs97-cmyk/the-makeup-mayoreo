@@ -164,3 +164,27 @@ export async function cotizarEnvioReal(
     }))
     .sort((a, b) => a.total - b.total);
 }
+
+// ---------------------------------------------------------------------------
+//  PRECIO DE ENVÍO AL CLIENTE
+// ---------------------------------------------------------------------------
+// Lo que cobramos NO es exactamente la tarifa que devuelve Skydropx, y hay dos
+// razones medidas (agosto 2026):
+//
+//  1. La tarifa se mueve entre que se cotiza y que se genera la guía, que
+//     pueden ser días. Ejemplo real: a una clienta se le cobraron $150 por
+//     Estafeta Terrestre y días después la misma guía costó $157.
+//  2. Skydropx activó la "Protección obligatoria": ahora cada guía lleva un
+//     cargo de seguro sobre el valor declarado que la cotización no incluye.
+//
+// Sin colchón, cada envío sale en pérdida. Este margen lo absorbe sin que se
+// note en el ticket (en un lote de $2,140, $25 es el 1%).
+export const MARGEN_ENVIO_PCT = 0.15; // 15%
+export const MARGEN_ENVIO_MIN = 20; // pesos
+
+/** Lo que se le cobra al cliente por un envío cuya tarifa real es `tarifa`. */
+export function precioEnvioAlCliente(tarifa: number): number {
+  const t = Number(tarifa) || 0;
+  if (t <= 0) return 0;
+  return Math.ceil(t + Math.max(MARGEN_ENVIO_MIN, t * MARGEN_ENVIO_PCT));
+}

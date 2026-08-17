@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createAdminSupabase, createServerSupabase } from "../../../lib/supabase";
-import { cotizarEnvioReal, filtrarPaqueterias } from "../../../lib/skydropx";
+import { cotizarEnvioReal, filtrarPaqueterias,
+  precioEnvioAlCliente,
+} from "../../../lib/skydropx";
 import { LOTES, parcelsDeItems, type Paquete } from "../../../lib/lotes";
 
 // Crea una COTIZACIÓN desde la app de inventario (otro dominio → CORS abierto,
@@ -151,7 +153,7 @@ export async function POST(req: Request) {
     if (rates.length) {
       const elegida =
         rates.find((r) => r.servicioCode === body.servicioCode) || rates[0];
-      costo = Math.round(elegida.total);
+      costo = precioEnvioAlCliente(elegida.total);
       paqueteria = elegida.proveedor;
       servicio = elegida.servicio;
       servicioCode = elegida.servicioCode;
