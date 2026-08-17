@@ -126,6 +126,11 @@ export async function POST(req: Request) {
     : [{ length: 20, width: 15, height: 10, weight: 0.5 }];
   const claveSat = (body.claveSat || "53131619").trim(); // Cosméticos (SAT Anexo 20 v4.0)
 
+  // Valor declarado de la mercancía, repartido entre las cajas. `orden.total`
+  // es el subtotal de producto (sin envío), que es justo lo que se asegura.
+  const valorMercancia = Math.max(1, Math.round(Number(orden.total) || 0));
+  const valorPorPaquete = Math.max(1, Math.round(valorMercancia / parcels.length));
+
   // ---- OPCIONES: cotiza (GRATIS) y devuelve paqueterías + recomendada ----
   if (body.accion === "opciones") {
     const todas = await cotizarEnvioReal(destino, parcels);
@@ -183,8 +188,17 @@ export async function POST(req: Request) {
         // package_number debe coincidir con el de la cotización (1, 2, 3… por orden).
         // package_type "4G" = caja de cartón corrugado (código SAT que Skydropx acepta;
         // "my_own_box" quedó fuera de su lista).
+        // declared_value: obligatorio desde que Skydropx activó la "Protección
+        // obligatoria". Va el valor REAL de la mercancía (el total de producto
+        // del pedido, sin el envío), repartido entre las cajas. Declarar de
+        // menos abarata el seguro pero deja el paquete sin cobertura real, así
+        // que se declara lo que vale.
         packages: parcels.map((p, i) => ({
-          ...p, package_number: i + 1, consignment_note: claveSat, package_type: "4G",
+          ...p,
+          package_number: i + 1,
+          consignment_note: claveSat,
+          package_type: "4G",
+          declared_value: valorPorPaquete,
         })),
       },
     };
