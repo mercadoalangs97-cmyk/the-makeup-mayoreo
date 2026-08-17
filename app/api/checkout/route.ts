@@ -303,7 +303,7 @@ export async function POST(req: Request) {
         { status: 409 }
       );
     }
-    envioMonto = precioEnvioAlCliente(elegida.total);
+    envioMonto = precioEnvioAlCliente(elegida.total, total);
     envioExtra.paqueteria = elegida.proveedor;
     envioExtra.servicio = elegida.servicio;
     envioExtra.servicio_code = elegida.servicioCode;

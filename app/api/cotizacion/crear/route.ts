@@ -114,6 +114,10 @@ export async function POST(req: Request) {
     return json({ error: "Faltan datos: " + faltan.join(", ") }, 400);
   }
 
+  // Valor de la mercancía: entra en el cálculo del envío porque la
+  // protección obligatoria se cobra sobre él.
+  const subtotal = lote.precio * qty;
+
   // ---- Cotizar el envío REAL con Skydropx ----
   let costo = 0;
   let paqueteria = "";
@@ -153,7 +157,7 @@ export async function POST(req: Request) {
     if (rates.length) {
       const elegida =
         rates.find((r) => r.servicioCode === body.servicioCode) || rates[0];
-      costo = precioEnvioAlCliente(elegida.total);
+      costo = precioEnvioAlCliente(elegida.total, subtotal);
       paqueteria = elegida.proveedor;
       servicio = elegida.servicio;
       servicioCode = elegida.servicioCode;
@@ -163,7 +167,6 @@ export async function POST(req: Request) {
     // Si Skydropx falla, la cotización se crea sin envío y se avisa.
   }
 
-  const subtotal = lote.precio * qty;
   const total = subtotal + costo;
 
   const sb = createAdminSupabase();

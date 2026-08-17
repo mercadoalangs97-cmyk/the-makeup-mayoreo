@@ -83,6 +83,13 @@ export async function POST(req: Request) {
   }));
   const parcels = parcelsDeItems(itemsParaParcels);
 
+  // Valor de la mercancía del carrito: la protección obligatoria se cobra
+  // sobre él, así que entra en el precio del envío.
+  const valorMercancia = itemsLote.reduce((s, it) => {
+    const l = loteDeItemId(it.id);
+    return s + (l ? l.precio * it.qty : 0);
+  }, 0);
+
   try {
     const todas = await cotizarEnvioReal(destino, parcels);
     const rates = filtrarPaqueterias(todas); // solo paqueterías confiables
@@ -97,7 +104,7 @@ export async function POST(req: Request) {
       proveedor: r.proveedor,
       servicio: r.servicio,
       servicioCode: r.servicioCode,
-      total: precioEnvioAlCliente(r.total),
+      total: precioEnvioAlCliente(r.total, valorMercancia),
       dias: r.dias,
     }));
     return NextResponse.json({ opciones, cajas: parcels.length });

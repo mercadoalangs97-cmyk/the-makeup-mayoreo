@@ -179,12 +179,26 @@ export async function cotizarEnvioReal(
 //
 // Sin colchón, cada envío sale en pérdida. Este margen lo absorbe sin que se
 // note en el ticket (en un lote de $2,140, $25 es el 1%).
-export const MARGEN_ENVIO_PCT = 0.15; // 15%
+export const MARGEN_ENVIO_PCT = 0.15; // 15% sobre la tarifa
 export const MARGEN_ENVIO_MIN = 20; // pesos
 
-/** Lo que se le cobra al cliente por un envío cuya tarifa real es `tarifa`. */
-export function precioEnvioAlCliente(tarifa: number): number {
+// La protección obligatoria se cobra sobre el VALOR DECLARADO, no sobre la
+// tarifa. Por eso un colchón plano alcanza en un lote de 10 piezas y se queda
+// corto en uno de 100: la tarifa sube poco y el valor asegurado se multiplica.
+//
+// ⚠️ PROVISIONAL: 1% es una estimación. Calibrar con la primera guía real
+// comparando lo que dice el panel contra lo que Skydropx descuenta del saldo.
+export const PROTECCION_PCT = 0.01;
+
+/**
+ * Lo que se le cobra al cliente por un envío.
+ * @param tarifa         tarifa que devolvió Skydropx
+ * @param valorMercancia valor declarado (para estimar la protección)
+ */
+export function precioEnvioAlCliente(tarifa: number, valorMercancia = 0): number {
   const t = Number(tarifa) || 0;
   if (t <= 0) return 0;
-  return Math.ceil(t + Math.max(MARGEN_ENVIO_MIN, t * MARGEN_ENVIO_PCT));
+  const colchon = Math.max(MARGEN_ENVIO_MIN, t * MARGEN_ENVIO_PCT);
+  const proteccion = Math.max(0, Number(valorMercancia) || 0) * PROTECCION_PCT;
+  return Math.ceil(t + colchon + proteccion);
 }
