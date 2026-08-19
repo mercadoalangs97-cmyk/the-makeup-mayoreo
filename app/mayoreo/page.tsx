@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { SITE_URL } from "../lib/site";
 import { LOTES } from "../lib/lotes";
+import { imgOpt } from "../lib/img";
 import { createAdminSupabase } from "../lib/supabase";
 import MayoreoClient, { type OpinionPublica } from "./MayoreoClient";
 
@@ -65,7 +66,7 @@ function schemaLotes() {
         "@type": "Product",
         name: l.nombre,
         description: l.desc,
-        image: l.foto ? [l.foto] : undefined,
+        image: l.foto ? [imgOpt(l.foto, 800, 72) ?? l.foto] : undefined,
         category: "Maquillaje al mayoreo",
         url: `${SITE_URL}/mayoreo#lotes`,
         offers: {

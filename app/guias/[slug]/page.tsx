@@ -83,7 +83,7 @@ export default async function GuiaPage({ params }: Params) {
     "@context": "https://schema.org",
     "@type": "Article",
     headline: g.titulo,
-    image: guiaImg(g.slug),
+    image: imgOpt(guiaImg(g.slug), 1200, 72) ?? guiaImg(g.slug),
     description: g.descripcion,
     datePublished: g.fecha,
     dateModified: g.fecha,

@@ -11,6 +11,7 @@ import {
   descripcionFicha,
 } from "../../lib/productos";
 import { SITE_URL, SITE_NAME } from "../../lib/site";
+import { imgOpt } from "../../lib/img";
 import SiteHeader from "../../components/SiteHeader";
 import SiteFooter from "../../components/SiteFooter";
 import FilaProductos from "../../components/FilaProductos";
@@ -55,7 +56,9 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
       title: `${nombre} | AMARÉA`,
       description: desc,
       type: "website",
-      images: producto.foto ? [{ url: producto.foto }] : undefined,
+      images: producto.foto
+        ? [{ url: imgOpt(producto.foto, 800, 72) ?? producto.foto }]
+        : undefined,
     },
   };
 }
@@ -80,7 +83,11 @@ export default async function ProductoPage({ params }: Params) {
     "@context": "https://schema.org/",
     "@type": "Product",
     name: nombre,
-    image: producto.foto ? [producto.foto] : undefined,
+    // Optimizada, NO el original: esta es la URL que descargan Google Images,
+    // Bing y los bots de IA en cada pasada. El original pesa ~1 MB y la misma
+    // foto a 800 px pesa 16 KB — con 274 fichas eso es la diferencia entre
+    // 274 MB y 4 MB por rastreo completo, POR cada buscador.
+    image: producto.foto ? [imgOpt(producto.foto, 800, 72) ?? producto.foto] : undefined,
     description:
       producto.notas?.trim() ||
       `${nombre} de ${producto.marcaNorm}, disponible por pieza.`,
