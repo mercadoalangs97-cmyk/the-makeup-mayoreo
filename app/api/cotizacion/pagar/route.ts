@@ -47,6 +47,12 @@ export async function POST(req: Request) {
   // Los precios SIEMPRE se recalculan del servidor (nunca se confía en el cliente).
   const qty = Math.max(1, Number(cot.qty) || 1);
   const subtotal = lote.precio * qty;
+  // El descuento se toma de lo GUARDADO, nunca de lo que mande el navegador.
+  const descuento = Math.min(
+    Math.max(0, Math.round(Number(cot.descuento) || 0)),
+    subtotal - 1
+  );
+  const subtotalConDescuento = subtotal - descuento;
   const envioCosto = Math.max(0, Math.round(Number(cot.envio_costo) || 0));
   const piezasRequeridas = lote.piezas * qty;
 
@@ -101,6 +107,7 @@ export async function POST(req: Request) {
       precio: lote.precio,
       qty,
       piezas: lote.piezas,
+      descuento,
     },
   ];
 
@@ -110,7 +117,7 @@ export async function POST(req: Request) {
   const { error: insErr } = await sb.from("ordenes_web").insert({
     id: ordenId,
     items: itemsOrden,
-    total: subtotal,
+    total: subtotalConDescuento,
     status: "pending",
     canal: "web",
     inventario_descontado: false,
@@ -137,12 +144,17 @@ export async function POST(req: Request) {
   }
 
   try {
+    // Mercado Pago no admite renglones en negativo, así que el descuento va
+    // aplicado en el precio: un solo renglón con el neto exacto.
+    const tituloLote =
+      (qty > 1 ? `${lote.nombre} × ${qty}` : lote.nombre) +
+      (descuento > 0 ? " (precio especial)" : "");
     const mpItems = [
       {
         id: lote.id,
-        title: lote.nombre.slice(0, 250),
-        quantity: qty,
-        unit_price: lote.precio,
+        title: tituloLote.slice(0, 250),
+        quantity: 1,
+        unit_price: subtotalConDescuento,
         currency_id: "MXN",
       },
     ];

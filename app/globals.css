@@ -1182,3 +1182,7 @@ a.prod-add:hover{background:var(--rose-dk)}
   .guia-tabla td:first-child{font-size:15px;margin-bottom:4px;text-align:left}
   .guia-tabla td:first-child::before{display:none}
 }
+
+/* Renglón de descuento en la cotización */
+.cot-d-desc span, .cot-d-desc b { color: #157a41; }
+.cot-d-desc b { font-weight: 700; }

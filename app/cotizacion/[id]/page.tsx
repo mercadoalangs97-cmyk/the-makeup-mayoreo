@@ -33,6 +33,7 @@ export default async function CotizacionPorId({ params }: Params) {
   const env = (cot.envio || {}) as Record<string, string>;
   const qty = Math.max(1, Number(cot.qty) || 1);
   const subtotal = lote.precio * qty;
+  const descuento = Math.max(0, Math.round(Number(cot.descuento) || 0));
   const envioCosto = Math.max(0, Math.round(Number(cot.envio_costo) || 0));
 
   const c: CotData = {
@@ -45,10 +46,12 @@ export default async function CotizacionPorId({ params }: Params) {
     qty,
     ppu: lote.precio / lote.piezas,
     subtotal,
+    descuento,
+    descuentoPct: cot.descuento_pct ?? null,
     envioCosto,
     envioPaqueteria: cot.envio_paqueteria || "",
     envioDias: cot.envio_dias ?? null,
-    total: subtotal + envioCosto,
+    total: subtotal - descuento + envioCosto,
     ciudad: env.ciudad || "",
     estado: env.estado || "",
     cp: env.cp || "",

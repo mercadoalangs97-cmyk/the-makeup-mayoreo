@@ -17,6 +17,8 @@ export type CotData = {
   qty: number;
   ppu: number;
   subtotal: number;
+  descuento: number;
+  descuentoPct: number | null;
   envioCosto: number;
   envioPaqueteria: string;
   envioDias: number | null;
@@ -64,7 +66,8 @@ export default function CotizacionPago({ c }: { c: CotData }) {
   }, [c.id]);
 
   const ventaEstimada = PPU_REFERENCIA * c.piezas;
-  const ganancia = Math.max(0, ventaEstimada - c.subtotal);
+  const pagaPorElLote = c.subtotal - c.descuento;
+  const ganancia = Math.max(0, ventaEstimada - pagaPorElLote);
 
   // ---- Siguiente escalón de lote ----
   // La mayoría cotiza el lote más chico, donde el margen apenas paga la
@@ -75,7 +78,7 @@ export default function CotizacionPago({ c }: { c: CotData }) {
   const esMixto = (id: string) => id.startsWith("mixto-");
   const ppuActual = loteActual ? loteActual.precio / loteActual.piezas : 0;
   const siguiente =
-    c.qty === 1 && !c.pagada && loteActual && esMixto(loteActual.id)
+    c.qty === 1 && !c.pagada && c.descuento === 0 && loteActual && esMixto(loteActual.id)
       ? LOTES.filter(
           (l) =>
             esMixto(l.id) &&
@@ -182,6 +185,15 @@ export default function CotizacionPago({ c }: { c: CotData }) {
             <span>Tu lote</span>
             <b>{fmx(c.subtotal)}</b>
           </div>
+          {c.descuento > 0 && (
+            <div className="cot-d-row cot-d-desc">
+              <span>
+                Descuento especial
+                {c.descuentoPct ? ` (${c.descuentoPct}%)` : ""}
+              </span>
+              <b>−{fmx(c.descuento)}</b>
+            </div>
+          )}
           <div className="cot-d-row">
             <span>
               Envío{c.envioPaqueteria ? ` · ${c.envioPaqueteria}` : ""}
@@ -201,7 +213,7 @@ export default function CotizacionPago({ c }: { c: CotData }) {
             <div className="cot-g-tit">💰 Lo que puedes ganar</div>
             <div className="cot-g-row">
               <span>Inviertes</span>
-              <b>{fmx(c.subtotal)}</b>
+              <b>{fmx(pagaPorElLote)}</b>
             </div>
             <div className="cot-g-row">
               <span>

@@ -68,6 +68,10 @@ export async function POST(req: Request) {
     /** Si viene, se ACTUALIZA esa cotización en vez de crear otra: el link que
      *  ya se mandó por WhatsApp sigue sirviendo y muestra lo nuevo. */
     id?: string;
+    /** Descuento en PESOS para esta compra (o porcentaje, lo que venga). */
+    descuento?: number;
+    descuentoPct?: number;
+    descuentoMotivo?: string;
   };
   try {
     body = await req.json();
@@ -118,6 +122,16 @@ export async function POST(req: Request) {
   // protección obligatoria se cobra sobre él.
   const subtotal = lote.precio * qty;
 
+  // Descuento SOLO para esta cotización. Se acepta en pesos o en porcentaje;
+  // se guarda siempre el monto en pesos ya calculado. Nunca puede dejar el
+  // lote en cero ni en negativo.
+  const pct = Math.min(60, Math.max(0, Number(body.descuentoPct) || 0));
+  const descuentoBruto = pct > 0 ? (subtotal * pct) / 100 : Number(body.descuento) || 0;
+  const descuento = Math.min(
+    Math.max(0, Math.round(descuentoBruto)),
+    subtotal - 1
+  );
+
   // ---- Cotizar el envío REAL con Skydropx ----
   let costo = 0;
   let paqueteria = "";
@@ -157,7 +171,7 @@ export async function POST(req: Request) {
     if (rates.length) {
       const elegida =
         rates.find((r) => r.servicioCode === body.servicioCode) || rates[0];
-      costo = precioEnvioAlCliente(elegida.total, subtotal);
+      costo = precioEnvioAlCliente(elegida.total, subtotal - descuento);
       paqueteria = elegida.proveedor;
       servicio = elegida.servicio;
       servicioCode = elegida.servicioCode;
@@ -167,7 +181,7 @@ export async function POST(req: Request) {
     // Si Skydropx falla, la cotización se crea sin envío y se avisa.
   }
 
-  const total = subtotal + costo;
+  const total = subtotal - descuento + costo;
 
   const sb = createAdminSupabase();
 
@@ -184,6 +198,9 @@ export async function POST(req: Request) {
     envio_servicio_code: servicioCode,
     envio_dias: dias,
     subtotal,
+    descuento,
+    descuento_pct: pct > 0 ? pct : null,
+    descuento_motivo: (body.descuentoMotivo || "").trim().slice(0, 120) || null,
     total,
   };
 
@@ -217,6 +234,7 @@ export async function POST(req: Request) {
       lote: lote.nombre,
       piezas: lote.piezas * qty,
       subtotal,
+      descuento,
       envio_costo: costo,
       envio_paqueteria: paqueteria,
       envio_dias: dias,
@@ -250,6 +268,7 @@ export async function POST(req: Request) {
     lote: lote.nombre,
     piezas: lote.piezas * qty,
     subtotal,
+    descuento,
     envio_costo: costo,
     envio_paqueteria: paqueteria,
     envio_dias: dias,
