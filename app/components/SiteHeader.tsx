@@ -104,14 +104,20 @@ export default function SiteHeader({
         <div className="offer-inner">
           <span className="offer-bolt">⚡</span>
           <span className="offer-text">
-            {variant === "mayoreo" ? (
-              <>
-                <b>OFERTA DE HOY</b> · Envío por paquetería, calculado en el pago
-              </>
-            ) : (
+            {/* El envío gratis SOLO aplica a productos por pieza (AMARÉA).
+                En lotes el envío se cotiza con la paquetería y nunca es
+                gratis, así que prometerlo en páginas que también visita una
+                clienta de mayoreo —las guías, nosotros, contacto— la hacía
+                llegar al pago esperando algo que no existe. Fuera de AMARÉA
+                el mensaje es neutro y cierto para las dos. */}
+            {variant === "amarea" ? (
               <>
                 <b>OFERTA DE HOY</b> · Envío GRATIS desde{" "}
                 {fmx(ENVIO_AMAREA_GRATIS_DESDE)} en productos individuales
+              </>
+            ) : (
+              <>
+                <b>OFERTA DE HOY</b> · Envío por paquetería, calculado en el pago
               </>
             )}
           </span>
