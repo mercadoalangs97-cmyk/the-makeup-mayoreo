@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { Preference } from "mercadopago";
 import { createAdminSupabase } from "../../../lib/supabase";
 import { mpClient, mpConfigurado } from "../../../lib/mercadopago";
-import { LOTES } from "../../../lib/lotes";
+import { itemsDeCotizacion, resolverItems } from "../../../lib/cotItems";
 import { SITE_URL } from "../../../lib/site";
 
 // La clienta abre su cotización y le da "Pagar": creamos la orden con los datos
@@ -39,14 +39,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Cotización no encontrada." }, { status: 404 });
   }
 
-  const lote = LOTES.find((l) => l.id === cot.lote_id);
-  if (!lote) {
-    return NextResponse.json({ error: "El lote ya no está disponible." }, { status: 409 });
+  // Los precios SIEMPRE se recalculan del servidor (nunca se confía en el
+  // cliente ni en lo que se guardó: si cambió un precio, manda el de hoy).
+  const resuelto = await resolverItems(itemsDeCotizacion(cot));
+  if (resuelto.error) {
+    return NextResponse.json({ error: resuelto.error }, { status: 409 });
   }
-
-  // Los precios SIEMPRE se recalculan del servidor (nunca se confía en el cliente).
-  const qty = Math.max(1, Number(cot.qty) || 1);
-  const subtotal = lote.precio * qty;
+  const subtotal = resuelto.subtotal;
   // El descuento se toma de lo GUARDADO, nunca de lo que mande el navegador.
   const descuento = Math.min(
     Math.max(0, Math.round(Number(cot.descuento) || 0)),
@@ -54,16 +53,36 @@ export async function POST(req: Request) {
   );
   const subtotalConDescuento = subtotal - descuento;
   const envioCosto = Math.max(0, Math.round(Number(cot.envio_costo) || 0));
-  const piezasRequeridas = lote.piezas * qty;
+  const piezasRequeridas = resuelto.piezasLote;
 
-  // Validar que haya piezas suficientes en inventario.
-  const { data: stockRows } = await sb.from("productos").select("stock").gt("stock", 0);
-  const stockTotal = (stockRows || []).reduce((s, r) => s + (r.stock ?? 0), 0);
-  if (stockTotal < piezasRequeridas) {
+  // Los productos SUELTOS se validan uno por uno: que ese SKU en concreto
+  // tenga existencia. (Los lotes salen del surtido general, por eso van
+  // contra el stock total.)
+  const sinExistencia = resuelto.items.filter(
+    (i) => i.tipo === "producto" && (i.stock ?? 0) < i.qty
+  );
+  if (sinExistencia.length) {
     return NextResponse.json(
-      { error: "En este momento no tenemos piezas suficientes. Escríbenos por WhatsApp." },
+      {
+        error:
+          "Ya no tenemos: " +
+          sinExistencia.map((i) => i.nombre).join(", ") +
+          ". Escríbenos por WhatsApp y lo resolvemos.",
+      },
       { status: 409 }
     );
+  }
+
+  // Y para los lotes, que alcance el surtido.
+  if (piezasRequeridas > 0) {
+    const { data: stockRows } = await sb.from("productos").select("stock").gt("stock", 0);
+    const stockTotal = (stockRows || []).reduce((s, r) => s + (r.stock ?? 0), 0);
+    if (stockTotal < piezasRequeridas) {
+      return NextResponse.json(
+        { error: "En este momento no tenemos piezas suficientes. Escríbenos por WhatsApp." },
+        { status: 409 }
+      );
+    }
   }
 
   // La cotización pudo crearse SOLO con el C.P. (para no pedirle el domicilio
@@ -99,17 +118,16 @@ export async function POST(req: Request) {
     );
   }
 
-  const itemsOrden = [
-    {
-      tipo: "lote" as const,
-      ref: lote.id,
-      nombre: lote.nombre.slice(0, 250),
-      precio: lote.precio,
-      qty,
-      piezas: lote.piezas,
-      descuento,
-    },
-  ];
+  const itemsOrden = resuelto.items.map((i, idx) => ({
+    tipo: i.tipo,
+    ref: i.ref,
+    nombre: i.nombre.slice(0, 250),
+    precio: i.precio,
+    qty: i.qty,
+    piezas: i.piezas,
+    // El descuento se anota una sola vez, en el primer renglón.
+    ...(idx === 0 && descuento > 0 ? { descuento } : {}),
+  }));
 
   const ordenId = randomUUID();
   const ahora = Date.now();
@@ -146,13 +164,14 @@ export async function POST(req: Request) {
   try {
     // Mercado Pago no admite renglones en negativo, así que el descuento va
     // aplicado en el precio: un solo renglón con el neto exacto.
-    const tituloLote =
-      (qty > 1 ? `${lote.nombre} × ${qty}` : lote.nombre) +
-      (descuento > 0 ? " (precio especial)" : "");
+    const titulo =
+      resuelto.items
+        .map((i) => (i.qty > 1 ? `${i.qty}× ${i.nombre}` : i.nombre))
+        .join(" + ") + (descuento > 0 ? " (precio especial)" : "");
     const mpItems = [
       {
-        id: lote.id,
-        title: tituloLote.slice(0, 250),
+        id: resuelto.items[0].ref,
+        title: titulo.slice(0, 250),
         quantity: 1,
         unit_price: subtotalConDescuento,
         currency_id: "MXN",

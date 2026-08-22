@@ -3,7 +3,8 @@ import { createAdminSupabase, createServerSupabase } from "../../../lib/supabase
 import { cotizarEnvioReal, filtrarPaqueterias,
   precioEnvioAlCliente,
 } from "../../../lib/skydropx";
-import { LOTES, parcelsDeItems, type Paquete } from "../../../lib/lotes";
+import { type Paquete } from "../../../lib/lotes";
+import { limpiarItems, resolverItems, type ItemCot } from "../../../lib/cotItems";
 
 // Crea una COTIZACIÓN desde la app de inventario (otro dominio → CORS abierto,
 // pero protegido por el token de sesión Supabase: solo personal logueado).
@@ -72,6 +73,9 @@ export async function POST(req: Request) {
     descuento?: number;
     descuentoPct?: number;
     descuentoMotivo?: string;
+    /** Lote(s) y/o productos sueltos: [{tipo,ref,qty}]. Si no viene, se usa
+     *  loteId/qty como antes. */
+    items?: unknown;
   };
   try {
     body = await req.json();
@@ -82,10 +86,17 @@ export async function POST(req: Request) {
   const user = await verificarUsuario(body.token);
   if (!user) return json({ error: "No autorizado. Inicia sesión de nuevo." }, 401);
 
-  const lote = LOTES.find((l) => l.id === body.loteId);
-  if (!lote) return json({ error: "Lote no válido." }, 400);
-
+  // Lo que lleva la cotización. Formato nuevo (items) o el viejo (loteId+qty).
   const qty = Math.min(20, Math.max(1, Math.floor(Number(body.qty) || 1)));
+  let listaItems: ItemCot[] = limpiarItems(body.items);
+  if (!listaItems.length) {
+    if (!body.loteId) return json({ error: "La cotización va vacía." }, 400);
+    listaItems = [{ tipo: "lote", ref: String(body.loteId), qty }];
+  }
+  const resuelto = await resolverItems(listaItems);
+  if (resuelto.error) return json({ error: resuelto.error }, 400);
+  const loteItem = resuelto.items.find((i) => i.tipo === "lote");
+
   const e = body.envio || {};
   const envio = {
     nombre: (e.nombre || "").trim(),
@@ -120,7 +131,7 @@ export async function POST(req: Request) {
 
   // Valor de la mercancía: entra en el cálculo del envío porque la
   // protección obligatoria se cobra sobre él.
-  const subtotal = lote.precio * qty;
+  const subtotal = resuelto.subtotal;
 
   // Descuento SOLO para esta cotización. Se acepta en pesos o en porcentaje;
   // se guarda siempre el monto en pesos ya calculado. Nunca puede dejar el
@@ -139,10 +150,6 @@ export async function POST(req: Request) {
   let servicioCode = "";
   let dias: number | null = null;
 
-  const items = [
-    { tipo: "lote" as const, id: "lote:" + lote.id, qty, piezas: lote.piezas },
-  ];
-
   // Caja: si la dueña eligió/midió una, esa manda. Si no, la típica del lote.
   const lim = (v: unknown, min: number, max: number) =>
     Math.min(max, Math.max(min, Number(v) || 0));
@@ -158,7 +165,7 @@ export async function POST(req: Request) {
     const nCajas = Math.min(20, Math.max(1, Math.floor(Number(body.cajas) || qty)));
     parcels = Array.from({ length: nCajas }, () => paqueteUsado as Paquete);
   } else {
-    parcels = parcelsDeItems(items);
+    parcels = resuelto.parcels;
   }
 
   try {
@@ -186,8 +193,10 @@ export async function POST(req: Request) {
   const sb = createAdminSupabase();
 
   const campos = {
-    lote_id: lote.id,
-    qty,
+    // lote_id/qty se conservan por compatibilidad con lo ya guardado.
+    lote_id: loteItem ? loteItem.ref : null,
+    qty: loteItem ? loteItem.qty : 1,
+    items: listaItems,
     cliente_nombre: (body.clienteNombre || envio.nombre).trim().slice(0, 60),
     // Guardamos la caja usada: al generar la guía se reutiliza la misma medida
     // con la que se cotizó, para que el costo no cambie.
@@ -231,8 +240,8 @@ export async function POST(req: Request) {
       id: idEditar,
       editada: true,
       falta_cliente: faltanDelCliente(envio),
-      lote: lote.nombre,
-      piezas: lote.piezas * qty,
+      lote: resuelto.items.map((i) => (i.qty > 1 ? i.qty + '× ' : '') + i.nombre).join(' + '),
+      piezas: resuelto.piezasLote,
       subtotal,
       descuento,
       envio_costo: costo,
@@ -265,8 +274,8 @@ export async function POST(req: Request) {
     ok: true,
     id,
     falta_cliente: faltanDelCliente(envio),
-    lote: lote.nombre,
-    piezas: lote.piezas * qty,
+    lote: resuelto.items.map((i) => (i.qty > 1 ? i.qty + '× ' : '') + i.nombre).join(' + '),
+    piezas: resuelto.piezasLote,
     subtotal,
     descuento,
     envio_costo: costo,

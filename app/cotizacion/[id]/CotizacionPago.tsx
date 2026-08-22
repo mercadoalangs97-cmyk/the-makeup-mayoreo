@@ -17,6 +17,7 @@ export type CotData = {
   qty: number;
   ppu: number;
   subtotal: number;
+  lineas: { nombre: string; qty: number; importe: number; esLote: boolean }[];
   descuento: number;
   descuentoPct: number | null;
   envioCosto: number;
@@ -65,6 +66,7 @@ export default function CotizacionPago({ c }: { c: CotData }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [c.id]);
 
+  // Solo tiene sentido para las piezas de LOTE (lo que se revende).
   const ventaEstimada = PPU_REFERENCIA * c.piezas;
   const pagaPorElLote = c.subtotal - c.descuento;
   const ganancia = Math.max(0, ventaEstimada - pagaPorElLote);
@@ -168,10 +170,20 @@ export default function CotizacionPago({ c }: { c: CotData }) {
             <div className="cot-ph">📦</div>
           )}
           <div className="cot-lote-info">
-            <b>{c.loteNombre}</b>
-            <span>
-              {c.piezas} piezas surtidas · ${c.ppu.toFixed(0)} por pieza
-            </span>
+            <b>{c.lineas.length > 1 ? `${c.loteNombre} + ${c.lineas.length - 1} más` : c.loteNombre}</b>
+            {c.piezas > 0 && c.ppu > 0 ? (
+              <span>
+                {c.piezas} piezas surtidas · ${c.ppu.toFixed(0)} por pieza
+              </span>
+            ) : null}
+            {c.lineas.length > 1 && (
+              <span className="cot-lineas">
+                {c.lineas
+                  .slice(1)
+                  .map((l) => (l.qty > 1 ? `${l.qty}× ` : "") + l.nombre)
+                  .join(" · ")}
+              </span>
+            )}
             <span className="cot-marcas">
               e.l.f · NYX · Maybelline · L&apos;Oréal · Pixi
             </span>
@@ -181,10 +193,22 @@ export default function CotizacionPago({ c }: { c: CotData }) {
 
         {/* Desglose con el envío YA calculado */}
         <div className="cot-desglose">
-          <div className="cot-d-row">
-            <span>Tu lote</span>
-            <b>{fmx(c.subtotal)}</b>
-          </div>
+          {c.lineas.length > 1 ? (
+            c.lineas.map((l, i) => (
+              <div className="cot-d-row" key={i}>
+                <span>
+                  {l.qty > 1 ? `${l.qty}× ` : ""}
+                  {l.nombre}
+                </span>
+                <b>{fmx(l.importe)}</b>
+              </div>
+            ))
+          ) : (
+            <div className="cot-d-row">
+              <span>{c.lineas[0]?.esLote === false ? "Tu pedido" : "Tu lote"}</span>
+              <b>{fmx(c.subtotal)}</b>
+            </div>
+          )}
           {c.descuento > 0 && (
             <div className="cot-d-row cot-d-desc">
               <span>

@@ -4,6 +4,7 @@ import SiteHeader from "../../components/SiteHeader";
 import SiteFooter from "../../components/SiteFooter";
 import { createAdminSupabase } from "../../lib/supabase";
 import { LOTES } from "../../lib/lotes";
+import { itemsDeCotizacion, resolverItems } from "../../lib/cotItems";
 import CotizacionPago, { type CotData } from "./CotizacionPago";
 
 // Cotización personal enviada por WhatsApp: NO debe indexarse.
@@ -27,24 +28,34 @@ export default async function CotizacionPorId({ params }: Params) {
     .maybeSingle();
   if (!cot) notFound();
 
-  const lote = LOTES.find((l) => l.id === cot.lote_id);
-  if (!lote) notFound();
+  const resuelto = await resolverItems(itemsDeCotizacion(cot));
+  if (resuelto.error || !resuelto.items.length) notFound();
+  const loteItem = resuelto.items.find((i) => i.tipo === "lote");
+  const lote = loteItem ? LOTES.find((l) => l.id === loteItem.ref) : undefined;
+  const principal = resuelto.items[0];
 
   const env = (cot.envio || {}) as Record<string, string>;
-  const qty = Math.max(1, Number(cot.qty) || 1);
-  const subtotal = lote.precio * qty;
+  const qty = loteItem ? loteItem.qty : 1;
+  const subtotal = resuelto.subtotal;
   const descuento = Math.max(0, Math.round(Number(cot.descuento) || 0));
   const envioCosto = Math.max(0, Math.round(Number(cot.envio_costo) || 0));
 
   const c: CotData = {
     id: codigo,
     nombre: (cot.cliente_nombre || env.nombre || "").split(" ")[0] || "",
-    loteId: lote.id,
-    loteNombre: lote.nombre,
-    loteFoto: lote.foto,
-    piezas: lote.piezas * qty,
+    loteId: lote ? lote.id : "",
+    loteNombre: principal.nombre,
+    loteFoto: lote ? lote.foto : null,
+    piezas: resuelto.piezasLote,
     qty,
-    ppu: lote.precio / lote.piezas,
+    ppu: lote ? lote.precio / lote.piezas : 0,
+    // Renglones de la cotización (lote y/o productos sueltos).
+    lineas: resuelto.items.map((i) => ({
+      nombre: i.nombre,
+      qty: i.qty,
+      importe: i.importe,
+      esLote: i.tipo === "lote",
+    })),
     subtotal,
     descuento,
     descuentoPct: cot.descuento_pct ?? null,
