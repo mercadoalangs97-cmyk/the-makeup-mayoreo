@@ -119,7 +119,9 @@ export async function POST(req: Request) {
   }
 
   const itemsOrden = resuelto.items.map((i, idx) => ({
-    tipo: i.tipo,
+    // "personalizado" se guarda como lote: el procesador de pagos ya sabe que
+    // un lote no descuenta inventario y deja la orden "por preparar".
+    tipo: i.tipo === "producto" ? ("producto" as const) : ("lote" as const),
     ref: i.ref,
     nombre: i.nombre.slice(0, 250),
     precio: i.precio,

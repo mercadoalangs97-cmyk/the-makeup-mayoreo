@@ -48,13 +48,18 @@ export default async function CotizacionPorId({ params }: Params) {
     loteFoto: lote ? lote.foto : null,
     piezas: resuelto.piezasLote,
     qty,
-    ppu: lote ? lote.precio / lote.piezas : 0,
+    ppu: lote
+      ? lote.precio / lote.piezas
+      : principal.tipo === "personalizado" && (principal.piezas || 0) > 0
+      ? principal.precio / principal.piezas
+      : 0,
     // Renglones de la cotización (lote y/o productos sueltos).
     lineas: resuelto.items.map((i) => ({
       nombre: i.nombre,
       qty: i.qty,
       importe: i.importe,
-      esLote: i.tipo === "lote",
+      esLote: i.tipo !== "producto",
+      descripcion: i.descripcion ?? null,
     })),
     subtotal,
     descuento,

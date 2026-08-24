@@ -1,10 +1,22 @@
 import { LOTES, parcelsDeItems, type Paquete } from "./lotes";
 import { createAdminSupabase } from "./supabase";
 
-// Una cotización puede llevar un lote, productos sueltos, o las dos cosas.
-// Se guarda solo QUÉ lleva (tipo + sku + cantidad); los PRECIOS se recalculan
-// siempre en el servidor, nunca se confía en lo que mande el navegador.
-export type ItemCot = { tipo: "lote" | "producto"; ref: string; qty: number };
+// Una cotización puede llevar un lote, productos sueltos, un lote armado a la
+// medida ("personalizado"), o cualquier mezcla.
+// Lotes y productos: se guarda solo QUÉ lleva y los PRECIOS se recalculan
+// siempre en el servidor. Personalizados: el precio lo define la dueña al
+// crear la cotización (sesión autenticada del panel) y queda GUARDADO en la
+// cotización — la clienta no puede alterarlo porque /pagar lee lo guardado.
+export type ItemCot = {
+  tipo: "lote" | "producto" | "personalizado";
+  ref: string;
+  qty: number;
+  /** Solo en personalizados (definidos al crear, con sesión del panel). */
+  nombre?: string;
+  precio?: number; // importe TOTAL de una unidad, ya con comisión si se sumó
+  piezas?: number;
+  descripcion?: string;
+};
 
 export type ItemResuelto = ItemCot & {
   nombre: string;
@@ -29,9 +41,24 @@ export function limpiarItems(raw: unknown): ItemCot[] {
   const out: ItemCot[] = [];
   for (const r of raw.slice(0, 30)) {
     const o = r as Record<string, unknown>;
-    const tipo = o?.tipo === "producto" ? "producto" : "lote";
+    const tipo =
+      o?.tipo === "producto"
+        ? ("producto" as const)
+        : o?.tipo === "personalizado"
+        ? ("personalizado" as const)
+        : ("lote" as const);
     const ref = String(o?.ref ?? "").trim();
     const qty = Math.min(99, Math.max(1, Math.floor(Number(o?.qty) || 1)));
+    if (tipo === "personalizado") {
+      const nombre = String(o?.nombre ?? "").trim().slice(0, 120);
+      const precio = Math.min(500000, Math.max(0, Math.round(Number(o?.precio) || 0)));
+      const piezas = Math.min(5000, Math.max(0, Math.floor(Number(o?.piezas) || 0)));
+      const descripcion = String(o?.descripcion ?? "").trim().slice(0, 300) || undefined;
+      if (nombre && precio > 0) {
+        out.push({ tipo, ref: ref || "nuevo", qty, nombre, precio, piezas, descripcion });
+      }
+      continue;
+    }
     if (ref) out.push({ tipo, ref, qty });
   }
   return out;
@@ -72,6 +99,21 @@ export async function resolverItems(items: ItemCot[]): Promise<CotResuelta> {
 
   const resueltos: ItemResuelto[] = [];
   for (const it of items) {
+    if (it.tipo === "personalizado") {
+      // Precio y nombre vienen GUARDADOS (los definió la dueña al crear).
+      if (!it.nombre || !(Number(it.precio) > 0)) {
+        return { ...vacio, error: "Personalizado incompleto." };
+      }
+      resueltos.push({
+        ...it,
+        nombre: it.nombre,
+        precio: it.precio!,
+        piezas: it.piezas || 0,
+        importe: it.precio! * it.qty,
+        stock: null,
+      });
+      continue;
+    }
     if (it.tipo === "lote") {
       const l = LOTES.find((x) => x.id === it.ref);
       if (!l) return { ...vacio, error: `Lote no válido: ${it.ref}` };
@@ -104,8 +146,9 @@ export async function resolverItems(items: ItemCot[]): Promise<CotResuelta> {
   const piezasLote = resueltos.reduce((s, i) => s + i.piezas * i.qty, 0);
   const parcels = parcelsDeItems(
     resueltos.map((i) => ({
-      tipo: i.tipo,
-      id: (i.tipo === "lote" ? "lote:" : "prod:") + i.ref,
+      // El personalizado empaca igual que un lote de sus piezas.
+      tipo: i.tipo === "producto" ? ("producto" as const) : ("lote" as const),
+      id: (i.tipo === "producto" ? "prod:" : "lote:") + i.ref,
       qty: i.qty,
       piezas: i.piezas,
     }))

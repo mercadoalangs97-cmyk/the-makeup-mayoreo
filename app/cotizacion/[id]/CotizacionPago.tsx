@@ -17,7 +17,13 @@ export type CotData = {
   qty: number;
   ppu: number;
   subtotal: number;
-  lineas: { nombre: string; qty: number; importe: number; esLote: boolean }[];
+  lineas: {
+    nombre: string;
+    qty: number;
+    importe: number;
+    esLote: boolean;
+    descripcion?: string | null;
+  }[];
   descuento: number;
   descuentoPct: number | null;
   envioCosto: number;
@@ -199,13 +205,21 @@ export default function CotizacionPago({ c }: { c: CotData }) {
                 <span>
                   {l.qty > 1 ? `${l.qty}× ` : ""}
                   {l.nombre}
+                  {l.descripcion ? (
+                    <em className="cot-d-note">{l.descripcion}</em>
+                  ) : null}
                 </span>
                 <b>{fmx(l.importe)}</b>
               </div>
             ))
           ) : (
             <div className="cot-d-row">
-              <span>{c.lineas[0]?.esLote === false ? "Tu pedido" : "Tu lote"}</span>
+              <span>
+                {c.lineas[0]?.esLote === false ? "Tu pedido" : "Tu lote"}
+                {c.lineas[0]?.descripcion ? (
+                  <em className="cot-d-note">{c.lineas[0].descripcion}</em>
+                ) : null}
+              </span>
               <b>{fmx(c.subtotal)}</b>
             </div>
           )}

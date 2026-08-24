@@ -112,6 +112,15 @@ function gananciaEstimada(l: Lote): { venta: number; ganancia: number } {
   return { venta, ganancia: Math.max(0, venta - l.precio) };
 }
 
+export type LoteEspecial = {
+  id: string;
+  nombre: string;
+  piezas: number;
+  precio: number;
+  descripcion: string | null;
+  foto: string | null;
+};
+
 export type OpinionPublica = {
   id: string;
   nombre: string;
@@ -122,10 +131,13 @@ export type OpinionPublica = {
 
 export default function Home({
   opiniones = [],
+  especiales = [],
 }: {
   /** Opiniones REALES autorizadas y marcadas como publicadas en el panel.
    *  Si no hay ninguna, la sección no se pinta: nunca inventamos testimonios. */
   opiniones?: OpinionPublica[];
+  /** Lotes personalizados publicados desde el panel. */
+  especiales?: LoteEspecial[];
 }) {
   const { add, showToast, checkoutMP } = useCart();
   const [filtro, setFiltro] = useState<Filtro>("todos");
@@ -482,6 +494,67 @@ export default function Home({
           })}
         </div>
       </section>
+
+      {/* ===== LOTES ESPECIALES (armados a pedido, desde el panel) ===== */}
+      {especiales.length > 0 && (
+        <section className="lesp-section" id="lotes-especiales">
+          <div className="section-header">
+            <div className="section-eyebrow">Armados a pedido</div>
+            <h2 className="section-title serif">
+              Lotes <em>especiales</em>
+            </h2>
+            <p className="section-sub">
+              Combinaciones que nos piden seguido. Se apartan por WhatsApp y te
+              mandamos tu link para pagar en línea.
+            </p>
+          </div>
+          <div className="lesp-grid">
+            {especiales.map((e) => (
+              <div className="lesp-card" key={e.id}>
+                {e.foto ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={imgOpt(e.foto, 600)}
+                    alt={e.nombre}
+                    loading="lazy"
+                    decoding="async"
+                    width={300}
+                    height={170}
+                  />
+                ) : (
+                  <div className="lesp-ph">📦</div>
+                )}
+                <div className="lesp-info">
+                  <b>{e.nombre}</b>
+                  {e.piezas > 0 && (
+                    <span>
+                      {e.piezas} piezas · ${Math.round(e.precio / e.piezas)} por
+                      pieza
+                    </span>
+                  )}
+                  {e.descripcion && <p>{e.descripcion}</p>}
+                  <div className="lesp-precio serif">{fmx(e.precio)}</div>
+                  <a
+                    className="lesp-btn"
+                    target="_blank"
+                    rel="noreferrer"
+                    href={`https://wa.me/${WPP}?text=${encodeURIComponent(
+                      'Hola! Me interesa el lote especial "' +
+                        e.nombre +
+                        '" (' +
+                        fmx(e.precio) +
+                        '). ¿Me mandas mi link de pago?'
+                    )}`}
+                    onClick={() => gaLead("whatsapp_lote_especial")}
+                  >
+                    Lo quiero →
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ===== TABLA DE PRECIOS POR PIEZA =====
           Nadie en el sector publica esto. Es el dato que la clienta quiere

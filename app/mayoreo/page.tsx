@@ -3,7 +3,10 @@ import { SITE_URL } from "../lib/site";
 import { LOTES } from "../lib/lotes";
 import { imgOpt } from "../lib/img";
 import { createAdminSupabase } from "../lib/supabase";
-import MayoreoClient, { type OpinionPublica } from "./MayoreoClient";
+import MayoreoClient, {
+  type OpinionPublica,
+  type LoteEspecial,
+} from "./MayoreoClient";
 
 // Se refresca cada 10 min: al marcar una opinión como publicada en el panel,
 // aparece sola en el sitio sin volver a desplegar.
@@ -94,15 +97,34 @@ function schemaLotes() {
   };
 }
 
+// Lotes personalizados que la dueña marcó como publicados en el panel.
+// Se venden por WhatsApp → link de pago (no por carrito): así toda venta de
+// estos pasa por el cotizador, que valida precios y mide el embudo.
+async function lotesEspecialesPublicados(): Promise<LoteEspecial[]> {
+  try {
+    const sb = createAdminSupabase();
+    const { data } = await sb
+      .from("lotes_personalizados")
+      .select("id,nombre,piezas,precio,descripcion,foto")
+      .eq("publicado", true)
+      .order("veces_usado", { ascending: false })
+      .limit(8);
+    return (data || []) as LoteEspecial[];
+  } catch {
+    return [];
+  }
+}
+
 export default async function MayoreoPage() {
   const opiniones = await opinionesPublicadas();
+  const especiales = await lotesEspecialesPublicados();
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaLotes()) }}
       />
-      <MayoreoClient opiniones={opiniones} />
+      <MayoreoClient opiniones={opiniones} especiales={especiales} />
     </>
   );
 }
