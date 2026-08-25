@@ -4,6 +4,7 @@ import { Cormorant_Garamond, Jost } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "./lib/cart";
 import { GA_ID, META_PIXEL_ID, GOOGLE_ADS_ID } from "./lib/analytics";
+import Visita from "./components/Visita";
 import { SITE_URL, SITE_NAME, NEGOCIO } from "./lib/site";
 import CartDrawer from "./components/CartDrawer";
 import Toast from "./components/Toast";
@@ -187,6 +188,7 @@ fbq('init', '${META_PIXEL_ID}');fbq('track', 'PageView');`}
           <WppFloat />
           <Toast />
           <PopupSuscripcion />
+          <Visita />
         </CartProvider>
       </body>
     </html>
