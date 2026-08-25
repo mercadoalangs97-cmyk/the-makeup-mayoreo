@@ -35,6 +35,9 @@ export async function POST(req: Request) {
     token?: string;
     referencia?: string;
     datos?: Record<string, string>;
+    // Venta que ya se atendio por fuera: la guia YA existe y ya se le mando.
+    guia?: { tracking?: string; url?: string; paqueteria?: string };
+    sinCorreo?: boolean;
   };
   try {
     body = await req.json();
@@ -207,10 +210,36 @@ export async function POST(req: Request) {
 
   await sb.from("cotizaciones").update({ pagada: true }).eq("id", id);
 
+  // Si la guia YA se habia generado y enviado por fuera, se engancha aqui:
+  // asi el pedido nace como enviado y el panel no ofrece generar otra (que
+  // se cobraria de nuevo). Va DESPUES del RPC para que nada lo sobreescriba.
+  const gTracking = txt(body.guia?.tracking).slice(0, 60);
+  const gUrl = txt(body.guia?.url).slice(0, 500);
+  const yaEnviada = Boolean(gTracking || gUrl);
+  if (yaEnviada) {
+    const ahora = Date.now();
+    await sb
+      .from("ordenes_web")
+      .update({
+        guia_tracking: gTracking || null,
+        guia_url: gUrl || null,
+        preparado: true,
+        preparado_en: ahora,
+        enviado: true,
+        enviado_en: ahora,
+        envio: {
+          ...envioOrden,
+          guia_paqueteria: txt(body.guia?.paqueteria) || envioOrden.paqueteria || null,
+          guia_registrada_a_mano: true,
+        },
+      })
+      .eq("id", ordenId);
+  }
+
   // Correos idénticos a los de una venta normal. Best-effort: si el correo
   // falla, el pago ya quedó registrado y no se pierde.
   let correo = false;
-  if (resultado === "ok") {
+  if (resultado === "ok" && !body.sinCorreo) {
     try {
       const { data: orden } = await sb
         .from("ordenes_web")
@@ -253,5 +282,6 @@ export async function POST(req: Request) {
     total: totalCobrado,
     correo,
     reusada: Boolean(reusable),
+    yaEnviada,
   });
 }
