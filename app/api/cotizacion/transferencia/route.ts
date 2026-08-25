@@ -36,7 +36,16 @@ export async function POST(req: Request) {
     referencia?: string;
     datos?: Record<string, string>;
     // Venta que ya se atendio por fuera: la guia YA existe y ya se le mando.
-    guia?: { tracking?: string; url?: string; paqueteria?: string };
+    guia?: {
+      tracking?: string;
+      url?: string;
+      paqueteria?: string;
+      /** true SOLO si el paquete ya se entrego a la paqueteria. Registrar la
+       *  guia no basta: si se marca enviado antes de tiempo, el pedido sale
+       *  de "pendiente de preparar" y nunca se escanean las piezas, asi que
+       *  el inventario se queda sin descontar. */
+      yaEnviado?: boolean;
+    };
     sinCorreo?: boolean;
   };
   try {
@@ -215,18 +224,19 @@ export async function POST(req: Request) {
   // se cobraria de nuevo). Va DESPUES del RPC para que nada lo sobreescriba.
   const gTracking = txt(body.guia?.tracking).slice(0, 60);
   const gUrl = txt(body.guia?.url).slice(0, 500);
-  const yaEnviada = Boolean(gTracking || gUrl);
-  if (yaEnviada) {
+  const hayGuia = Boolean(gTracking || gUrl);
+  // Que exista la guia NO significa que ya salio. Mientras no se entregue a la
+  // paqueteria, el pedido sigue "pendiente de preparar" para que se escaneen
+  // las piezas (ese escaneo es lo que descuenta el inventario).
+  const yaEnviada = hayGuia && body.guia?.yaEnviado === true;
+  if (hayGuia) {
     const ahora = Date.now();
     await sb
       .from("ordenes_web")
       .update({
         guia_tracking: gTracking || null,
         guia_url: gUrl || null,
-        preparado: true,
-        preparado_en: ahora,
-        enviado: true,
-        enviado_en: ahora,
+        ...(yaEnviada ? { enviado: true, enviado_en: ahora } : {}),
         envio: {
           ...envioOrden,
           guia_paqueteria: txt(body.guia?.paqueteria) || envioOrden.paqueteria || null,
@@ -282,6 +292,7 @@ export async function POST(req: Request) {
     total: totalCobrado,
     correo,
     reusada: Boolean(reusable),
+    hayGuia,
     yaEnviada,
   });
 }
