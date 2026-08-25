@@ -11,6 +11,15 @@ function clasificar(refHost: string, gclid: boolean, utmSource: string, utmMediu
   if (utmMedium === "cpc" || utmMedium === "ppc") return "otra-pauta";
   if (!refHost) return "directo";
   const h = refHost.toLowerCase();
+  // Asistentes de IA (ChatGPT, Perplexity, Gemini, Copilot...). VA ANTES que
+  // el bloque de Google: gemini.google.com contiene "google" y se clasificaria
+  // mal como buscador. Hoy es el canal mas grande del sitio.
+  if (
+    h.includes("chatgpt") || h.includes("openai") ||
+    h.includes("perplexity") || h.includes("claude") || h.includes("anthropic") ||
+    h.includes("gemini") || h.includes("bard") || h.includes("copilot") ||
+    h.includes("you.com") || h.includes("poe.com") || h.includes("phind")
+  ) return "ia-asistente";
   if (h.includes("google")) return "google-organico";
   if (h.includes("bing") || h.includes("duckduckgo") || h.includes("yahoo")) return "bing-organico";
   if (h.includes("facebook") || h.includes("instagram") || h.includes("tiktok") || h.includes("fb.")) return "redes";
