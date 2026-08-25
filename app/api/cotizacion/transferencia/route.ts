@@ -27,6 +27,21 @@ async function usuarioValido(token: string | undefined) {
   }
 }
 
+// La app de inventario vive en otro dominio (themakeup-pearl.vercel.app) y
+// llama aqui → sin estas cabeceras el navegador bloquea la peticion y solo
+// dice "Failed to fetch". Va abierto pero SIEMPRE tras el token de sesion.
+const CORS: Record<string, string> = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+};
+function json(data: unknown, status = 200) {
+  return NextResponse.json(data, { status, headers: CORS });
+}
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 204, headers: CORS });
+}
+
 const txt = (v: unknown, alt = "") => String(v ?? alt ?? "").trim();
 
 export async function POST(req: Request) {
@@ -51,15 +66,15 @@ export async function POST(req: Request) {
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
+    return json({ error: "JSON inválido" }, 400);
   }
 
   if (!(await usuarioValido(body.token))) {
-    return NextResponse.json({ error: "Sesión no válida." }, { status: 401 });
+    return json({ error: "Sesión no válida." }, 401);
   }
 
   const id = (body.id || "").trim().toUpperCase();
-  if (!id) return NextResponse.json({ error: "Falta la cotización" }, { status: 400 });
+  if (!id) return json({ error: "Falta la cotización" }, 400);
 
   const sb = createAdminSupabase();
   const { data: cot } = await sb
@@ -68,19 +83,16 @@ export async function POST(req: Request) {
     .eq("id", id)
     .maybeSingle();
   if (!cot) {
-    return NextResponse.json({ error: "Cotización no encontrada." }, { status: 404 });
+    return json({ error: "Cotización no encontrada." }, 404);
   }
   if (cot.pagada) {
-    return NextResponse.json(
-      { error: "Esa cotización ya está marcada como pagada." },
-      { status: 409 }
-    );
+    return json({ error: "Esa cotización ya está marcada como pagada." }, 409);
   }
 
   // Precios SIEMPRE del servidor, igual que en el pago normal.
   const resuelto = await resolverItems(itemsDeCotizacion(cot));
   if (resuelto.error) {
-    return NextResponse.json({ error: resuelto.error }, { status: 409 });
+    return json({ error: resuelto.error }, 409);
   }
   const subtotal = resuelto.subtotal;
   const descuento = Math.min(
@@ -114,10 +126,7 @@ export async function POST(req: Request) {
   if (!env.numero) faltan.push("numero");
   if (!env.colonia) faltan.push("colonia");
   if (faltan.length) {
-    return NextResponse.json(
-      { error: "Faltan datos de envío.", faltan },
-      { status: 400 }
-    );
+    return json({ error: "Faltan datos de envío.", faltan }, 400);
   }
 
   const itemsOrden = resuelto.items.map((i, idx) => ({
@@ -172,10 +181,7 @@ export async function POST(req: Request) {
       })
       .eq("id", ordenId);
     if (upErr) {
-      return NextResponse.json(
-        { error: "No se pudo actualizar la orden: " + upErr.message },
-        { status: 500 }
-      );
+      return json({ error: "No se pudo actualizar la orden: " + upErr.message }, 500);
     }
   } else {
     ordenId = randomUUID();
@@ -193,10 +199,7 @@ export async function POST(req: Request) {
       wpp: env.telefono || null,
     });
     if (insErr) {
-      return NextResponse.json(
-        { error: "No se pudo crear la orden: " + insErr.message },
-        { status: 500 }
-      );
+      return json({ error: "No se pudo crear la orden: " + insErr.message }, 500);
     }
   }
 
@@ -211,10 +214,7 @@ export async function POST(req: Request) {
     p_neto: totalCobrado,
   });
   if (error) {
-    return NextResponse.json(
-      { error: "No se pudo registrar el pago: " + error.message },
-      { status: 500 }
-    );
+    return json({ error: "No se pudo registrar el pago: " + error.message }, 500);
   }
 
   await sb.from("cotizaciones").update({ pagada: true }).eq("id", id);
@@ -285,7 +285,7 @@ export async function POST(req: Request) {
     }
   }
 
-  return NextResponse.json({
+  return json({
     ok: true,
     orden_id: ordenId,
     resultado,
