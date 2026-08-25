@@ -77,7 +77,9 @@ for (const [slug, url] of Object.entries(PORTADAS)) {
         .resize({ width: w, withoutEnlargement: true })
         .webp({ quality: 82 })
         .toBuffer();
-      await subir("sitio/opt/" + nombre + "-w" + w + ".webp", webp, "image/webp");
+      // OJO: el sitio arma la ruta como <bucket>/opt/<ruta-original>, o sea
+      // opt/sitio/..., NO sitio/opt/... (ver urlVariante en app/lib/img.ts).
+      await subir("opt/sitio/" + nombre + "-w" + w + ".webp", webp, "image/webp");
       pesos.push(w + ":" + Math.round(webp.length / 1024) + "kB");
     }
     console.log(

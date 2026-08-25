@@ -24,7 +24,22 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
     description: g.descripcion,
     keywords: g.keywords,
     alternates: { canonical: `${SITE_URL}/guias/${g.slug}` },
-    openGraph: { title: g.titulo, description: g.descripcion, type: "article" },
+    // La portada: sin esto, compartir una guia por WhatsApp o Facebook sale
+    // sin miniatura y casi nadie le da clic. Se manda el PNG original, no la
+    // variante webp: WhatsApp no previsualiza webp de forma confiable.
+    openGraph: {
+      title: g.titulo,
+      description: g.descripcion,
+      type: "article",
+      url: `${SITE_URL}/guias/${g.slug}`,
+      images: [{ url: guiaImg(g.slug), width: 1376, height: 768, alt: g.titulo }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: g.tituloSeo,
+      description: g.descripcion,
+      images: [guiaImg(g.slug)],
+    },
   };
 }
 
