@@ -71,6 +71,29 @@ async function esperarGuiaLista(shipmentId: string): Promise<DatosGuiaSky | null
   return null;
 }
 
+// Las paqueterias rechazan la guia si el nombre del destinatario es muy largo
+// (FedEx y Estafeta cortan alrededor de 30-35 caracteres). Antes se mandaba
+// completo y la guia simplemente fallaba: "Pedro Miguel Olazagarre Salazar" no
+// pasaba. Aqui se acorta con criterio en vez de cortar a la mitad una palabra:
+// primero se tiran los nombres de en medio, y solo al final se recorta duro.
+const MAX_NOMBRE_GUIA = 30;
+// Sin export: un archivo de ruta de Next solo puede exportar sus handlers.
+function acortarNombre(nombre: string, max = MAX_NOMBRE_GUIA): string {
+  const limpio = String(nombre || "").replace(/\s+/g, " ").trim();
+  if (limpio.length <= max) return limpio;
+  const p = limpio.split(" ");
+  // Tirar nombres de en medio, uno por uno, conservando los apellidos enteros
+  // ("Eduardo Emiliano Adame Montes de Oca" -> "Eduardo Adame Montes de Oca").
+  for (let corte = 2; corte < p.length; corte++) {
+    const cand = [p[0]].concat(p.slice(corte)).join(" ");
+    if (cand.length <= max) return cand;
+  }
+  // Ultimo recurso: cortar sin dejar una palabra partida a la mitad.
+  const duro = limpio.slice(0, max);
+  const esp = duro.lastIndexOf(" ");
+  return (esp > max * 0.5 ? duro.slice(0, esp) : duro).trim();
+}
+
 async function verificarUsuario(token: string | undefined) {
   if (!token) return null;
   try {
@@ -95,8 +118,11 @@ export async function POST(req: Request) {
     token?: string;
     paquete?: { length: number; width: number; height: number; weight: number };
     claveSat?: string;
+    /** Nombre corto escrito a mano en el panel cuando el real no cabe. */
+    nombreGuia?: string;
   };
   try { body = await req.json(); } catch { return json({ error: "JSON inválido" }, 400); }
+  const nombreGuia = String(body.nombreGuia || "").trim();
 
   const user = await verificarUsuario(body.token);
   if (!user) return json({ error: "No autorizado. Inicia sesión de nuevo." }, 401);
@@ -178,8 +204,10 @@ export async function POST(req: Request) {
         address_to: {
           country_code: "MX", postal_code: env.cp,
           area_level1: env.estado, area_level2: env.ciudad, area_level3: env.colonia,
-          name: orden.cliente || env.nombre || "Cliente",
-          street1: (env.calle || "") + " " + (env.numero || ""),
+          // Puede venir un nombre corto escrito a mano desde el panel.
+          name: acortarNombre(nombreGuia || orden.cliente || env.nombre || "Cliente"),
+          // La calle tambien tiene tope; se recorta sin partir palabras.
+          street1: acortarNombre(((env.calle || "") + " " + (env.numero || "")).trim(), 35),
           phone: orden.wpp || env.telefono || "",
           email: orden.email || env.email || "ventas@themakeup.com.mx",
           // no vacío y MÁX 30 caracteres
