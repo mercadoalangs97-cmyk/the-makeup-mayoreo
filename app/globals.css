@@ -1204,3 +1204,12 @@ a.prod-add:hover{background:var(--rose-dk)}
 
 /* Nota chica bajo un renglón del desglose (descripción del personalizado) */
 .cot-d-note{display:block;font-size:11px;color:var(--text3,#8a7068);font-style:normal;margin-top:1px}
+
+/* ---- Aviso de navegador embebido en la cotización ---- */
+.cot-navaviso{background:var(--amber-bg,#fff7e6);border:1px solid #e0a000;color:#8a6100;
+  border-radius:12px;padding:12px 14px;font-size:12.5px;line-height:1.55;margin-bottom:12px}
+.cot-copiar{display:block;width:100%;margin-top:10px;padding:10px;border-radius:999px;
+  border:1px solid #e0a000;background:#fff;color:#8a6100;font-size:13px;font-weight:700;cursor:pointer}
+.cot-copiar:hover{background:#fffdf7}
+.cot-ayuda{display:block;text-align:center;margin-top:12px;font-size:12.5px;
+  color:var(--text2,#6b5d57);text-decoration:underline}

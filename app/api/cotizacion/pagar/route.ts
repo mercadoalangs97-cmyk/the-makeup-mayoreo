@@ -200,7 +200,16 @@ export async function POST(req: Request) {
         payer: {
           name: env.nombre || "",
           ...(env.email ? { email: env.email } : {}),
-          phone: { area_code: "", number: env.telefono || "" },
+          // Lada aparte: mandar area_code vacio es basura para Mercado Pago
+          // y le impide pre-llenar el telefono en su pantalla.
+          ...(env.telefono.length === 10
+            ? {
+                phone: {
+                  area_code: env.telefono.slice(0, 2),
+                  number: env.telefono.slice(2),
+                },
+              }
+            : {}),
         },
         back_urls: {
           success: `${SITE_URL}/checkout/exito`,

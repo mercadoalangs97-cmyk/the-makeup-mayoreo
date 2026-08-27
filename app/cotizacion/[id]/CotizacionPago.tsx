@@ -48,6 +48,22 @@ export type CotData = {
 export default function CotizacionPago({ c }: { c: CotData }) {
   const [yendo, setYendo] = useState(false);
   const [err, setErr] = useState("");
+  // El link se manda por WhatsApp, asi que muchas clientas lo abren DENTRO de
+  // WhatsApp. Ese navegador embebido tumba el checkout de Mercado Pago a la
+  // mitad ("me saco"), y es la causa mas probable de que 2 de cada 3 intentos
+  // de pago no lleguen a completarse.
+  const [enApp, setEnApp] = useState(false);
+  const [copiado, setCopiado] = useState(false);
+  useEffect(() => {
+    try {
+      const ua = navigator.userAgent || "";
+      setEnApp(
+        /FBAN|FBAV|FB_IAB|Instagram|Line\/|MicroMessenger|WhatsApp/i.test(ua) ||
+          // WebView de Android sin marca propia
+          (/\bwv\b/i.test(ua) && /Android/i.test(ua))
+      );
+    } catch {}
+  }, []);
   const [datos, setDatos] = useState(c.yaTiene);
   // Si la cotización se armó solo con el C.P., aquí completa lo que falta.
   const faltaDireccion =
@@ -427,10 +443,46 @@ export default function CotizacionPago({ c }: { c: CotData }) {
           </div>
         ) : (
           <>
+            {enApp && (
+              <div className="cot-navaviso">
+                <b>Antes de pagar:</b> estás viendo esto dentro de otra
+                aplicación, y ahí el pago suele cortarse a la mitad. Copia tu
+                link y ábrelo en Chrome o Safari.
+                <button
+                  type="button"
+                  className="cot-copiar"
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(window.location.href);
+                      setCopiado(true);
+                      setTimeout(() => setCopiado(false), 2500);
+                    } catch {
+                      setCopiado(false);
+                    }
+                  }}
+                >
+                  {copiado ? "✓ Link copiado" : "📋 Copiar mi link"}
+                </button>
+              </div>
+            )}
             <button className="cot-btn" onClick={pagar} disabled={yendo}>
               {yendo ? "Abriendo el pago…" : `Pagar ${fmx(c.total)} →`}
             </button>
             {err && <div className="co-error" style={{ marginTop: 10 }}>{err}</div>}
+            {/* Salida para quien no logre pagar: antes simplemente desaparecia. */}
+            <a
+              className="cot-ayuda"
+              target="_blank"
+              rel="noreferrer"
+              href={`https://wa.me/${WPP}?text=${encodeURIComponent(
+                "Hola! Estoy intentando pagar mi cotización " +
+                  c.id +
+                  " y no me deja. ¿Me ayudas?"
+              )}`}
+              onClick={() => gaLead("cotizacion_ayuda_" + c.id)}
+            >
+              ¿No te deja pagar? Escríbenos y lo resolvemos →
+            </a>
           </>
         )}
 
