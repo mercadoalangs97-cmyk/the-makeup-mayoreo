@@ -20,11 +20,19 @@ export default function PopupSuscripcion() {
     try {
       if (localStorage.getItem(KEY)) return; // ya se suscribió o lo cerró
     } catch {}
-    if (
-      typeof window !== "undefined" &&
-      window.location.pathname.startsWith("/checkout")
-    )
-      return;
+    // Nunca encima de alguien que esta a punto de pagar. En /cotizacion el
+    // pop-up tapaba el boton de pagar y ademas ofrecia un 10% que NO aplica a
+    // lotes: justo en el momento del pago sembraba la duda de "a lo mejor me
+    // conviene esperar", y esa clienta ya no volvia.
+    if (typeof window !== "undefined") {
+      const ruta = window.location.pathname;
+      if (
+        ruta.startsWith("/checkout") ||
+        ruta.startsWith("/cotizacion") ||
+        ruta.startsWith("/opinar")
+      )
+        return;
+    }
 
     let abierto = false;
     const abrir = () => {
