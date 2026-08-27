@@ -1213,3 +1213,30 @@ a.prod-add:hover{background:var(--rose-dk)}
 .cot-copiar:hover{background:#fffdf7}
 .cot-ayuda{display:block;text-align:center;margin-top:12px;font-size:12.5px;
   color:var(--text2,#6b5d57);text-decoration:underline}
+
+/* ---- Transferencia SPEI en la cotización ---- */
+.cot-spei-abrir{display:block;width:100%;margin-top:14px;padding:13px;border-radius:999px;
+  border:1px solid var(--border);background:var(--paper,#fff);color:var(--charcoal);
+  font-size:13.5px;font-weight:700;cursor:pointer}
+.cot-spei-abrir:hover{background:var(--bg2,#faf6f0)}
+.cot-spei{margin-top:12px;border:1px solid var(--border);border-radius:14px;padding:16px;
+  background:var(--bg2,#faf6f0)}
+.cot-spei-intro{margin:0 0 14px;font-size:12.5px;line-height:1.55;color:var(--text2,#6b5d57)}
+.cot-spei-row{display:flex;justify-content:space-between;gap:10px;align-items:baseline;
+  padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.cot-spei-row span{color:var(--text2,#6b5d57);flex-shrink:0}
+.cot-spei-row b{text-align:right;color:var(--charcoal)}
+.cot-spei-campo{display:flex;justify-content:space-between;gap:8px;align-items:center;
+  padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;flex-wrap:wrap}
+.cot-spei-campo span{color:var(--text2,#6b5d57)}
+.cot-spei-campo b{margin-left:auto;color:var(--charcoal)}
+.cot-spei-clabe{font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.cot-spei-campo button{padding:6px 12px;border-radius:999px;border:1px solid var(--border);
+  background:var(--paper,#fff);color:var(--rose-dk,#9E5550);font-size:11.5px;font-weight:700;cursor:pointer}
+.cot-spei-nota{margin:8px 0 0;font-size:11.5px;line-height:1.5;color:var(--text3,#8a7068)}
+.cot-spei-listo-btn{display:block;width:100%;margin-top:16px;padding:13px;border-radius:999px;
+  border:none;background:#1DA851;color:#fff;font-size:13.5px;font-weight:700;cursor:pointer}
+.cot-spei-listo-btn:disabled{opacity:.6;cursor:default}
+.cot-spei-listo{margin-top:16px;padding:13px 14px;border-radius:12px;background:var(--green-bg,#eaf7f0);
+  color:var(--green,#1d9e75);font-size:12.5px;line-height:1.6}
+.cot-spei-listo a{display:block;margin-top:8px;color:#1DA851;font-weight:700;text-decoration:none}

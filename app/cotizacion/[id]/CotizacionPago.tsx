@@ -6,6 +6,7 @@ import { LOTES, fmx, PPU_REFERENCIA, WPP } from "../../lib/lotes";
 import { imgOpt } from "../../lib/img";
 import { gaLead } from "../../lib/analytics";
 import { NEGOCIO } from "../../lib/site";
+import { DATOS_BANCARIOS, clabeLegible } from "../../lib/pago";
 
 export type CotData = {
   id: string;
@@ -54,6 +55,35 @@ export default function CotizacionPago({ c }: { c: CotData }) {
   // de pago no lleguen a completarse.
   const [enApp, setEnApp] = useState(false);
   const [copiado, setCopiado] = useState(false);
+  // Segunda vía de pago. No compite con Mercado Pago: aparece para quien no
+  // logró pagar ahí, que es la mayoría (solo 1 de cada 3 lo completa).
+  const [verSpei, setVerSpei] = useState(false);
+  const [avisando, setAvisando] = useState(false);
+  const [aviso, setAviso] = useState(false);
+  const [copiadoQue, setCopiadoQue] = useState("");
+  const copiar = async (texto: string, que: string) => {
+    try {
+      await navigator.clipboard.writeText(texto);
+      setCopiadoQue(que);
+      setTimeout(() => setCopiadoQue(""), 2500);
+    } catch {}
+  };
+  async function avisarTransferencia() {
+    if (avisando || aviso) return;
+    setAvisando(true);
+    gaLead("cotizacion_spei_" + c.id);
+    try {
+      await fetch("/api/cotizacion/transferencia-aviso", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: c.id, nombre: datos.nombre }),
+      });
+      setAviso(true);
+    } catch {
+      setAviso(true); // igual le decimos que nos escriba por WhatsApp
+    }
+    setAvisando(false);
+  }
   useEffect(() => {
     try {
       const ua = navigator.userAgent || "";
@@ -483,6 +513,98 @@ export default function CotizacionPago({ c }: { c: CotData }) {
             >
               ¿No te deja pagar? Escríbenos y lo resolvemos →
             </a>
+
+            {/* ---- Transferencia SPEI ---- */}
+            <button
+              type="button"
+              className="cot-spei-abrir"
+              onClick={() => setVerSpei((v) => !v)}
+            >
+              {verSpei ? "Ocultar" : "🏦 Prefiero pagar por transferencia"}
+            </button>
+
+            {verSpei && (
+              <div className="cot-spei">
+                <p className="cot-spei-intro">
+                  Transfiere desde la app de tu banco. Es inmediato y funciona
+                  aunque el pago en línea te falle.
+                </p>
+
+                <div className="cot-spei-row">
+                  <span>Banco</span>
+                  <b>{DATOS_BANCARIOS.banco}</b>
+                </div>
+
+                <div className="cot-spei-campo">
+                  <span>CLABE</span>
+                  <b className="cot-spei-clabe">{clabeLegible()}</b>
+                  <button
+                    type="button"
+                    onClick={() => copiar(DATOS_BANCARIOS.clabe, "clabe")}
+                  >
+                    {copiadoQue === "clabe" ? "✓ Copiada" : "Copiar"}
+                  </button>
+                </div>
+
+                <div className="cot-spei-row">
+                  <span>Titular</span>
+                  <b>{DATOS_BANCARIOS.titular}</b>
+                </div>
+                <p className="cot-spei-nota">{DATOS_BANCARIOS.notaTitular}</p>
+
+                <div className="cot-spei-campo">
+                  <span>Monto exacto</span>
+                  <b>{fmx(c.total)}</b>
+                  <button
+                    type="button"
+                    onClick={() => copiar(String(c.total), "monto")}
+                  >
+                    {copiadoQue === "monto" ? "✓ Copiado" : "Copiar"}
+                  </button>
+                </div>
+
+                <div className="cot-spei-campo">
+                  <span>Concepto o referencia</span>
+                  <b>{c.id}</b>
+                  <button type="button" onClick={() => copiar(c.id, "ref")}>
+                    {copiadoQue === "ref" ? "✓ Copiado" : "Copiar"}
+                  </button>
+                </div>
+                <p className="cot-spei-nota">
+                  Pon <b>{c.id}</b> como concepto: así identificamos tu pago de
+                  inmediato.
+                </p>
+
+                {aviso ? (
+                  <div className="cot-spei-listo">
+                    ✓ Gracias, ya nos avisaste. Revisamos que haya llegado y te
+                    confirmamos por WhatsApp.
+                    <a
+                      target="_blank"
+                      rel="noreferrer"
+                      href={`https://wa.me/${WPP}?text=${encodeURIComponent(
+                        "Hola! Ya transferí mi cotización " +
+                          c.id +
+                          " por " +
+                          fmx(c.total) +
+                          ". Te mando mi comprobante."
+                      )}`}
+                    >
+                      📱 Mandar mi comprobante por WhatsApp →
+                    </a>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    className="cot-spei-listo-btn"
+                    onClick={avisarTransferencia}
+                    disabled={avisando}
+                  >
+                    {avisando ? "Avisando…" : "Ya transferí, avisar"}
+                  </button>
+                )}
+              </div>
+            )}
           </>
         )}
 
