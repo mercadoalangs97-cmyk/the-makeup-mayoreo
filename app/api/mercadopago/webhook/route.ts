@@ -76,6 +76,34 @@ async function manejar(req: Request): Promise<NextResponse> {
 
   const supabase = createAdminSupabase();
 
+  // APARTADO: el anticipo lleva el prefijo APART-. NO es una venta — no crea
+  // orden ni descuenta inventario. Solo deja anotado cuanto dejo apartado, y
+  // el mismo link de la cotizacion pasa a pedir la diferencia.
+  if (ordenId.startsWith("APART-")) {
+    const cotId = ordenId.slice(6);
+    if (status !== "approved") {
+      return NextResponse.json({ ok: true, apartado: cotId, status });
+    }
+    const monto = Number(pago.transaction_amount) || 0;
+    const { data: cotAct } = await supabase
+      .from("cotizaciones")
+      .select("apartado_monto")
+      .eq("id", cotId)
+      .maybeSingle();
+    // Idempotente: si MP reenvia el webhook, no se suma dos veces.
+    if (cotAct && !Number(cotAct.apartado_monto)) {
+      await supabase
+        .from("cotizaciones")
+        .update({
+          apartado_monto: monto,
+          apartado_en: Date.now(),
+          apartado_pago_id: String(pago.id),
+        })
+        .eq("id", cotId);
+    }
+    return NextResponse.json({ ok: true, apartado: cotId, monto });
+  }
+
   // Si aún NO está aprobado (ej. OXXO/SPEI pendiente), registramos estado y
   // esperamos a la siguiente notificación. No tocamos inventario.
   if (status !== "approved") {

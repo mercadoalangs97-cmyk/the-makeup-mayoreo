@@ -170,16 +170,32 @@ export async function POST(req: Request) {
       resuelto.items
         .map((i) => (i.qty > 1 ? `${i.qty}× ${i.nombre}` : i.nombre))
         .join(" + ") + (descuento > 0 ? " (precio especial)" : "");
-    const mpItems = [
-      {
-        id: resuelto.items[0].ref,
-        title: titulo.slice(0, 250),
-        quantity: 1,
-        unit_price: subtotalConDescuento,
-        currency_id: "MXN",
-      },
-    ];
-    if (envioCosto > 0) {
+    // Si ya dejo apartado, aqui solo se cobra la DIFERENCIA. Mercado Pago no
+    // acepta renglones negativos, asi que en vez de agregar "-anticipo" se
+    // manda un solo renglon con el saldo y se dice en el titulo.
+    const apartado = Math.max(0, Math.round(Number(cot.apartado_monto) || 0));
+    const totalConEnvio = subtotalConDescuento + envioCosto;
+    const mpItems =
+      apartado > 0
+        ? [
+            {
+              id: resuelto.items[0].ref,
+              title: (titulo + " · saldo (ya apartaste $" + apartado.toLocaleString("es-MX") + ")").slice(0, 250),
+              quantity: 1,
+              unit_price: Math.max(1, totalConEnvio - apartado),
+              currency_id: "MXN",
+            },
+          ]
+        : [
+            {
+              id: resuelto.items[0].ref,
+              title: titulo.slice(0, 250),
+              quantity: 1,
+              unit_price: subtotalConDescuento,
+              currency_id: "MXN",
+            },
+          ];
+    if (apartado === 0 && envioCosto > 0) {
       mpItems.push({
         id: "envio",
         title: "Envío",

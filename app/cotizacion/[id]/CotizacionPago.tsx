@@ -35,6 +35,8 @@ export type CotData = {
   estado: string;
   cp: string;
   pagada: boolean;
+  /** Anticipo ya pagado para apartar. 0 = no ha apartado. */
+  apartado: number;
   yaTiene: {
     nombre: string;
     telefono: string;
@@ -157,6 +159,36 @@ export default function CotizacionPago({ c }: { c: CotData }) {
         ),
       }
     : null;
+
+  // Lo que falta por pagar: si ya aparto, el boton principal cobra la
+  // diferencia, no el total otra vez.
+  const saldo = Math.max(0, c.total - (c.apartado || 0));
+  const anticipo = Math.max(100, Math.ceil(c.total * 0.05));
+  const [apartando, setApartando] = useState(false);
+
+  async function apartar() {
+    if (apartando) return;
+    setApartando(true);
+    setErr("");
+    gaLead("cotizacion_apartar_" + c.id);
+    try {
+      const res = await fetch("/api/cotizacion/apartar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: c.id }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.init_point) {
+        setErr(data.error || "No se pudo abrir el apartado. Intenta de nuevo.");
+        setApartando(false);
+        return;
+      }
+      window.location.href = data.init_point;
+    } catch {
+      setErr("Error de conexión. Revisa tu internet e intenta de nuevo.");
+      setApartando(false);
+    }
+  }
 
   async function pagar() {
     if (yendo) return;
@@ -495,9 +527,36 @@ export default function CotizacionPago({ c }: { c: CotData }) {
                 </button>
               </div>
             )}
+            {c.apartado > 0 && (
+              <div className="cot-apartado-ok">
+                ✓ Ya apartaste <b>{fmx(c.apartado)}</b> · tu lote está reservado
+                <span>Te falta {fmx(saldo)} para completarlo.</span>
+              </div>
+            )}
             <button className="cot-btn" onClick={pagar} disabled={yendo}>
-              {yendo ? "Abriendo el pago…" : `Pagar ${fmx(c.total)} →`}
+              {yendo
+                ? "Abriendo el pago…"
+                : c.apartado > 0
+                ? `Pagar el resto ${fmx(saldo)} →`
+                : `Pagar ${fmx(c.total)} →`}
             </button>
+            {c.apartado === 0 && (
+              <>
+                <button
+                  className="cot-btn-apartar"
+                  onClick={apartar}
+                  disabled={apartando}
+                >
+                  {apartando
+                    ? "Abriendo…"
+                    : `🔒 Apartar con ${fmx(anticipo)} y pagar después`}
+                </button>
+                <p className="cot-apartar-nota">
+                  Con el {Math.round(0.05 * 100)}% tu lote queda reservado a tu
+                  nombre. El resto lo pagas cuando puedas, desde este mismo link.
+                </p>
+              </>
+            )}
             {err && <div className="co-error" style={{ marginTop: 10 }}>{err}</div>}
             {/* Salida para quien no logre pagar: antes simplemente desaparecia. */}
             <a

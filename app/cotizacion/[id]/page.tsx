@@ -72,6 +72,8 @@ export default async function CotizacionPorId({ params }: Params) {
     estado: env.estado || "",
     cp: env.cp || "",
     pagada: !!cot.pagada,
+    // Anticipo ya recibido: la pagina muestra el saldo y cambia los botones.
+    apartado: Math.max(0, Math.round(Number(cot.apartado_monto) || 0)),
     // Lo que NO le pedimos por WhatsApp: lo llena aquí antes de pagar.
     yaTiene: {
       nombre: (env.nombre || "").trim(),
