@@ -37,6 +37,8 @@ export type CotData = {
   pagada: boolean;
   /** Anticipo ya pagado para apartar. 0 = no ha apartado. */
   apartado: number;
+  /** Cuando se pagó el anticipo (ms). Marca el inicio de los 5 días. */
+  apartadoEn: number;
   yaTiene: {
     nombre: string;
     telefono: string;
@@ -165,6 +167,22 @@ export default function CotizacionPago({ c }: { c: CotData }) {
   const saldo = Math.max(0, c.total - (c.apartado || 0));
   const anticipo = Math.max(100, Math.ceil(c.total * 0.05));
   const [apartando, setApartando] = useState(false);
+
+  // La reserva de ESTE lote dura 5 días. Pasados, el anticipo no se pierde
+  // (queda a favor), pero las piezas exactas pueden haberse vendido.
+  const DIAS_APARTADO = 5;
+  const venceEn = c.apartadoEn ? c.apartadoEn + DIAS_APARTADO * 86400000 : 0;
+  const vencido = venceEn > 0 && Date.now() > venceEn;
+  const diasRestantes = venceEn
+    ? Math.max(0, Math.ceil((venceEn - Date.now()) / 86400000))
+    : 0;
+  const fechaVence = venceEn
+    ? new Date(venceEn).toLocaleDateString("es-MX", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+      })
+    : "";
 
   async function apartar() {
     if (apartando) return;
@@ -527,12 +545,30 @@ export default function CotizacionPago({ c }: { c: CotData }) {
                 </button>
               </div>
             )}
-            {c.apartado > 0 && (
-              <div className="cot-apartado-ok">
-                ✓ Ya apartaste <b>{fmx(c.apartado)}</b> · tu lote está reservado
-                <span>Te falta {fmx(saldo)} para completarlo.</span>
-              </div>
-            )}
+            {c.apartado > 0 &&
+              (vencido ? (
+                <div className="cot-apartado-venc">
+                  ⏳ Tu apartado de <b>{fmx(c.apartado)}</b> ya pasó los{" "}
+                  {DIAS_APARTADO} días
+                  <span>
+                    Tu dinero <b>no se perdió</b>: sigue a tu favor. Pero las
+                    piezas exactas que habías elegido ya pudieron venderse —
+                    escríbenos y armamos tu lote con lo que hay disponible.
+                  </span>
+                </div>
+              ) : (
+                <div className="cot-apartado-ok">
+                  ✓ Ya apartaste <b>{fmx(c.apartado)}</b> · tu lote está
+                  reservado
+                  <span>
+                    Te falta {fmx(saldo)}. Guardado hasta el{" "}
+                    <b>{fechaVence}</b>
+                    {diasRestantes <= 2
+                      ? ` — te quedan ${diasRestantes} día${diasRestantes === 1 ? "" : "s"}.`
+                      : "."}
+                  </span>
+                </div>
+              ))}
             <button className="cot-btn" onClick={pagar} disabled={yendo}>
               {yendo
                 ? "Abriendo el pago…"
@@ -552,8 +588,16 @@ export default function CotizacionPago({ c }: { c: CotData }) {
                     : `🔒 Apartar con ${fmx(anticipo)} y pagar después`}
                 </button>
                 <p className="cot-apartar-nota">
-                  Con el {Math.round(0.05 * 100)}% tu lote queda reservado a tu
-                  nombre. El resto lo pagas cuando puedas, desde este mismo link.
+                  Con el 5% tu lote queda reservado a tu nombre{" "}
+                  <b>durante {DIAS_APARTADO} días</b>. El resto lo pagas desde
+                  este mismo link.
+                  <br />
+                  <span>
+                    Si pasan los {DIAS_APARTADO} días, tu dinero{" "}
+                    <b>no se pierde</b>: queda a tu favor para tu compra. Solo
+                    que las piezas exactas de este lote pueden haberse vendido y
+                    lo armaríamos con lo que haya disponible.
+                  </span>
                 </p>
               </>
             )}
