@@ -3,6 +3,7 @@ import { SITE_URL } from "../lib/site";
 import { LOTES } from "../lib/lotes";
 import { imgOpt } from "../lib/img";
 import { createAdminSupabase } from "../lib/supabase";
+import { lotesAgotados } from "../lib/disponibilidad";
 import MayoreoClient, {
   type OpinionPublica,
   type LoteEspecial,
@@ -10,7 +11,9 @@ import MayoreoClient, {
 
 // Se refresca cada 10 min: al marcar una opinión como publicada en el panel,
 // aparece sola en el sitio sin volver a desplegar.
-export const revalidate = 600;
+// 2 min: cuando se marca un lote como agotado desde el panel, la web lo
+// refleja casi al momento sin dejar de estar cacheada.
+export const revalidate = 120;
 
 // Solo opiniones REALES: autorizadas por la clienta y marcadas como publicadas
 // a mano desde el panel. Si no hay ninguna, la sección no existe.
@@ -118,13 +121,15 @@ async function lotesEspecialesPublicados(): Promise<LoteEspecial[]> {
 export default async function MayoreoPage() {
   const opiniones = await opinionesPublicadas();
   const especiales = await lotesEspecialesPublicados();
+  // Lotes que la duena marco como agotados desde el panel.
+  const agotados = await lotesAgotados();
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaLotes()) }}
       />
-      <MayoreoClient opiniones={opiniones} especiales={especiales} />
+      <MayoreoClient opiniones={opiniones} especiales={especiales} agotados={agotados} />
     </>
   );
 }

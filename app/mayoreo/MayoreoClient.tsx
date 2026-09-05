@@ -132,12 +132,15 @@ export type OpinionPublica = {
 export default function Home({
   opiniones = [],
   especiales = [],
+  agotados = [],
 }: {
   /** Opiniones REALES autorizadas y marcadas como publicadas en el panel.
    *  Si no hay ninguna, la sección no se pinta: nunca inventamos testimonios. */
   opiniones?: OpinionPublica[];
   /** Lotes personalizados publicados desde el panel. */
   especiales?: LoteEspecial[];
+  /** Ids de lotes marcados como agotados desde el panel. */
+  agotados?: string[];
 }) {
   const { add, showToast, checkoutMP } = useCart();
   const [filtro, setFiltro] = useState<Filtro>("todos");
@@ -391,11 +394,21 @@ export default function Home({
           {lotesFiltrados.map((l) => {
             const ppu = (l.precio / l.piezas).toFixed(0);
             const ahorro = descuentoPorLote(l);
+            // Agotado: se sigue mostrando (para que se vea el catalogo
+            // completo) pero no se puede pedir.
+            const seAgoto = agotados.includes(l.id);
             return (
               <div
                 key={l.id}
-                className={"lote-card" + (l.popular ? " is-popular" : "")}
-                onClick={() => abrirModal(l.id)}
+                className={
+                  "lote-card" +
+                  (l.popular ? " is-popular" : "") +
+                  (seAgoto ? " is-agotado" : "")
+                }
+                onClick={() => {
+                  if (seAgoto) return;
+                  abrirModal(l.id);
+                }}
               >
                 <div className="lote-card-img">
                   {l.foto ? (
@@ -415,6 +428,9 @@ export default function Home({
                     </div>
                   )}
                   <div className="lote-badge">{l.piezas} piezas</div>
+                  {seAgoto && (
+                    <div className="lote-agotado-cinta">Agotado por ahora</div>
+                  )}
                   {l.popular ? (
                     <div className="badge-tr badge-popular">★ Más vendido</div>
                   ) : l.wppOnly ? (

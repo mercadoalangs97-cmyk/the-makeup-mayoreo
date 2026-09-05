@@ -13,6 +13,7 @@ import { cotizarEnvioReal, filtrarPaqueterias,
   precioEnvioAlCliente,
 } from "../../lib/skydropx";
 import { SITE_URL } from "../../lib/site";
+import { lotesAgotados } from "../../lib/disponibilidad";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -95,6 +96,24 @@ export async function POST(req: Request) {
     .filter((i) => i.id.startsWith("prod:"))
     .map((i) => i.id.slice(5));
   const loteEntradas = entradas.filter((i) => i.id.startsWith("lote:"));
+
+  // La pagina se cachea 2 min, asi que alguien pudo cargarla antes de que el
+  // lote se marcara agotado. Aqui, en el servidor, es donde de verdad se corta.
+  const agotados = await lotesAgotados();
+  const eAgotada = loteEntradas.find((e) => agotados.includes(e.id.slice(5)));
+  if (eAgotada) {
+    const l = LOTES.find((x) => x.id === eAgotada.id.slice(5));
+    return NextResponse.json(
+      {
+        error:
+          "Se nos acaba de agotar el " +
+          (l ? l.nombre : "lote") +
+          ". Escríbenos por WhatsApp y te decimos qué tenemos disponible.",
+        agotado: true,
+      },
+      { status: 409 }
+    );
+  }
 
   const itemsOrden: ItemOrden[] = [];
 

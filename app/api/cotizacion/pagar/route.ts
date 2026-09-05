@@ -4,6 +4,7 @@ import { Preference } from "mercadopago";
 import { createAdminSupabase } from "../../../lib/supabase";
 import { mpClient, mpConfigurado } from "../../../lib/mercadopago";
 import { itemsDeCotizacion, resolverItems } from "../../../lib/cotItems";
+import { lotesAgotados } from "../../../lib/disponibilidad";
 import { SITE_URL } from "../../../lib/site";
 
 // La clienta abre su cotización y le da "Pagar": creamos la orden con los datos
@@ -45,6 +46,25 @@ export async function POST(req: Request) {
   if (resuelto.error) {
     return NextResponse.json({ error: resuelto.error }, { status: 409 });
   }
+  // Un link viejo no debe poder comprar algo que ya se agoto. Se revisa aqui,
+  // en el servidor, porque la pagina pudo haberse cargado antes de marcarlo.
+  const agotados = await lotesAgotados();
+  const loteAgot = resuelto.items.find(
+    (i) => i.tipo === "lote" && agotados.includes(String(i.ref))
+  );
+  if (loteAgot) {
+    return NextResponse.json(
+      {
+        error:
+          "Se nos acaba de agotar el " +
+          loteAgot.nombre +
+          ". Escríbenos por WhatsApp y te decimos qué tenemos disponible.",
+        agotado: true,
+      },
+      { status: 409 }
+    );
+  }
+
   const subtotal = resuelto.subtotal;
   // El descuento se toma de lo GUARDADO, nunca de lo que mande el navegador.
   const descuento = Math.min(
