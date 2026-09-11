@@ -5,6 +5,7 @@ import "./globals.css";
 import { CartProvider } from "./lib/cart";
 import { GA_ID, META_PIXEL_ID, GOOGLE_ADS_ID } from "./lib/analytics";
 import Visita from "./components/Visita";
+import PixelRutas from "./components/PixelRutas";
 import { SITE_URL, SITE_NAME, NEGOCIO } from "./lib/site";
 import CartDrawer from "./components/CartDrawer";
 import Toast from "./components/Toast";
@@ -113,14 +114,29 @@ gtag('config', '${GA_ID}');${GOOGLE_ADS_ID ? `\ngtag('config', '${GOOGLE_ADS_ID}
         {/* Meta (Facebook) Pixel — solo si hay ID configurado. Al ponerlo en
             NEXT_PUBLIC_META_PIXEL_ID (Vercel), se activa y espeja los eventos. */}
         {META_PIXEL_ID && (
-          <Script id="meta-pixel" strategy="afterInteractive">
-            {`!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+          <>
+            <Script id="meta-pixel" strategy="afterInteractive">
+              {`!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
 n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
 n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
 t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
 document,'script','https://connect.facebook.net/en_US/fbevents.js');
 fbq('init', '${META_PIXEL_ID}');fbq('track', 'PageView');`}
-          </Script>
+            </Script>
+            {/* Respaldo para navegadores con JavaScript desactivado. */}
+            <noscript>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                height="1"
+                width="1"
+                style={{ display: "none" }}
+                alt=""
+                src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`}
+              />
+            </noscript>
+            {/* Avisa a Meta de las navegaciones internas (no recargan la pagina). */}
+            <PixelRutas />
+          </>
         )}
 
         {/* Datos estructurados del negocio (SEO: Google entiende que eres una
