@@ -4,6 +4,9 @@ import { createAdminSupabase } from "../../../lib/supabase";
 import { mpClient, mpConfigurado } from "../../../lib/mercadopago";
 import { enviarCorreosVenta, type OrdenCorreo } from "../../../lib/email";
 import { LOTES } from "../../../lib/lotes";
+import { metaPurchase } from "../../../lib/metaCapi";
+import { idEventoCompra } from "../../../lib/analytics";
+import { SITE_URL } from "../../../lib/site";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -101,6 +104,34 @@ async function manejar(req: Request): Promise<NextResponse> {
         })
         .eq("id", cotId);
     }
+    // El anticipo es dinero real que entro, y el navegador nunca lo reporta:
+    // al apartar, MP regresa a la cotizacion, no a la pagina de gracias.
+    // Solo en el primer procesamiento, para no contarlo dos veces.
+    if (cotAct && !Number(cotAct.apartado_monto)) {
+      try {
+        const { data: cot } = await supabase
+          .from("cotizaciones")
+          .select("cliente_nombre,envio")
+          .eq("id", cotId)
+          .maybeSingle();
+        const env = (cot?.envio || {}) as Record<string, string>;
+        await metaPurchase({
+          eventId: "apartado_" + cotId,
+          valor: monto,
+          email: env.email || null,
+          telefono: env.telefono || null,
+          nombre: cot?.cliente_nombre || env.nombre || null,
+          ciudad: env.ciudad || null,
+          estado: env.estado || null,
+          cp: env.cp || null,
+          numItems: 1,
+          urlOrigen: `${SITE_URL}/cotizacion/${cotId}`,
+        });
+      } catch (e) {
+        console.error("[webhook] Meta CAPI (apartado):", e);
+      }
+    }
+
     return NextResponse.json({ ok: true, apartado: cotId, monto });
   }
 
@@ -207,6 +238,28 @@ async function manejar(req: Request): Promise<NextResponse> {
               : fotos.get(it.ref) ?? null;
         }
         await enviarCorreosVenta(orden as OrdenCorreo);
+
+        // Meta: la venta contada desde el servidor. Lleva el mismo event_id
+        // que manda el navegador en /checkout/exito, asi que si la clienta si
+        // regreso, Meta los junta en uno. Si no regreso, esta es la unica.
+        try {
+          const env = (orden.envio || {}) as Record<string, string>;
+          await metaPurchase({
+            eventId: idEventoCompra(ordenId),
+            valor: Number(orden.total) || 0,
+            email: orden.email || env.email || null,
+            telefono: env.telefono || null,
+            nombre: orden.cliente || env.nombre || null,
+            ciudad: env.ciudad || null,
+            estado: env.estado || null,
+            cp: env.cp || null,
+            contentIds: items.map((i) => i.ref),
+            numItems: items.length,
+            urlOrigen: `${SITE_URL}/checkout/exito`,
+          });
+        } catch (e) {
+          console.error("[webhook] Meta CAPI (venta):", e);
+        }
       }
     } catch (e) {
       console.error("[webhook] error enviando correos:", e);

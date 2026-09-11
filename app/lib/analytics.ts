@@ -23,10 +23,24 @@ export function gaEvent(name: string, params: Params = {}): void {
 
 // Evento equivalente al Meta Pixel (si está cargado). Los "standard events" de
 // Meta permiten optimizar campañas de Facebook/Instagram por conversión.
-function fbq(name: string, params: Params = {}): void {
+function fbq(
+  name: string,
+  params: Params = {},
+  // eventID: cuando el mismo evento tambien se manda desde el servidor
+  // (Conversions API), este id le dice a Meta que es UNO solo.
+  opts?: { eventID: string }
+): void {
   if (typeof window === "undefined") return;
   const w = window as unknown as { fbq?: (...a: unknown[]) => void };
-  if (typeof w.fbq === "function") w.fbq("track", name, params);
+  if (typeof w.fbq !== "function") return;
+  if (opts) w.fbq("track", name, params, opts);
+  else w.fbq("track", name, params);
+}
+
+// El id de la compra que comparten navegador y servidor. Tiene que salir del
+// id de la orden, que es lo unico que los dos conocen.
+export function idEventoCompra(ordenId: string): string {
+  return "compra_" + ordenId;
 }
 
 // Conversión de Google Ads (si hay ID + label). Reutiliza el mismo gtag de GA4.
@@ -133,12 +147,16 @@ export function gaPurchase(data: {
     value: data.value,
     items: data.items,
   });
-  fbq("Purchase", {
-    content_ids: (data.items || []).map((i) => i.item_id),
-    content_type: "product",
-    value: data.value,
-    currency: "MXN",
-  });
+  fbq(
+    "Purchase",
+    {
+      content_ids: (data.items || []).map((i) => i.item_id),
+      content_type: "product",
+      value: data.value,
+      currency: "MXN",
+    },
+    data.id ? { eventID: idEventoCompra(data.id) } : undefined
+  );
   adsConversion(GOOGLE_ADS_LABEL_COMPRA, {
     value: data.value,
     currency: "MXN",
