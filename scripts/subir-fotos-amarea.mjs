@@ -14,6 +14,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { readFileSync, readdirSync, statSync } from "fs";
 import { join, extname, dirname } from "path";
+import sharp from "sharp";
 import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -82,38 +83,65 @@ function escanear() {
   const entries = readdirSync(PHOTOS_DIR, { withFileTypes: true });
   const productos = []; // { sku, fotos: [{path, canonical, idx, ext}], principal }
   const sinImagen = [];
+  const conHeic = [];
 
   for (const e of entries) {
     if (!e.isDirectory()) continue;
-    const sku = e.name.trim();
+    // La carpeta puede llamarse "SKU Nombre del producto - Tono": el SKU es
+    // la primera palabra (los SKU nunca llevan espacios).
+    const sku = e.name.trim().split(/\s+/)[0];
     const dir = join(PHOTOS_DIR, e.name);
-    const files = readdirSync(dir).filter((f) =>
-      IMG_EXT.has(extname(f).toLowerCase())
-    );
+    const todos = readdirSync(dir);
+    const heic = todos.filter((f) => /\.(heic|heif)$/i.test(f));
+    if (heic.length) conHeic.push(`${sku} (${heic.length})`);
+    const files = todos
+      .filter((f) => IMG_EXT.has(extname(f).toLowerCase()))
+      .sort((x, y) => x.localeCompare(y, "es", { numeric: true }));
     if (files.length === 0) {
       sinImagen.push(sku);
       continue;
     }
-    const fotos = files.map((f) => {
+    // Indice: si el archivo termina en -1..-5 se respeta; si no (ej. IMG_4521.jpg,
+    // tal como sale del telefono), se le da el siguiente numero libre en orden.
+    // Antes todos los que no tenian numero caian en -1 y se pisaban entre si.
+    const conIdx = files.map((f) => {
       const ext = extname(f).toLowerCase();
-      const base = f.slice(0, -ext.length);
-      // indice = guion + un solo digito 1-5 al final (los sufijos de SKU son de 3 digitos)
-      const m = base.match(/-([1-5])$/);
-      const idx = m ? parseInt(m[1], 10) : 1;
-      return {
-        path: join(dir, f),
-        original: f,
-        idx,
-        ext,
-        canonical: `${sku}-${idx}${ext}`,
-      };
+      const m = f.slice(0, -ext.length).match(/-([1-5])$/);
+      return { f, ext, idx: m ? parseInt(m[1], 10) : null };
     });
+    const usados = new Set(conIdx.filter((x) => x.idx).map((x) => x.idx));
+    let siguiente = 1;
+    for (const x of conIdx) {
+      if (x.idx) continue;
+      while (usados.has(siguiente)) siguiente++;
+      x.idx = siguiente; usados.add(siguiente);
+    }
+    const fotos = conIdx.filter((x) => x.idx <= 5).map((x) => ({
+      path: join(dir, x.f),
+      original: x.f,
+      idx: x.idx,
+      // Se suben siempre como JPG optimizado (ver achicar()).
+      ext: ".jpg",
+      canonical: `${sku}-${x.idx}.jpg`,
+    }));
     // ordenar por indice; principal = idx 1 (o el menor)
     fotos.sort((a, b) => a.idx - b.idx);
     const principal = fotos.find((x) => x.idx === 1) || fotos[0];
     productos.push({ sku, fotos, principal });
   }
-  return { productos, sinImagen };
+  return { productos, sinImagen, conHeic };
+}
+
+// Una foto de iPhone pesa 3-5 MB y mide 4000 px. La web nunca muestra mas de
+// 1200 px (usa variantes WebP), asi que el original solo ocupa espacio: 200
+// productos con 2 fotos llenarian el giga gratis de Supabase. Se guarda a
+// 1600 px y calidad 86, que se ve igual y pesa ~10 veces menos.
+async function achicar(path) {
+  return sharp(readFileSync(path))
+    .rotate() // respeta la orientacion con que se tomo la foto
+    .resize({ width: 1600, height: 1600, fit: "inside", withoutEnlargement: true })
+    .jpeg({ quality: 86, mozjpeg: true })
+    .toBuffer();
 }
 
 // ---- 2. Asegurar bucket publico ----
@@ -146,7 +174,7 @@ async function main() {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
-  let { productos, sinImagen } = escanear();
+  let { productos, sinImagen, conHeic } = escanear();
   if (ONLY) {
     productos = productos.filter((p) => p.sku === ONLY);
     sinImagen = [];
@@ -208,11 +236,12 @@ async function main() {
 
     for (const f of p.fotos) {
       if (!GO) {
+        console.log(`   ${f.original}  ->  ${f.canonical}`); // vista previa
         subidas++; // en dry-run contamos lo que se subiria
         continue;
       }
       try {
-        const buf = readFileSync(f.path);
+        const buf = await achicar(f.path);
         const { error: upErr } = await supabase.storage
           .from(BUCKET)
           .upload(f.canonical, buf, {
@@ -259,6 +288,11 @@ async function main() {
     console.log("     " + fotosSinMatch.join(", "));
   console.log(`🕳️  SKUs en DB sin foto       : ${skusSinFoto.length}`);
   if (skusSinFoto.length) console.log("     " + skusSinFoto.join(", "));
+  if (conHeic.length) {
+    console.log(`⚠️  Fotos HEIC (formato del iPhone) que NO se pueden subir: ${conHeic.length} carpetas`);
+    console.log("     " + conHeic.join(", "));
+    console.log("     Exportalas como JPG (en la Mac: Archivo > Exportar > JPEG) y vuelve a correr.");
+  }
   console.log(`📂 Carpetas sin imagen       : ${sinImagen.length}`);
   if (sinImagen.length) console.log("     " + sinImagen.join(", "));
   if (fallasSubida.length) {
