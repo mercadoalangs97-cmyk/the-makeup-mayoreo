@@ -5,6 +5,7 @@ import { cotizarEnvioReal, filtrarPaqueterias,
 } from "../../../lib/skydropx";
 import { type Paquete } from "../../../lib/lotes";
 import { limpiarItems, resolverItems, type ItemCot } from "../../../lib/cotItems";
+import { esBotAutorizado, usuarioBot } from "../../../lib/botAuth";
 
 // Crea una COTIZACIÓN desde la app de inventario (otro dominio → CORS abierto,
 // pero protegido por el token de sesión Supabase: solo personal logueado).
@@ -15,7 +16,7 @@ export const dynamic = "force-dynamic";
 const CORS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type",
+  "Access-Control-Allow-Headers": "Content-Type, x-bot-secret",
 };
 function json(data: unknown, status = 200) {
   return NextResponse.json(data, { status, headers: CORS });
@@ -76,6 +77,9 @@ export async function POST(req: Request) {
     /** Lote(s) y/o productos sueltos: [{tipo,ref,qty}]. Si no viene, se usa
      *  loteId/qty como antes. */
     items?: unknown;
+    /** Bot vendedor: secreto compartido y quién cotiza (bot:tg:123). */
+    botSecret?: string;
+    creadaPor?: string;
   };
   try {
     body = await req.json();
@@ -83,7 +87,8 @@ export async function POST(req: Request) {
     return json({ error: "JSON inválido" }, 400);
   }
 
-  const user = await verificarUsuario(body.token);
+  // Sesión del panel, o el bot vendedor con su secreto (misma lógica, otro firmante).
+  const user = esBotAutorizado(req, body) ? usuarioBot(body.creadaPor) : await verificarUsuario(body.token);
   if (!user) return json({ error: "No autorizado. Inicia sesión de nuevo." }, 401);
 
   // Lo que lleva la cotización. Formato nuevo (items) o el viejo (loteId+qty).

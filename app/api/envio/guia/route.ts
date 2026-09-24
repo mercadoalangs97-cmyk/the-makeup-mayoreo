@@ -9,6 +9,7 @@ import {
 } from "../../../lib/skydropx";
 import { parcelsDeItems } from "../../../lib/lotes";
 import { enviarCorreoGuia, type OrdenCorreo } from "../../../lib/email";
+import { esBotAutorizado, usuarioBot } from "../../../lib/botAuth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,7 +19,7 @@ export const dynamic = "force-dynamic";
 const CORS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type",
+  "Access-Control-Allow-Headers": "Content-Type, x-bot-secret",
 };
 function json(data: unknown, status = 200) {
   return NextResponse.json(data, { status, headers: CORS });
@@ -120,11 +121,13 @@ export async function POST(req: Request) {
     claveSat?: string;
     /** Nombre corto escrito a mano en el panel cuando el real no cabe. */
     nombreGuia?: string;
+    botSecret?: string;
   };
   try { body = await req.json(); } catch { return json({ error: "JSON inválido" }, 400); }
   const nombreGuia = String(body.nombreGuia || "").trim();
 
-  const user = await verificarUsuario(body.token);
+  // Sesión del panel o el bot vendedor (compra guías desde Telegram con confirmación de Alan).
+  const user = esBotAutorizado(req, body) ? usuarioBot() : await verificarUsuario(body.token);
   if (!user) return json({ error: "No autorizado. Inicia sesión de nuevo." }, 401);
 
   const supabase = createAdminSupabase();

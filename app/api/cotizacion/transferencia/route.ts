@@ -4,6 +4,7 @@ import { createAdminSupabase, createServerSupabase } from "../../../lib/supabase
 import { itemsDeCotizacion, resolverItems } from "../../../lib/cotItems";
 import { enviarCorreosVenta, type OrdenCorreo } from "../../../lib/email";
 import { LOTES } from "../../../lib/lotes";
+import { esBotAutorizado } from "../../../lib/botAuth";
 
 // La clienta pagó por TRANSFERENCIA (fuera de Mercado Pago). Aquí se registra
 // ese pago a mano desde el panel y de ahí en adelante todo sigue el MISMO
@@ -33,7 +34,7 @@ async function usuarioValido(token: string | undefined) {
 const CORS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type",
+  "Access-Control-Allow-Headers": "Content-Type, x-bot-secret",
 };
 function json(data: unknown, status = 200) {
   return NextResponse.json(data, { status, headers: CORS });
@@ -62,6 +63,7 @@ export async function POST(req: Request) {
       yaEnviado?: boolean;
     };
     sinCorreo?: boolean;
+    botSecret?: string;
   };
   try {
     body = await req.json();
@@ -69,7 +71,8 @@ export async function POST(req: Request) {
     return json({ error: "JSON inválido" }, 400);
   }
 
-  if (!(await usuarioValido(body.token))) {
+  // El bot vendedor registra el pago solo cuando Alan tocó "Confirmar" en Telegram.
+  if (!esBotAutorizado(req, body) && !(await usuarioValido(body.token))) {
     return json({ error: "Sesión no válida." }, 401);
   }
 
