@@ -268,7 +268,7 @@ export const GUIAS: Guia[] = [
       { t: "h2", text: "Cuál es para ti" },
       { t: "tabla", head: ["Si…", "Te conviene", "Inversión"], rows: [
         ["Nunca has vendido y quieres probar", "10 piezas", "$1,200"],
-        ["Ya vendiste y se te acabó rápido", "20 piezas", "$2,140"],
+        ["Ya vendiste y se te acabó rápido", "20 piezas", "$2,200"],
         ["Vendes seguido y quieres surtido", "50 piezas", "$5,100"],
         ["Tienes clientas fijas", "100 piezas", "$9,800"],
         ["Surtes a otras revendedoras", "500 piezas", "$45,700"],
