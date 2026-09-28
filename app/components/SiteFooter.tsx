@@ -38,7 +38,7 @@ export default function SiteFooter() {
                 <Link href="/guias">Guías de maquillaje</Link>
               </li>
               <li>
-                <WppLink href="https://wa.me/5215543813568" fuente="whatsapp_footer">
+                <WppLink href="https://wa.me/5215658146140" fuente="whatsapp_footer">
                   WhatsApp
                 </WppLink>
               </li>

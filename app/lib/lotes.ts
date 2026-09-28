@@ -4,7 +4,7 @@
 
 export const BASE =
   "https://yekvehkmgunoafccwmyp.supabase.co/storage/v1/object/public/lotes-fotos";
-export const WPP = "5215543813568";
+export const WPP = "5215658146140";
 
 // Umbral de envio gratis MAYOREO (MXN) — hero de /mayoreo (lotes grandes).
 export const ENVIO_GRATIS_DESDE = 2500;

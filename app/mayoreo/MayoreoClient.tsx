@@ -827,7 +827,7 @@ export default function Home({
           atención personalizada para tu negocio.
         </p>
         <a
-          href="https://wa.me/5215543813568?text=Hola!%20Me%20interesa%20el%20lote%20de%20500%20piezas%20(%2445%2C700%20MXN).%20Podemos%20coordinar%3F"
+          href="https://wa.me/5215658146140?text=Hola!%20Me%20interesa%20el%20lote%20de%20500%20piezas%20(%2445%2C700%20MXN).%20Podemos%20coordinar%3F"
           className="banner-btn"
           target="_blank"
           rel="noreferrer"

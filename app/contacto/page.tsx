@@ -27,8 +27,8 @@ export default function Contacto() {
 
         <h2>WhatsApp</h2>
         <p>
-          <WppLink href="https://wa.me/5215543813568" fuente="whatsapp_contacto">
-            +52 55 4381 3568
+          <WppLink href="https://wa.me/5215658146140" fuente="whatsapp_contacto">
+            +52 56 5814 6140
           </WppLink>{" "}
           — la forma más rápida de contactarnos.
         </p>

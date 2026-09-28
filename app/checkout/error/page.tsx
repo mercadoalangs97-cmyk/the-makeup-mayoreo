@@ -18,7 +18,7 @@ export default function CheckoutError() {
             Volver a la tienda
           </Link>
           <a
-            href="https://wa.me/5215543813568?text=Hola!%20Tuve%20un%20problema%20con%20el%20pago%20y%20quiero%20completar%20mi%20pedido"
+            href="https://wa.me/5215658146140?text=Hola!%20Tuve%20un%20problema%20con%20el%20pago%20y%20quiero%20completar%20mi%20pedido"
             className="btn-outline"
             target="_blank"
             rel="noreferrer"

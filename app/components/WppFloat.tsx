@@ -12,7 +12,7 @@ export default function WppFloat() {
 
   return (
     <a
-      href="https://wa.me/5215543813568?text=Hola!%20Me%20interesa%20un%20lote%20de%20maquillaje"
+      href="https://wa.me/5215658146140?text=Hola!%20Me%20interesa%20un%20lote%20de%20maquillaje"
       className="wpp-float"
       target="_blank"
       rel="noreferrer"

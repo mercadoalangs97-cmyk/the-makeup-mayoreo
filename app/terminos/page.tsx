@@ -65,11 +65,11 @@ export default function Terminos() {
         <p>
           Para cualquier duda: WhatsApp{" "}
           <a
-            href="https://wa.me/5215543813568"
+            href="https://wa.me/5215658146140"
             target="_blank"
             rel="noreferrer"
           >
-            +52 55 4381 3568
+            +52 56 5814 6140
           </a>{" "}
           o correo{" "}
           <a href="mailto:ventas@themakeup.com.mx">ventas@themakeup.com.mx</a>.

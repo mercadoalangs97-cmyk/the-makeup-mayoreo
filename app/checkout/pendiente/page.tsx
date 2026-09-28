@@ -29,7 +29,7 @@ export default function CheckoutPendiente() {
             Volver al inicio
           </Link>
           <a
-            href="https://wa.me/5215543813568?text=Hola!%20Tengo%20un%20pago%20pendiente%20(OXXO%2FSPEI)%20y%20quiero%20confirmar%20mi%20pedido"
+            href="https://wa.me/5215658146140?text=Hola!%20Tengo%20un%20pago%20pendiente%20(OXXO%2FSPEI)%20y%20quiero%20confirmar%20mi%20pedido"
             className="btn-outline"
             target="_blank"
             rel="noreferrer"

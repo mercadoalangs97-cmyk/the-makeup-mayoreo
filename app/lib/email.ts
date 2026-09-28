@@ -102,7 +102,7 @@ function envoltura(marca: string, titulo: string, sub: string, cuerpo: string): 
       </div>
       <div style="background:${C.cream};padding:16px 24px;color:${C.muted};font-size:12px;text-align:center;line-height:1.6">
         The Makeup Mayoreo CDMX · Pago seguro con Mercado Pago<br>
-        ¿Dudas? WhatsApp <a href="https://wa.me/${WPP}" style="color:${C.roseDk}">+52 55 4381 3568</a>
+        ¿Dudas? WhatsApp <a href="https://wa.me/${WPP}" style="color:${C.roseDk}">+52 56 5814 6140</a>
       </div>
     </div>
   </div>`;

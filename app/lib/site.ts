@@ -17,8 +17,8 @@ export const NEGOCIO = {
   ciudad: "Nezahualcóyotl",
   estado: "Estado de México",
   pais: "México",
-  telefono: "+52 55 4381 3568",
-  whatsapp: "5215543813568",
+  telefono: "+52 56 5814 6140",
+  whatsapp: "5215658146140",
   email: "ventas@themakeup.com.mx",
 };
 export const NEGOCIO_DIR = `${NEGOCIO.calle}, ${NEGOCIO.colonia}, C.P. ${NEGOCIO.cp}, ${NEGOCIO.ciudad}, ${NEGOCIO.estado}, ${NEGOCIO.pais}`;

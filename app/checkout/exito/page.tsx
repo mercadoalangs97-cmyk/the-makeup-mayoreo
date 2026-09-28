@@ -59,7 +59,7 @@ export default function CheckoutExito() {
             Seguir comprando
           </Link>
           <a
-            href="https://wa.me/5215543813568?text=Hola!%20Acabo%20de%20hacer%20una%20compra%20y%20quiero%20confirmar%20mi%20pedido"
+            href="https://wa.me/5215658146140?text=Hola!%20Acabo%20de%20hacer%20una%20compra%20y%20quiero%20confirmar%20mi%20pedido"
             className="btn-outline"
             target="_blank"
             rel="noreferrer"
