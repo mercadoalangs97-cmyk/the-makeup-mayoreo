@@ -29,7 +29,8 @@ export default function PopupSuscripcion() {
       if (
         ruta.startsWith("/checkout") ||
         ruta.startsWith("/cotizacion") ||
-        ruta.startsWith("/opinar")
+        ruta.startsWith("/opinar") ||
+        ruta.startsWith("/panel-bot")
       )
         return;
     }
