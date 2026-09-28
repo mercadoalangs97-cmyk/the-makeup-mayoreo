@@ -82,6 +82,24 @@ const BOT_URL = (process.env.BOT_URL || "https://makeup-bot-production.up.railwa
 export async function POST(req: Request) {
   const u = await usuario(req);
   if (!u) return j({ error: "Sesión no válida" }, 401);
+  // Adjunto desde el panel: se sube a Storage (bucket público lotes-fotos/panel) y se devuelve la URL.
+  if ((req.headers.get("content-type") || "").includes("multipart/form-data")) {
+    try {
+      const form = await req.formData();
+      const f = form.get("archivo");
+      if (!(f instanceof File)) return j({ error: "Falta el archivo" }, 400);
+      if (!/^image\/(jpeg|png|webp)$/.test(f.type)) return j({ error: "Solo imágenes JPG, PNG o WebP" }, 415);
+      if (f.size > 8 * 1024 * 1024) return j({ error: "La imagen pesa más de 8 MB" }, 413);
+      const ext = f.type === "image/png" ? "png" : f.type === "image/webp" ? "webp" : "jpg";
+      const ruta = `panel/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const sb = createAdminSupabase();
+      const { error } = await sb.storage.from("lotes-fotos").upload(ruta, Buffer.from(await f.arrayBuffer()), { contentType: f.type, upsert: false });
+      if (error) return j({ error: "No se pudo subir: " + error.message }, 500);
+      return j({ ok: true, url: sb.storage.from("lotes-fotos").getPublicUrl(ruta).data.publicUrl });
+    } catch (e) {
+      return j({ error: (e as Error).message }, 500);
+    }
+  }
   let body: { accion?: string } & Record<string, unknown>;
   try {
     body = await req.json();

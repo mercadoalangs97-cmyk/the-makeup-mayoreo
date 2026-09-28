@@ -7,6 +7,8 @@ export default function WppFloat() {
   const pathname = usePathname();
   // AMARÉA es solo Mercado Pago: ocultar la burbuja de WhatsApp ahí.
   if (pathname && pathname.startsWith("/amarea")) return null;
+  // El panel del bot es interno: la burbuja tapaba el botón de enviar.
+  if (pathname && pathname.startsWith("/panel-bot")) return null;
 
   return (
     <a

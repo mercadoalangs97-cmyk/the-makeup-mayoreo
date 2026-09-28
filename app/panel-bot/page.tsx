@@ -10,7 +10,7 @@ type Conv = {
   canal_id: string; canal: string; nombre: string | null; telefono: string | null; estado: string; cotizacion_id: string | null;
   lote_id: string | null; ultimo_cliente_en: string | null; ultimo_bot_en: string | null; resumen: Record<string, unknown> | null;
 };
-type Msg = { id: number; direccion: "in" | "out"; tipo: string; texto: string | null; media: { lote_id?: string } | null; por: string; creado: string };
+type Msg = { id: number; direccion: "in" | "out"; tipo: string; texto: string | null; media: { lote_id?: string; url?: string; tg_file_id?: string } | null; por: string; creado: string };
 type Pend = { id: number; canal_id: string; texto: string; adjunto: { tipo: string; lote_id: string } | null; creado: string };
 type Lote = { id: string; nombre: string; piezas: number; precio: number; tipo: string; descripcion: string | null; fotos: { url: string }[]; estado: string; apartado_para: string | null; apartado_hasta: string | null; cotizacion_id: string | null; vendido_a: string | null; salida_registrada: boolean; creado_en: string };
 type Cot = { id: string; canal_id: string; lote_id: string | null; total: number | null; link: string | null; creada: string; seguimientos: number; cerrada: boolean; sitio: { cliente_nombre: string | null; total: number; vistas: number | null; pago_click_en: number | null; pagada: boolean | null; transferencia_aviso_en: number | null; apartado_monto: number | null } | null };
@@ -44,6 +44,7 @@ export default function PanelBot() {
   const [texto, setTexto] = useState(""); const [ocupado, setOcupado] = useState(false); const [aviso, setAviso] = useState("");
   const [filtro, setFiltro] = useState("");
   const finRef = useRef<HTMLDivElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!sb) return;
@@ -99,6 +100,18 @@ export default function PanelBot() {
     if (!sel || !texto.trim()) return;
     const d = await accion({ accion: "enviar", canalId: sel, texto: texto.trim() });
     if (d?.ok) { setTexto(""); await cargarHilo(sel); await cargarLista(); }
+  }
+  async function adjuntar(f: File | undefined) {
+    if (!sel || !f) return;
+    setOcupado(true); setAviso("");
+    try {
+      const fd = new FormData(); fd.append("archivo", f);
+      const r = await fetch("/api/bot/panel", { method: "POST", headers: { authorization: `Bearer ${token}` }, body: fd });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || `HTTP ${r.status}`);
+      const e = await accion({ accion: "enviar", canalId: sel, fotoUrl: d.url, texto: texto.trim() });
+      if (e?.ok) { setTexto(""); await cargarHilo(sel); await cargarLista(); }
+    } catch (e) { setAviso("❌ " + (e as Error).message); } finally { setOcupado(false); if (fileRef.current) fileRef.current.value = ""; }
   }
   async function estado(canal: string, est: string) { if (await accion({ accion: "estado", canalId: canal, estado: est })) { await cargarLista(); if (sel === canal) await cargarHilo(canal); } }
   async function pendiente(id: number, acc: "ok" | "no" | "editar") {
@@ -192,8 +205,9 @@ export default function PanelBot() {
                 <div className="pb-msgs">
                   {hilo.mensajes.map((m) => (
                     <div key={m.id} className={"pb-msg " + (m.direccion === "in" ? "in" : m.por === "alan" ? "alan" : m.por === "sistema" ? "sis" : "bot")}>
-                      {m.tipo === "fotos" && <div className="tag">📷 fotos del {m.media?.lote_id}</div>}
-                      {m.tipo === "photo" && <div className="tag">📎 foto de la clienta</div>}
+                      {m.tipo === "fotos" && m.media?.lote_id !== "panel" && <div className="tag">📷 fotos del {m.media?.lote_id}</div>}
+                      {m.media?.url && <img className="foto" src={m.media.url} alt="" loading="lazy" />}
+                      {m.tipo === "photo" && !m.media?.url && <div className="tag">📎 foto de la clienta</div>}
                       <div className="txt">{m.texto}</div>
                       <div className="meta">{m.direccion === "in" ? "clienta" : m.por} · {hora(m.creado)}</div>
                     </div>
@@ -212,6 +226,8 @@ export default function PanelBot() {
                   <div ref={finRef} />
                 </div>
                 <div className="pb-escribir">
+                  <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(e) => adjuntar(e.target.files?.[0])} />
+                  <button className="clip" title="Adjuntar foto (se manda con el texto como pie)" disabled={ocupado} onClick={() => fileRef.current?.click()}>📎</button>
                   <textarea placeholder="Escribir a la clienta (la conversación pasa a tu control)" value={texto} onChange={(e) => setTexto(e.target.value)} rows={2} />
                   <button disabled={ocupado || !texto.trim()} onClick={enviar}>Enviar</button>
                 </div>
@@ -300,7 +316,9 @@ const estilos = `
   .pb-msg.pend { justify-self: end; background: #fff7e0; border-color: #e0a000; }
   .pb-msg .meta { font-size: 11px; color: #8a7068; margin-top: 4px; } .pb-msg .tag { font-size: 12px; color: #9e5550; margin-bottom: 4px; }
   .pb-msg .btns { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
-  .pb-escribir { display: flex; gap: 8px; padding: 10px 14px; background: #fff; border-top: 1px solid #f2e0d8; }
+  .pb-escribir { display: flex; gap: 8px; padding: 10px 14px; background: #fff; border-top: 1px solid #f2e0d8; align-items: stretch; }
+  .pb-escribir .clip { padding: 8px 10px; font-size: 18px; }
+  .pb-msg .foto { display: block; max-width: 260px; max-height: 260px; border-radius: 8px; margin: 4px 0; }
   .pb-vacio { color: #8a7068; padding: 20px; }
   .pb-lotes { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; padding: 14px; }
   .pb-lote { background: #fff; border-radius: 12px; overflow: hidden; border: 1px solid #f2e0d8; display: grid; grid-template-columns: 120px 1fr; }
