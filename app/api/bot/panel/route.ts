@@ -43,7 +43,7 @@ export async function GET(req: Request) {
       const canal = url.searchParams.get("canal") || "";
       if (!canal) return j({ error: "Falta canal" }, 400);
       const [{ data: msgs }, { data: conv }] = await Promise.all([
-        sb.from("mk_mensajes").select("id,direccion,tipo,texto,media,por,creado").eq("canal_id", canal).order("creado", { ascending: false }).limit(150),
+        sb.from("mk_mensajes").select("id,direccion,tipo,texto,media,por,creado,ext_id").eq("canal_id", canal).order("creado", { ascending: false }).limit(150),
         sb.from("mk_conversaciones").select("*").eq("canal_id", canal).maybeSingle(),
       ]);
       let cotizacion = null;
@@ -107,7 +107,7 @@ export async function POST(req: Request) {
     return j({ error: "JSON inválido" }, 400);
   }
   const accion = String(body.accion || "");
-  const rutas: Record<string, string> = { enviar: "/admin/enviar", pendiente: "/admin/pendiente", estado: "/admin/estado", modo: "/admin/modo", lote: "/admin/lote", seguimiento: "/admin/seguimiento" };
+  const rutas: Record<string, string> = { enviar: "/admin/enviar", pendiente: "/admin/pendiente", estado: "/admin/estado", modo: "/admin/modo", lote: "/admin/lote", seguimiento: "/admin/seguimiento", borrar: "/admin/borrar" };
   const ruta = rutas[accion];
   if (!ruta) return j({ error: "acción desconocida" }, 400);
   if (!process.env.BOT_SECRET) return j({ error: "Falta BOT_SECRET en el servidor" }, 503);

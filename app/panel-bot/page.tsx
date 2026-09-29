@@ -10,7 +10,7 @@ type Conv = {
   canal_id: string; canal: string; nombre: string | null; telefono: string | null; estado: string; cotizacion_id: string | null;
   lote_id: string | null; ultimo_cliente_en: string | null; ultimo_bot_en: string | null; resumen: Record<string, unknown> | null;
 };
-type Msg = { id: number; direccion: "in" | "out"; tipo: string; texto: string | null; media: { lote_id?: string; url?: string; tg_file_id?: string } | null; por: string; creado: string };
+type Msg = { id: number; direccion: "in" | "out"; tipo: string; texto: string | null; media: { lote_id?: string; url?: string; tg_file_id?: string } | null; por: string; creado: string; ext_id?: string | null };
 type Pend = { id: number; canal_id: string; texto: string; adjunto: { tipo: string; lote_id: string } | null; creado: string };
 type Lote = { id: string; nombre: string; piezas: number; precio: number; tipo: string; descripcion: string | null; fotos: { url: string }[]; estado: string; apartado_para: string | null; apartado_hasta: string | null; cotizacion_id: string | null; vendido_a: string | null; salida_registrada: boolean; creado_en: string };
 type Cot = { id: string; canal_id: string; lote_id: string | null; total: number | null; link: string | null; creada: string; seguimientos: number; cerrada: boolean; sitio: { cliente_nombre: string | null; total: number; vistas: number | null; pago_click_en: number | null; pagada: boolean | null; transferencia_aviso_en: number | null; apartado_monto: number | null } | null };
@@ -202,14 +202,18 @@ export default function PanelBot() {
                     <button onClick={() => accion({ accion: "seguimiento", canalId: sel })}>Seguimiento</button>
                   </div>
                 </div>
-                <div className="pb-msgs">
+                <div className="pb-msgs" onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); adjuntar(e.dataTransfer.files?.[0]); }}>
                   {hilo.mensajes.map((m) => (
                     <div key={m.id} className={"pb-msg " + (m.direccion === "in" ? "in" : m.por === "alan" ? "alan" : m.por === "sistema" ? "sis" : "bot")}>
                       {m.tipo === "fotos" && m.media?.lote_id !== "panel" && <div className="tag">📷 fotos del {m.media?.lote_id}</div>}
                       {m.media?.url && <img className="foto" src={m.media.url} alt="" loading="lazy" />}
                       {m.tipo === "photo" && !m.media?.url && <div className="tag">📎 foto de la clienta</div>}
                       <div className="txt">{m.texto}</div>
-                      <div className="meta">{m.direccion === "in" ? "clienta" : m.por} · {hora(m.creado)}</div>
+                      <div className="meta">{m.direccion === "in" ? "clienta" : m.por} · {hora(m.creado)}
+                        {m.direccion === "out" && m.ext_id && sel?.startsWith("tg:") && Date.now() - Date.parse(m.creado) < 47 * 3600_000 && m.texto !== "[mensaje borrado]" && (
+                          <button className="borrar" title="Borrar para la clienta (solo Telegram)" onClick={async () => { if (window.confirm("¿Borrar este mensaje del chat de la clienta?")) { const d = await accion({ accion: "borrar", canalId: sel, extId: m.ext_id }); if (d?.ok) cargarHilo(sel); } }}>🗑</button>
+                        )}
+                      </div>
                     </div>
                   ))}
                   {pendsDe(sel).map((p) => (
@@ -228,7 +232,9 @@ export default function PanelBot() {
                 <div className="pb-escribir">
                   <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(e) => adjuntar(e.target.files?.[0])} />
                   <button className="clip" title="Adjuntar foto (se manda con el texto como pie)" disabled={ocupado} onClick={() => fileRef.current?.click()}>📎</button>
-                  <textarea placeholder="Escribir a la clienta (la conversación pasa a tu control)" value={texto} onChange={(e) => setTexto(e.target.value)} rows={2} />
+                  <textarea placeholder="Escribir a la clienta (la conversación pasa a tu control). Puedes pegar o arrastrar una foto aquí." value={texto} onChange={(e) => setTexto(e.target.value)} rows={2}
+                    onPaste={(e) => { const f = Array.from(e.clipboardData.files || []).find((x) => x.type.startsWith("image/")); if (f) { e.preventDefault(); adjuntar(f); } }}
+                    onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); adjuntar(e.dataTransfer.files?.[0]); }} />
                   <button disabled={ocupado || !texto.trim()} onClick={enviar}>Enviar</button>
                 </div>
               </>
@@ -314,7 +320,8 @@ const estilos = `
   .pb-msg.in { justify-self: start; background: #fff; } .pb-msg.bot { justify-self: end; background: #f2e0d8; }
   .pb-msg.alan { justify-self: end; background: #e8d5a8; } .pb-msg.sis { justify-self: end; background: #eee; }
   .pb-msg.pend { justify-self: end; background: #fff7e0; border-color: #e0a000; }
-  .pb-msg .meta { font-size: 11px; color: #8a7068; margin-top: 4px; } .pb-msg .tag { font-size: 12px; color: #9e5550; margin-bottom: 4px; }
+  .pb-msg .meta { font-size: 11px; color: #8a7068; margin-top: 4px; display: flex; gap: 6px; align-items: center; }
+  .pb-msg .meta .borrar { border: 0; background: none; padding: 0 2px; font-size: 12px; cursor: pointer; opacity: .6; } .pb-msg .meta .borrar:hover { opacity: 1; } .pb-msg .tag { font-size: 12px; color: #9e5550; margin-bottom: 4px; }
   .pb-msg .btns { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
   .pb-escribir { display: flex; gap: 8px; padding: 10px 14px; background: #fff; border-top: 1px solid #f2e0d8; align-items: stretch; }
   .pb-escribir .clip { padding: 8px 10px; font-size: 18px; }
