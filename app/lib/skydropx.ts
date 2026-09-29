@@ -179,8 +179,12 @@ export async function cotizarEnvioReal(
 //
 // Sin colchón, cada envío sale en pérdida. Este margen lo absorbe sin que se
 // note en el ticket (en un lote de $2,140, $25 es el 1%).
-export const MARGEN_ENVIO_PCT = 0.15; // 15% sobre la tarifa
-export const MARGEN_ENVIO_MIN = 20; // pesos
+// CALIBRADO 29-sep-2026 con 14 guías reales (cobrado vs lo que Skydropx descontó): con 15 % +
+// 1 % del valor se cobraban $48 de más en promedio y hasta $121 en lotes de 50. La guía real
+// sale igual o más barata que la tarifa cotizada, así que basta un fijo de $25 que cubre el
+// movimiento de tarifa (el mayor visto fue +$7). Regla de Alan: "20 o 30 pesos extra".
+export const MARGEN_ENVIO_PCT = 0; // sin porcentaje sobre la tarifa
+export const MARGEN_ENVIO_MIN = 25; // pesos fijos por envío
 
 // La protección obligatoria se cobra sobre el VALOR DECLARADO, no sobre la
 // tarifa. Por eso un colchón plano alcanza en un lote de 10 piezas y se queda
@@ -188,7 +192,7 @@ export const MARGEN_ENVIO_MIN = 20; // pesos
 //
 // ⚠️ PROVISIONAL: 1% es una estimación. Calibrar con la primera guía real
 // comparando lo que dice el panel contra lo que Skydropx descuenta del saldo.
-export const PROTECCION_PCT = 0.01;
+export const PROTECCION_PCT = 0; // medido: la protección ya viene dentro del costo real de la guía
 
 /**
  * Lo que se le cobra al cliente por un envío.
