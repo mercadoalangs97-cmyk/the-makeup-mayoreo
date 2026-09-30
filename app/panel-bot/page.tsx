@@ -9,7 +9,54 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 type Conv = {
   canal_id: string; canal: string; nombre: string | null; telefono: string | null; estado: string; cotizacion_id: string | null;
   lote_id: string | null; ultimo_cliente_en: string | null; ultimo_bot_en: string | null; resumen: Record<string, unknown> | null;
+  etapa?: string; compras?: number; total_compras?: number;
 };
+type Clienta = { telefono: string; nombre: string | null; ciudad: string | null; notas: string | null; canal_id: string | null; ultimo_contacto: string | null; compras: number; total: number; ultima: number };
+type Ficha = { clave: string; nombre: string | null; notas: string | null } | null;
+type Compras = { n: number; total: number; ultima: number; detalle: { total: number; fecha: number; que: string }[] } | null;
+
+// Etapas del CRM (las calcula el servidor con lo que ya se sabe de cada chat).
+const ETAPAS: Record<string, { t: string; c: string }> = {
+  nueva: { t: "Nueva", c: "#9ca3af" },
+  interesada: { t: "Interesada", c: "#e0a000" },
+  cotizada: { t: "Cotizada", c: "#3b82f6" },
+  apartada: { t: "Apartada", c: "#8b5cf6" },
+  clienta: { t: "Clienta", c: "#16a34a" },
+  recompra: { t: "Recompra", c: "#db2777" },
+  perdida: { t: "Perdida", c: "#6b7280" },
+};
+const FILTROS = ["todas", "sin leer", "en tu control", "nueva", "interesada", "cotizada", "apartada", "clienta", "recompra", "perdida"] as const;
+
+/* ---------- "visto" por dispositivo: qué mensajes de clientas ya viste en ESTE panel ---------- */
+const VISTO_KEY = "pb-visto-v1";
+function leerVisto(): Record<string, string> {
+  try { return JSON.parse(localStorage.getItem(VISTO_KEY) || "{}"); } catch { return {}; }
+}
+function guardarVisto(v: Record<string, string>) {
+  try { localStorage.setItem(VISTO_KEY, JSON.stringify(v)); } catch { /* modo privado */ }
+}
+
+/* ---------- sonido de aviso (Web Audio; en iPhone se desbloquea con el botón de activar avisos) ---------- */
+let audioCtx: AudioContext | null = null;
+function desbloquearAudio() {
+  try {
+    const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    audioCtx ||= new AC();
+    void audioCtx.resume();
+  } catch { /* sin audio */ }
+}
+function sonar() {
+  try {
+    if (!audioCtx) return;
+    const now = audioCtx.currentTime;
+    [880, 1320].forEach((f, i) => {
+      const o = audioCtx!.createOscillator(); const g = audioCtx!.createGain();
+      o.frequency.value = f; o.type = "sine";
+      g.gain.setValueAtTime(0.0001, now + i * 0.16); g.gain.exponentialRampToValueAtTime(0.25, now + i * 0.16 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.16 + 0.15);
+      o.connect(g); g.connect(audioCtx!.destination); o.start(now + i * 0.16); o.stop(now + i * 0.16 + 0.16);
+    });
+  } catch { /* sin audio */ }
+}
 type Msg = { id: number; direccion: "in" | "out"; tipo: string; texto: string | null; media: { lote_id?: string; url?: string; tg_file_id?: string } | null; por: string; creado: string; ext_id?: string | null };
 type Pend = { id: number; canal_id: string; texto: string; adjunto: { tipo: string; lote_id: string } | null; creado: string };
 type Lote = { id: string; nombre: string; piezas: number; precio: number; tipo: string; descripcion: string | null; fotos: { url: string }[]; estado: string; apartado_para: string | null; apartado_hasta: string | null; cotizacion_id: string | null; vendido_a: string | null; salida_registrada: boolean; creado_en: string };
@@ -51,10 +98,16 @@ export default function PanelBot() {
   }, []);
   const [token, setToken] = useState<string | null>(null);
   const [email, setEmail] = useState(""); const [pass, setPass] = useState(""); const [errLogin, setErrLogin] = useState("");
-  const [tab, setTab] = useState<"chats" | "lotes" | "cots">("chats");
+  const [tab, setTab] = useState<"chats" | "clientas" | "lotes" | "cots">("chats");
+  const [filtroEtapa, setFiltroEtapa] = useState<(typeof FILTROS)[number]>("todas");
+  const [visto, setVisto] = useState<Record<string, string>>({});
+  const [avisosOn, setAvisosOn] = useState(false);
+  const [clientas, setClientas] = useState<Clienta[]>([]);
+  const [notas, setNotas] = useState(""); const [notasCanal, setNotasCanal] = useState<string | null>(null);
+  const previoRef = useRef<Record<string, string> | null>(null);
   const [convs, setConvs] = useState<Conv[]>([]); const [pends, setPends] = useState<Pend[]>([]); const [modo, setModo] = useState("copiloto");
   const [sel, setSel] = useState<string | null>(null);
-  const [hilo, setHilo] = useState<{ mensajes: Msg[]; conversacion: Conv | null; cotizacion: Record<string, unknown> | null; lote: Lote | null } | null>(null);
+  const [hilo, setHilo] = useState<{ mensajes: Msg[]; conversacion: Conv | null; cotizacion: Record<string, unknown> | null; lote: Lote | null; clienta?: Ficha; compras?: Compras } | null>(null);
   const [lotes, setLotes] = useState<Lote[]>([]); const [cots, setCots] = useState<Cot[]>([]);
   const [texto, setTexto] = useState(""); const [ocupado, setOcupado] = useState(false); const [aviso, setAviso] = useState("");
   const [filtro, setFiltro] = useState("");
@@ -87,7 +140,27 @@ export default function PanelBot() {
     if (!token) return;
     try {
       const d = await api("conversaciones");
-      setConvs(d.conversaciones || []); setPends(d.pendientes || []); setModo(d.modo || "copiloto");
+      const lista: Conv[] = d.conversaciones || [];
+      setConvs(lista); setPends(d.pendientes || []); setModo(d.modo || "copiloto");
+      // ¿Qué clientas escribieron desde la última vuelta? → sonido + notificación del navegador.
+      const actual: Record<string, string> = {};
+      for (const c of lista) if (c.ultimo_cliente_en) actual[c.canal_id] = c.ultimo_cliente_en;
+      const previo = previoRef.current;
+      previoRef.current = actual;
+      if (previo) {
+        const nuevos = lista.filter((c) => c.ultimo_cliente_en && c.ultimo_cliente_en > (previo[c.canal_id] || ""));
+        if (nuevos.length) {
+          sonar();
+          if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+            for (const c of nuevos.slice(0, 3)) {
+              try {
+                const n = new Notification(`${c.estado === "escalada" ? "🔴 En tu control · " : "💬 "}${c.nombre || c.telefono || "Clienta"}`, { body: c.estado === "escalada" ? "Te escribió y está esperando que le contestes" : "Mensaje nuevo", tag: c.canal_id });
+                n.onclick = () => { window.focus(); setTab("chats"); setSel(c.canal_id); };
+              } catch { /* iOS sin PWA: sin notificación del sistema */ }
+            }
+          }
+        }
+      }
     } catch { /* se reintenta en el siguiente ciclo */ }
   }, [api, token]);
   const cargarHilo = useCallback(async (canal: string) => {
@@ -95,14 +168,44 @@ export default function PanelBot() {
   }, [api]);
   const cargarLotes = useCallback(async () => { try { setLotes((await api("lotes")).lotes || []); } catch { /* idem */ } }, [api]);
   const cargarCots = useCallback(async () => { try { setCots((await api("cotizaciones")).cotizaciones || []); } catch { /* idem */ } }, [api]);
+  const cargarClientas = useCallback(async () => { try { setClientas((await api("clientes")).clientes || []); } catch { /* idem */ } }, [api]);
 
   useEffect(() => {
     if (!token) return;
     cargarLista(); cargarLotes(); cargarCots();
-    const t = setInterval(() => { cargarLista(); if (sel) cargarHilo(sel); }, 12000);
+    const t = setInterval(() => { cargarLista(); if (sel) cargarHilo(sel); }, 10000);
     return () => clearInterval(t);
   }, [token, sel, cargarLista, cargarHilo, cargarLotes, cargarCots]);
   useEffect(() => { if (sel) cargarHilo(sel); }, [sel, cargarHilo]);
+  useEffect(() => {
+    const v = leerVisto();
+    setVisto(v);
+    setAvisosOn(typeof Notification !== "undefined" && Notification.permission === "granted");
+  }, []);
+  useEffect(() => {
+    // Primera vez en este dispositivo: lo que ya existía no cuenta como "sin leer".
+    if (!convs.length) return;
+    const v = leerVisto();
+    if (!Object.keys(v).length) {
+      const todo: Record<string, string> = {};
+      for (const c of convs) if (c.ultimo_cliente_en) todo[c.canal_id] = c.ultimo_cliente_en;
+      guardarVisto(todo); setVisto(todo);
+    }
+  }, [convs]);
+  // El chat abierto se marca como visto cada vez que se recarga.
+  useEffect(() => {
+    if (!sel || !hilo?.conversacion?.ultimo_cliente_en) return;
+    const v = { ...leerVisto(), [sel]: hilo.conversacion.ultimo_cliente_en };
+    guardarVisto(v); setVisto(v);
+  }, [sel, hilo?.conversacion?.ultimo_cliente_en]);
+  const sinLeer = useCallback((c: Conv) => Boolean(c.ultimo_cliente_en && c.ultimo_cliente_en > (visto[c.canal_id] || "") && c.canal_id !== sel), [visto, sel]);
+  const nSinLeer = convs.filter(sinLeer).length;
+  useEffect(() => { document.title = (nSinLeer ? `(${nSinLeer}) ` : "") + "Panel del bot · The Makeup"; }, [nSinLeer]);
+  // Notas de la clienta abierta.
+  useEffect(() => {
+    if (!sel || notasCanal === sel) return;
+    if (hilo?.conversacion?.canal_id === sel) { setNotas(hilo.clienta?.notas || ""); setNotasCanal(sel); }
+  }, [sel, hilo, notasCanal]);
   useEffect(() => { finRef.current?.scrollIntoView({ block: "end" }); }, [hilo?.mensajes.length]);
 
   async function entrar(e: React.FormEvent) {
@@ -141,6 +244,19 @@ export default function PanelBot() {
     await accion({ accion: "pendiente", id, op: acc, texto: txt });
     await cargarLista(); if (sel) await cargarHilo(sel);
   }
+  async function activarAvisos() {
+    desbloquearAudio();
+    if (typeof Notification !== "undefined" && Notification.permission !== "granted") {
+      try { await Notification.requestPermission(); } catch { /* Safari viejo */ }
+    }
+    setAvisosOn(true);
+    sonar();
+  }
+  async function guardarNotas() {
+    if (!sel) return;
+    const d = await accion({ accion: "nota", canalId: sel, telefono: hilo?.conversacion?.telefono, nombre: hilo?.conversacion?.nombre, notas });
+    if (d?.ok) setAviso("✅ Notas guardadas");
+  }
   async function loteAccion(id: string, acc: string, extra: Record<string, unknown> = {}) {
     if (acc === "vendido" && !window.confirm(`¿Marcar ${id} como vendido?`)) return;
     if (acc === "quitar" && !window.confirm(`¿Retirar ${id} de la venta?`)) return;
@@ -149,8 +265,11 @@ export default function PanelBot() {
 
   const lista = useMemo(() => {
     const f = filtro.trim().toLowerCase();
-    return convs.filter((c) => !f || (c.nombre ?? "").toLowerCase().includes(f) || (c.telefono ?? "").includes(f) || c.canal_id.includes(f));
-  }, [convs, filtro]);
+    return convs
+      .filter((c) => !f || (c.nombre ?? "").toLowerCase().includes(f) || (c.telefono ?? "").includes(f) || c.canal_id.includes(f))
+      .filter((c) => filtroEtapa === "todas" ? true : filtroEtapa === "sin leer" ? sinLeer(c) : filtroEtapa === "en tu control" ? c.estado === "escalada" : c.etapa === filtroEtapa);
+  }, [convs, filtro, filtroEtapa, sinLeer]);
+  const conteo = (f: (typeof FILTROS)[number]) => f === "todas" ? convs.length : f === "sin leer" ? nSinLeer : f === "en tu control" ? convs.filter((c) => c.estado === "escalada").length : convs.filter((c) => c.etapa === f).length;
   const pendsDe = (canal: string) => pends.filter((p) => p.canal_id === canal);
 
   if (!token) {
@@ -174,11 +293,13 @@ export default function PanelBot() {
       <header className="pb-top">
         <strong>Bot vendedor</strong>
         <nav>
-          <button className={tab === "chats" ? "on" : ""} onClick={() => setTab("chats")}>Chats{pends.length ? ` · ${pends.length} por aprobar` : ""}</button>
+          <button className={tab === "chats" ? "on" : ""} onClick={() => setTab("chats")}>Chats{nSinLeer ? <span className="pb-badge">{nSinLeer}</span> : null}{pends.length ? ` · ${pends.length} por aprobar` : ""}</button>
+          <button className={tab === "clientas" ? "on" : ""} onClick={() => { setTab("clientas"); cargarClientas(); }}>Clientas</button>
           <button className={tab === "lotes" ? "on" : ""} onClick={() => { setTab("lotes"); cargarLotes(); }}>Lotes</button>
           <button className={tab === "cots" ? "on" : ""} onClick={() => { setTab("cots"); cargarCots(); }}>Cotizaciones</button>
         </nav>
         <span className="pb-modo">
+          {!avisosOn && <button className="avisos" onClick={activarAvisos}>🔔 Activar avisos</button>}
           modo <b>{modo}</b>
           <button onClick={async () => { const n = modo === "auto" ? "copiloto" : "auto"; if (await accion({ accion: "modo", modo: n })) setModo(n); }}>cambiar</button>
           <button onClick={() => sb?.auth.signOut()}>salir</button>
@@ -190,16 +311,31 @@ export default function PanelBot() {
         <section className={"pb-chats" + (sel ? " con-hilo" : "")}>
           <aside className="pb-lista">
             <input placeholder="Buscar nombre o teléfono" value={filtro} onChange={(e) => setFiltro(e.target.value)} />
-            {lista.map((c) => (
-              <button key={c.canal_id} className={"pb-conv" + (sel === c.canal_id ? " sel" : "") + (c.estado !== "bot" ? " " + c.estado : "")} onClick={() => setSel(c.canal_id)}>
-                <div className="l1">{canalIcono(c.canal_id)} <b>{c.nombre || "Sin nombre"}</b> <span className="hace">{hace(c.ultimo_cliente_en)}</span></div>
-                <div className="l2">
-                  {c.telefono || c.canal_id} · {c.estado === "bot" ? "bot" : c.estado === "escalada" ? "EN TU CONTROL" : "pausada"}
-                  {c.cotizacion_id ? ` · ${c.cotizacion_id}` : ""}{c.lote_id ? ` · ${c.lote_id}` : ""}
-                  {pendsDe(c.canal_id).length ? ` · ⏳ ${pendsDe(c.canal_id).length} por aprobar` : ""}
-                </div>
-              </button>
-            ))}
+            <div className="pb-filtros">
+              {FILTROS.map((f) => {
+                const n = conteo(f);
+                if (!n && f !== "todas" && f !== filtroEtapa) return null;
+                const col = ETAPAS[f]?.c;
+                return <button key={f} className={"chip" + (filtroEtapa === f ? " on" : "")} style={col ? { borderColor: col, ...(filtroEtapa === f ? { background: col, color: "#fff" } : { color: col }) } : undefined} onClick={() => setFiltroEtapa(f)}>{ETAPAS[f]?.t || f} {n}</button>;
+              })}
+            </div>
+            {lista.map((c) => {
+              const et = ETAPAS[c.etapa || "nueva"] || ETAPAS.nueva;
+              const nuevo = sinLeer(c);
+              return (
+                <button key={c.canal_id} className={"pb-conv" + (sel === c.canal_id ? " sel" : "") + (c.estado !== "bot" ? " " + c.estado : "") + (nuevo ? " nuevo" : "")} style={{ borderLeftColor: c.estado === "escalada" ? "#e0a000" : et.c }} onClick={() => setSel(c.canal_id)}>
+                  <div className="l1">{nuevo && <span className="punto" />}{canalIcono(c.canal_id)} <b>{c.nombre || "Sin nombre"}</b> <span className="hace">{hace(c.ultimo_cliente_en)}</span></div>
+                  <div className="l2">
+                    <span className="etq" style={{ background: et.c }}>{et.t}</span>
+                    {c.estado === "escalada" && <span className="etq" style={{ background: "#e0a000" }}>EN TU CONTROL</span>}
+                    {c.estado === "pausada" && <span className="etq" style={{ background: "#6b7280" }}>pausada</span>}
+                    {(c.compras ?? 0) > 0 && <span className="etq" style={{ background: "#16a34a" }}>🛍 {c.compras} · {fmx(c.total_compras)}</span>}
+                    {" "}{c.telefono || c.canal_id}{c.cotizacion_id ? ` · ${c.cotizacion_id}` : ""}{c.lote_id ? ` · ${c.lote_id}` : ""}
+                    {pendsDe(c.canal_id).length ? ` · ⏳ ${pendsDe(c.canal_id).length} por aprobar` : ""}
+                  </div>
+                </button>
+              );
+            })}
             {!lista.length && <p className="pb-vacio">Sin conversaciones todavía.</p>}
           </aside>
           <div className="pb-hilo">
@@ -215,6 +351,15 @@ export default function PanelBot() {
                       {hilo.cotizacion ? <> · cot <a href={`/cotizacion/${String(hilo.cotizacion.id)}`} target="_blank">{String(hilo.cotizacion.id)}</a> {fmx(Number(hilo.cotizacion.total))} · {estadoCot(hilo.cotizacion as Cot["sitio"])}</> : null}
                       {hilo.lote ? <> · lote <b>{hilo.lote.id}</b> ({hilo.lote.estado})</> : null}
                     </div>
+                    <div className="sub">
+                      {hilo.compras ? <>🛍 <b>{hilo.compras.n} compra{hilo.compras.n === 1 ? "" : "s"}</b> · {fmx(hilo.compras.total)} · última {new Date(hilo.compras.ultima).toLocaleDateString("es-MX", { timeZone: "America/Mexico_City", day: "numeric", month: "short" })}</> : "Sin compras registradas"}
+                    </div>
+                    <details className="pb-ficha">
+                      <summary>Ficha y notas</summary>
+                      {hilo.compras?.detalle.map((d, i) => <div key={i} className="compra">{new Date(d.fecha).toLocaleDateString("es-MX", { timeZone: "America/Mexico_City", day: "numeric", month: "short", year: "2-digit" })} · {fmx(d.total)} · {d.que}</div>)}
+                      <textarea rows={3} placeholder="Notas de la clienta (qué le gusta, dónde vende, cuándo recompra…)" value={notas} onChange={(e) => setNotas(e.target.value)} />
+                      <button disabled={ocupado} onClick={guardarNotas}>Guardar notas</button>
+                    </details>
                   </div>
                   <div className="acciones">
                     {hilo.conversacion?.estado !== "escalada" && <button onClick={() => estado(sel, "escalada")}>Tomar control</button>}
@@ -261,6 +406,29 @@ export default function PanelBot() {
               </>
             )}
           </div>
+        </section>
+      )}
+
+      {tab === "clientas" && (
+        <section className="pb-cots">
+          <p className="pb-vacio" style={{ padding: "0 0 10px" }}>Todas las clientas que han escrito al bot o comprado en la web, con sus compras. Las que ya compraron y no han vuelto son candidatas a recompra.</p>
+          <table>
+            <thead><tr><th>Clienta</th><th>Teléfono</th><th>Compras</th><th>Total</th><th>Última compra</th><th>Último contacto</th><th>Notas</th></tr></thead>
+            <tbody>
+              {clientas.map((c) => (
+                <tr key={c.telefono} className={c.compras >= 2 ? "pagada" : ""}>
+                  <td>{c.canal_id ? <button className="link" onClick={() => { setTab("chats"); setSel(c.canal_id); }}>{c.nombre || "—"}</button> : (c.nombre || "—")}</td>
+                  <td>{c.telefono}</td>
+                  <td>{c.compras || "—"}</td>
+                  <td>{c.compras ? fmx(c.total) : "—"}</td>
+                  <td>{c.ultima ? new Date(c.ultima).toLocaleDateString("es-MX", { timeZone: "America/Mexico_City", day: "numeric", month: "short", year: "2-digit" }) : "—"}</td>
+                  <td>{c.ultimo_contacto ? hace(c.ultimo_contacto) : "—"}</td>
+                  <td style={{ maxWidth: 260 }}>{c.notas || ""}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {!clientas.length && <p className="pb-vacio">Cargando…</p>}
         </section>
       )}
 
@@ -331,7 +499,17 @@ const estilos = `
   .pb-conv { text-align: left; display: block; width: 100%; border: 1px solid #f2e0d8; background: #fff; color: inherit; border-radius: 10px; padding: 8px 10px; }
   .pb-conv.sel { border-color: #c9807a; background: #fdf3f0; } .pb-conv.escalada { border-left: 4px solid #e0a000; } .pb-conv.pausada { opacity: .6; }
   .pb-conv .l1 { display: flex; gap: 6px; align-items: baseline; } .pb-conv .hace { margin-left: auto; color: #8a7068; font-size: 12px; }
-  .pb-conv .l2 { font-size: 12px; color: #8a7068; margin-top: 2px; }
+  .pb-conv .l2 { font-size: 12px; color: #8a7068; margin-top: 4px; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+  .pb-conv { border-left-width: 5px !important; }
+  .pb-conv.nuevo { background: #fff7f5; } .pb-conv.nuevo b { font-weight: 800; }
+  .pb-conv .punto { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #e11d48; margin-right: 2px; flex: none; }
+  .pb-conv .etq { color: #fff; border-radius: 999px; padding: 1px 8px; font-size: 11px; }
+  .pb-filtros { display: flex; flex-wrap: wrap; gap: 4px; }
+  .pb-filtros .chip { padding: 3px 9px; font-size: 12px; border-radius: 999px; }
+  .pb-badge { display: inline-block; background: #e11d48; color: #fff; border-radius: 999px; font-size: 11px; padding: 0 7px; margin-left: 6px; }
+  .pb-modo .avisos { background: #fde68a; border-color: #e0a000; color: #7a5200; }
+  .pb-ficha { margin-top: 6px; font-size: 13px; } .pb-ficha summary { cursor: pointer; color: #9e5550; }
+  .pb-ficha .compra { color: #5b4a44; font-size: 12px; margin: 2px 0; } .pb-ficha textarea { margin: 6px 0; font-size: 14px; }
   .pb-hilo { display: grid; grid-template-rows: auto 1fr auto; min-height: 0; }
   .pb-hilo-top { display: flex; gap: 10px; align-items: center; padding: 10px 14px; background: #fff; border-bottom: 1px solid #f2e0d8; flex-wrap: wrap; }
   .pb-hilo-top .sub { font-size: 13px; color: #8a7068; } .pb-hilo-top .acciones { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; }
