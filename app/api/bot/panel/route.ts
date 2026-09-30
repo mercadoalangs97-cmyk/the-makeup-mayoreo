@@ -27,6 +27,18 @@ const j = (data: unknown, status = 200) => NextResponse.json(data, { status });
 type Sb = ReturnType<typeof createAdminSupabase>;
 const tel10 = (v: unknown) => String(v ?? "").replace(/\D/g, "").slice(-10);
 
+/** Campos de la ficha de la clienta que el equipo puede editar desde el panel (el bot también los llena). */
+const CAMPOS_CLIENTA = ["nombre", "telefono", "email", "calle", "numero", "colonia", "cp", "municipio", "estado", "referencias"] as const;
+
+/** Nombre corto de quien usa el panel, para firmar sus mensajes ("Mar · panel"). */
+function nombreDe(email: string | null | undefined) {
+  const e = String(email || "").toLowerCase();
+  if (e.startsWith("mar.") || e.startsWith("mar@")) return "Mar";
+  if (e.includes("alan")) return "Alan";
+  const p = e.split("@")[0].split(/[._-]/)[0];
+  return p ? p[0].toUpperCase() + p.slice(1) : "Equipo";
+}
+
 /** Compras pagadas en la web y por el bot, agrupadas por teléfono a 10 dígitos. */
 async function comprasPorTelefono(sb: Sb) {
   const { data } = await sb.from("ordenes_web").select("id,total,wpp,envio,fecha_pago,creado_en,cliente,items").eq("status", "pagado").order("creado_en", { ascending: false }).limit(1000);
@@ -106,10 +118,18 @@ export async function GET(req: Request) {
       const t = tel10(conv?.telefono);
       const [compras, { data: fichas }] = await Promise.all([
         comprasPorTelefono(sb),
-        sb.from("mk_clientes").select("clave,nombre,telefono,email,cp,municipio,estado,notas").or(`clave.eq.${t || "x"},clave.eq.${canal}`).limit(2),
+        sb.from("mk_clientes").select("clave,nombre,telefono,email,calle,numero,colonia,cp,municipio,estado,referencias,notas,actualizada").or(`clave.eq.${t || "x"},clave.eq.${canal}`).limit(2),
       ]);
       const cp = compras.get(t);
-      return j({ mensajes: (msgs || []).reverse(), conversacion: conv, cotizacion, lote, clienta: (fichas || [])[0] || null, compras: cp ? { n: cp.n, total: cp.total, ultima: cp.ultima, detalle: cp.detalle.slice(0, 10) } : null });
+      // Todas las cotizaciones que el bot le hizo a este chat, con cómo van en el sitio.
+      const { data: cbs } = await sb.from("mk_cotizaciones").select("id,lote_id,total,link,creada,seguimientos,cerrada").eq("canal_id", canal).order("creada", { ascending: false }).limit(10);
+      const idsCot = (cbs || []).map((c) => c.id);
+      const { data: sitioCots } = idsCot.length ? await sb.from("cotizaciones").select("id,total,vistas,pago_click_en,pagada,transferencia_aviso_en,apartado_monto,envio_paqueteria").in("id", idsCot) : { data: [] };
+      const sitioPorId = new Map((sitioCots || []).map((c) => [c.id, c]));
+      const cotizaciones = (cbs || []).map((c) => ({ ...c, sitio: sitioPorId.get(c.id) || null }));
+      // La clave de la ficha: el teléfono si lo hay (así la encuentra el bot), si no el canal.
+      const ficha = (fichas || []).find((f) => f.clave === t) || (fichas || [])[0] || null;
+      return j({ mensajes: (msgs || []).reverse(), conversacion: conv, cotizacion, lote, clienta: ficha, claveFicha: t.length === 10 ? t : canal, cotizaciones, compras: cp ? { n: cp.n, total: cp.total, ultima: cp.ultima, detalle: cp.detalle.slice(0, 10) } : null });
     }
     if (q === "clientes") {
       const [compras, { data: fichas }, { data: convs }] = await Promise.all([
@@ -191,6 +211,26 @@ export async function POST(req: Request) {
     return j({ error: "JSON inválido" }, 400);
   }
   const accion = String(body.accion || "");
+  if (accion === "cliente") {
+    const tel = tel10(body.telefonoConv);
+    const canal = String(body.canalId || "");
+    const clave = tel.length === 10 ? tel : canal;
+    if (!clave) return j({ error: "Falta teléfono o canal" }, 400);
+    const datos = (body.datos || {}) as Record<string, unknown>;
+    const fila: Record<string, unknown> = { actualizada: new Date().toISOString() };
+    for (const k of CAMPOS_CLIENTA) {
+      if (!(k in datos)) continue;
+      const v = String(datos[k] ?? "").trim().slice(0, 300);
+      fila[k] = k === "cp" ? v.replace(/\D/g, "").slice(0, 5) || null : v || null;
+    }
+    const sb = createAdminSupabase();
+    const { data: previa } = await sb.from("mk_clientes").select("clave").eq("clave", clave).maybeSingle();
+    const { error } = previa
+      ? await sb.from("mk_clientes").update(fila).eq("clave", clave)
+      : await sb.from("mk_clientes").insert({ clave, canal_ids: canal ? [canal] : [], ...fila, telefono: fila.telefono ?? (tel.length === 10 ? tel : null) });
+    if (error) return j({ error: error.message }, 500);
+    return j({ ok: true });
+  }
   if (accion === "nota") {
     const tel = tel10(body.telefono);
     const canal = String(body.canalId || "");
@@ -206,7 +246,7 @@ export async function POST(req: Request) {
     if (error) return j({ error: error.message }, 500);
     return j({ ok: true });
   }
-  const rutas: Record<string, string> = { enviar: "/admin/enviar", pendiente: "/admin/pendiente", estado: "/admin/estado", modo: "/admin/modo", lote: "/admin/lote", seguimiento: "/admin/seguimiento", borrar: "/admin/borrar" };
+  const rutas: Record<string, string> = { enviar: "/admin/enviar", pendiente: "/admin/pendiente", estado: "/admin/estado", modo: "/admin/modo", lote: "/admin/lote", seguimiento: "/admin/seguimiento", borrar: "/admin/borrar", atendida: "/admin/atendida" };
   const ruta = rutas[accion];
   if (!ruta) return j({ error: "acción desconocida" }, 400);
   if (!process.env.BOT_SECRET) return j({ error: "Falta BOT_SECRET en el servidor" }, 503);
@@ -214,7 +254,7 @@ export async function POST(req: Request) {
     const r = await fetch(BOT_URL + ruta, {
       method: "POST",
       headers: { "content-type": "application/json", "x-bot-secret": process.env.BOT_SECRET },
-      body: JSON.stringify({ ...body, por: "panel", usuario: u.email || u.id }),
+      body: JSON.stringify({ ...body, por: "panel", usuario: u.email || u.id, autor: nombreDe(u.email) }),
       signal: AbortSignal.timeout(30_000),
     });
     const txt = await r.text();

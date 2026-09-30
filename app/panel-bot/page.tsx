@@ -9,10 +9,47 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 type Conv = {
   canal_id: string; canal: string; nombre: string | null; telefono: string | null; estado: string; cotizacion_id: string | null;
   lote_id: string | null; ultimo_cliente_en: string | null; ultimo_bot_en: string | null; resumen: Record<string, unknown> | null;
-  etapa?: string; compras?: number; total_compras?: number;
+  etapa?: string; compras?: number; total_compras?: number; origen?: string | null; creada?: string;
 };
 type Clienta = { telefono: string; nombre: string | null; ciudad: string | null; notas: string | null; canal_id: string | null; ultimo_contacto: string | null; compras: number; total: number; ultima: number };
-type Ficha = { clave: string; nombre: string | null; notas: string | null } | null;
+const CAMPOS = [
+  ["nombre", "Nombre"], ["telefono", "Teléfono de contacto"], ["email", "Correo"], ["calle", "Calle"], ["numero", "Número"],
+  ["colonia", "Colonia"], ["cp", "Código postal"], ["municipio", "Municipio / alcaldía"], ["estado", "Estado"], ["referencias", "Referencias"],
+] as const;
+type CampoFicha = (typeof CAMPOS)[number][0];
+type Ficha = ({ clave: string; notas: string | null; actualizada?: string } & Partial<Record<CampoFicha, string | null>>) | null;
+type CotChat = { id: string; lote_id: string | null; total: number | null; link: string | null; creada: string; seguimientos: number; cerrada: boolean; sitio: Cot["sitio"] };
+
+// Respuestas rápidas del equipo (se agregan al texto; se pueden editar antes de mandar).
+const RAPIDAS: { t: string; x: string }[] = [
+  { t: "Pedir CP", x: "¿Me compartes tu código postal para cotizarte el envío?" },
+  { t: "Datos de envío", x: "Para mandarte tu pedido necesito tu nombre completo, calle y número, colonia, código postal, ciudad y un teléfono de contacto." },
+  { t: "Lo reviso", x: "Déjame revisarlo y en un momento te confirmo." },
+  { t: "Formas de pago", x: "En el link puedes pagar con tarjeta, en OXXO o por transferencia. En cuanto se refleje te aviso por aquí." },
+  { t: "Foto antes de enviar", x: "Antes de enviarlo te mando foto de tu lote ya armado." },
+  { t: "Ya salió", x: "Tu pedido ya salió. Te paso la guía por aquí para que lo rastrees." },
+];
+
+/**
+ * La clienta escribió y nadie le ha contestado. En control del equipo cuenta siempre (hasta 7 días);
+ * con el bot atendiendo, solo entre 5 min (el bot tarda como persona) y 24 h; pausadas no cuentan.
+ */
+function sinResponderDesde(c: Conv | null | undefined): number | null {
+  if (!c?.ultimo_cliente_en || c.estado === "pausada") return null;
+  if (c.ultimo_bot_en && c.ultimo_bot_en >= c.ultimo_cliente_en) return null;
+  const ms = Date.now() - Date.parse(c.ultimo_cliente_en);
+  if (c.estado === "bot" && (ms < 5 * 60_000 || ms > 24 * 3600_000)) return null;
+  if (ms > 7 * 24 * 3600_000) return null;
+  return ms;
+}
+const VENTANA = 24 * 3600_000;
+/** Ventana de 24 h de WhatsApp: ms que quedan (negativo = cerrada). null si no es WhatsApp. */
+function quedaVentana(c: Conv | null | undefined): number | null {
+  if (!c || !c.canal_id.startsWith("wa:")) return null;
+  if (!c.ultimo_cliente_en) return -1;
+  return Date.parse(c.ultimo_cliente_en) + VENTANA - Date.now();
+}
+const duracion = (ms: number) => { const m = Math.max(0, Math.round(ms / 60000)); return m < 60 ? `${m} min` : m < 48 * 60 ? `${Math.floor(m / 60)} h ${m % 60 ? (m % 60) + " min" : ""}`.trim() : `${Math.round(m / 1440)} d`; };
 type Compras = { n: number; total: number; ultima: number; detalle: { total: number; fecha: number; que: string }[] } | null;
 
 // Etapas del CRM (las calcula el servidor con lo que ya se sabe de cada chat).
@@ -25,7 +62,7 @@ const ETAPAS: Record<string, { t: string; c: string }> = {
   recompra: { t: "Recompra", c: "#db2777" },
   perdida: { t: "Perdida", c: "#6b7280" },
 };
-const FILTROS = ["todas", "sin leer", "en tu control", "nueva", "interesada", "cotizada", "apartada", "clienta", "recompra", "perdida"] as const;
+const FILTROS = ["todas", "sin responder", "sin leer", "en tu control", "nueva", "interesada", "cotizada", "apartada", "clienta", "recompra", "perdida"] as const;
 
 /* ---------- "visto" por dispositivo: qué mensajes de clientas ya viste en ESTE panel ---------- */
 const VISTO_KEY = "pb-visto-v1";
@@ -57,7 +94,7 @@ function sonar() {
     });
   } catch { /* sin audio */ }
 }
-type Msg = { id: number; direccion: "in" | "out"; tipo: string; texto: string | null; media: { lote_id?: string; url?: string; tg_file_id?: string } | null; por: string; creado: string; ext_id?: string | null };
+type Msg = { id: number; direccion: "in" | "out"; tipo: string; texto: string | null; media: { lote_id?: string; url?: string; tg_file_id?: string; autor?: string } | null; por: string; creado: string; ext_id?: string | null };
 type Pend = { id: number; canal_id: string; texto: string; adjunto: { tipo: string; lote_id: string } | null; creado: string };
 type Lote = { id: string; nombre: string; piezas: number; precio: number; tipo: string; descripcion: string | null; fotos: { url: string }[]; estado: string; apartado_para: string | null; apartado_hasta: string | null; cotizacion_id: string | null; vendido_a: string | null; salida_registrada: boolean; creado_en: string };
 type Cot = { id: string; canal_id: string; lote_id: string | null; total: number | null; link: string | null; creada: string; seguimientos: number; cerrada: boolean; sitio: { cliente_nombre: string | null; total: number; vistas: number | null; pago_click_en: number | null; pagada: boolean | null; transferencia_aviso_en: number | null; apartado_monto: number | null } | null };
@@ -107,7 +144,10 @@ export default function PanelBot() {
   const previoRef = useRef<Record<string, string> | null>(null);
   const [convs, setConvs] = useState<Conv[]>([]); const [pends, setPends] = useState<Pend[]>([]); const [modo, setModo] = useState("copiloto");
   const [sel, setSel] = useState<string | null>(null);
-  const [hilo, setHilo] = useState<{ mensajes: Msg[]; conversacion: Conv | null; cotizacion: Record<string, unknown> | null; lote: Lote | null; clienta?: Ficha; compras?: Compras } | null>(null);
+  const [hilo, setHilo] = useState<{ mensajes: Msg[]; conversacion: Conv | null; cotizacion: Record<string, unknown> | null; lote: Lote | null; clienta?: Ficha; claveFicha?: string; cotizaciones?: CotChat[]; compras?: Compras } | null>(null);
+  const [ficha, setFicha] = useState<Partial<Record<CampoFicha, string>>>({}); const fichaBase = useRef<Partial<Record<CampoFicha, string>>>({}); const [fichaSucia, setFichaSucia] = useState(false);
+  const [verFicha, setVerFicha] = useState(false);
+  const [, setTic] = useState(0);
   const [lotes, setLotes] = useState<Lote[]>([]); const [cots, setCots] = useState<Cot[]>([]);
   const [texto, setTexto] = useState(""); const [ocupado, setOcupado] = useState(false); const [aviso, setAviso] = useState("");
   const [filtro, setFiltro] = useState("");
@@ -200,12 +240,21 @@ export default function PanelBot() {
   }, [sel, hilo?.conversacion?.ultimo_cliente_en]);
   const sinLeer = useCallback((c: Conv) => Boolean(c.ultimo_cliente_en && c.ultimo_cliente_en > (visto[c.canal_id] || "") && c.canal_id !== sel), [visto, sel]);
   const nSinLeer = convs.filter(sinLeer).length;
-  useEffect(() => { document.title = (nSinLeer ? `(${nSinLeer}) ` : "") + "Panel del bot · The Makeup"; }, [nSinLeer]);
-  // Notas de la clienta abierta.
+  const nSinResp = convs.filter((c) => sinResponderDesde(c) != null).length;
+  useEffect(() => { document.title = (nSinResp ? `🔔${nSinResp} ` : "") + (nSinLeer ? `(${nSinLeer}) ` : "") + "Panel del bot · The Makeup"; }, [nSinLeer, nSinResp]);
+  // Ficha y notas de la clienta abierta. Mientras no la estés editando, se refresca con lo que el bot vaya guardando.
   useEffect(() => {
-    if (!sel || notasCanal === sel) return;
-    if (hilo?.conversacion?.canal_id === sel) { setNotas(hilo.clienta?.notas || ""); setNotasCanal(sel); }
-  }, [sel, hilo, notasCanal]);
+    if (!sel || hilo?.conversacion?.canal_id !== sel) return;
+    const nueva = notasCanal !== sel;
+    if (nueva) { setNotas(hilo.clienta?.notas || ""); setNotasCanal(sel); setFichaSucia(false); }
+    if (nueva || !fichaSucia) {
+      const f = hilo.clienta || null; const cv = hilo.conversacion;
+      const base = Object.fromEntries(CAMPOS.map(([k]) => [k, String((f?.[k] ?? (k === "nombre" ? cv?.nombre : k === "telefono" ? cv?.telefono?.slice(-10) : "")) || "")]));
+      fichaBase.current = base; setFicha(base);
+    }
+  }, [sel, hilo, notasCanal, fichaSucia]);
+  // Los "hace X min" y la ventana de 24 h se recalculan solos.
+  useEffect(() => { const t = setInterval(() => setTic((n) => n + 1), 30_000); return () => clearInterval(t); }, []);
   useEffect(() => { finRef.current?.scrollIntoView({ block: "end" }); }, [hilo?.mensajes.length]);
 
   async function entrar(e: React.FormEvent) {
@@ -215,7 +264,7 @@ export default function PanelBot() {
     if (error) setErrLogin("Correo o contraseña incorrectos.");
   }
   async function enviar() {
-    if (!sel || !texto.trim()) return;
+    if (!sel || !texto.trim() || ocupado) return;
     const d = await accion({ accion: "enviar", canalId: sel, texto: texto.trim() });
     if (d?.ok) { setTexto(""); await cargarHilo(sel); await cargarLista(); }
   }
@@ -252,6 +301,22 @@ export default function PanelBot() {
     setAvisosOn(true);
     sonar();
   }
+  async function guardarFicha() {
+    if (!sel) return;
+    // Solo lo que cambiaste: si el bot guardó otro dato mientras editabas, no se pisa.
+    const datos = Object.fromEntries(CAMPOS.map(([k]) => k).filter((k) => (ficha[k] || "") !== (fichaBase.current[k] || "")).map((k) => [k, ficha[k] || ""]));
+    if (!Object.keys(datos).length) { setFichaSucia(false); return; }
+    const d = await accion({ accion: "cliente", canalId: sel, telefonoConv: hilo?.conversacion?.telefono, datos });
+    if (d?.ok) { setFichaSucia(false); setAviso("✅ Datos de la clienta guardados (el bot ya los ve)"); await cargarHilo(sel); }
+  }
+  function copiarDireccion() {
+    const f = ficha;
+    const txt = [f.nombre, [f.calle, f.numero].filter(Boolean).join(" "), f.colonia && `Col. ${f.colonia}`, [f.cp && `C.P. ${f.cp}`, f.municipio, f.estado].filter(Boolean).join(", "), f.referencias && `Referencias: ${f.referencias}`, f.telefono && `Tel. ${f.telefono}`].filter(Boolean).join("\n");
+    navigator.clipboard?.writeText(txt).then(() => setAviso("📋 Dirección copiada"), () => setAviso("❌ No se pudo copiar"));
+  }
+  async function atendida(canal: string) {
+    if (await accion({ accion: "atendida", canalId: canal })) { await cargarLista(); if (sel === canal) await cargarHilo(canal); }
+  }
   async function guardarNotas() {
     if (!sel) return;
     const d = await accion({ accion: "nota", canalId: sel, telefono: hilo?.conversacion?.telefono, nombre: hilo?.conversacion?.nombre, notas });
@@ -267,10 +332,12 @@ export default function PanelBot() {
     const f = filtro.trim().toLowerCase();
     return convs
       .filter((c) => !f || (c.nombre ?? "").toLowerCase().includes(f) || (c.telefono ?? "").includes(f) || c.canal_id.includes(f))
-      .filter((c) => filtroEtapa === "todas" ? true : filtroEtapa === "sin leer" ? sinLeer(c) : filtroEtapa === "en tu control" ? c.estado === "escalada" : c.etapa === filtroEtapa);
+      .filter((c) => filtroEtapa === "todas" ? true : filtroEtapa === "sin responder" ? sinResponderDesde(c) != null : filtroEtapa === "sin leer" ? sinLeer(c) : filtroEtapa === "en tu control" ? c.estado === "escalada" : c.etapa === filtroEtapa);
   }, [convs, filtro, filtroEtapa, sinLeer]);
-  const conteo = (f: (typeof FILTROS)[number]) => f === "todas" ? convs.length : f === "sin leer" ? nSinLeer : f === "en tu control" ? convs.filter((c) => c.estado === "escalada").length : convs.filter((c) => c.etapa === f).length;
+  const conteo = (f: (typeof FILTROS)[number]) => f === "todas" ? convs.length : f === "sin responder" ? nSinResp : f === "sin leer" ? nSinLeer : f === "en tu control" ? convs.filter((c) => c.estado === "escalada").length : convs.filter((c) => c.etapa === f).length;
   const pendsDe = (canal: string) => pends.filter((p) => p.canal_id === canal);
+  const qvSel = quedaVentana(hilo?.conversacion);
+  const cerradaSel = qvSel != null && qvSel <= 0;
 
   if (!token) {
     return (
@@ -299,7 +366,11 @@ export default function PanelBot() {
           <button className={tab === "cots" ? "on" : ""} onClick={() => { setTab("cots"); cargarCots(); }}>Cotizaciones</button>
         </nav>
         <span className="pb-modo">
-          {!avisosOn && <button className="avisos" onClick={activarAvisos}>🔔 Activar avisos</button>}
+          <button className={"campana" + (nSinResp ? " alerta" : "")} title={nSinResp ? `${nSinResp} conversación(es) esperando respuesta` : "Nadie está esperando respuesta"}
+            onClick={() => { if (!avisosOn) activarAvisos(); setTab("chats"); setFiltroEtapa(nSinResp ? "sin responder" : "todas"); if (window.innerWidth < 760) setSel(null); }}>
+            🔔{nSinResp ? <span className="pb-badge">{nSinResp}</span> : null}
+          </button>
+          {!avisosOn && <button className="avisos" onClick={activarAvisos}>🔈 Activar avisos</button>}
           modo <b>{modo}</b>
           <button onClick={async () => { const n = modo === "auto" ? "copiloto" : "auto"; if (await accion({ accion: "modo", modo: n })) setModo(n); }}>cambiar</button>
           <button onClick={() => sb?.auth.signOut()}>salir</button>
@@ -322,9 +393,11 @@ export default function PanelBot() {
             {lista.map((c) => {
               const et = ETAPAS[c.etapa || "nueva"] || ETAPAS.nueva;
               const nuevo = sinLeer(c);
+              const sr = sinResponderDesde(c);
+              const qv = quedaVentana(c);
               return (
-                <button key={c.canal_id} className={"pb-conv" + (sel === c.canal_id ? " sel" : "") + (c.estado !== "bot" ? " " + c.estado : "") + (nuevo ? " nuevo" : "")} style={{ borderLeftColor: c.estado === "escalada" ? "#e0a000" : et.c }} onClick={() => setSel(c.canal_id)}>
-                  <div className="l1">{nuevo && <span className="punto" />}{canalIcono(c.canal_id)} <b>{c.nombre || "Sin nombre"}</b> <span className="hace">{hace(c.ultimo_cliente_en)}</span></div>
+                <button key={c.canal_id} className={"pb-conv" + (sel === c.canal_id ? " sel" : "") + (c.estado !== "bot" ? " " + c.estado : "") + (nuevo ? " nuevo" : "") + (sr != null ? " sinresp" : "")} style={{ borderLeftColor: c.estado === "escalada" ? "#e0a000" : et.c }} onClick={() => setSel(c.canal_id)}>
+                  <div className="l1">{nuevo && <span className="punto" />}{canalIcono(c.canal_id)} <b>{c.nombre || "Sin nombre"}</b> {sr != null && <span className="campanita" title="Te escribió y nadie le ha contestado">🔔 {duracion(sr)}</span>}<span className="hace">{hace(c.ultimo_cliente_en)}</span></div>
                   <div className="l2">
                     <span className="etq" style={{ background: et.c }}>{et.t}</span>
                     {c.estado === "escalada" && <span className="etq" style={{ background: "#e0a000" }}>EN TU CONTROL</span>}
@@ -332,6 +405,7 @@ export default function PanelBot() {
                     {(c.compras ?? 0) > 0 && <span className="etq" style={{ background: "#16a34a" }}>🛍 {c.compras} · {fmx(c.total_compras)}</span>}
                     {" "}{c.telefono || c.canal_id}{c.cotizacion_id ? ` · ${c.cotizacion_id}` : ""}{c.lote_id ? ` · ${c.lote_id}` : ""}
                     {pendsDe(c.canal_id).length ? ` · ⏳ ${pendsDe(c.canal_id).length} por aprobar` : ""}
+                    {qv != null && qv > 0 && qv < 6 * 3600_000 && (c.etapa === "cotizada" || c.etapa === "apartada" || c.estado === "escalada") ? <span className="etq" style={{ background: "#b45309" }}>⏳ ventana cierra en {duracion(qv)}</span> : null}
                   </div>
                 </button>
               );
@@ -340,72 +414,163 @@ export default function PanelBot() {
           </aside>
           <div className="pb-hilo">
             {!sel && <p className="pb-vacio">Elige una conversación.</p>}
-            {sel && hilo && (
-              <>
-                <div className="pb-hilo-top">
-                  <button className="volver" onClick={() => setSel(null)}>←</button>
-                  <div>
-                    <b>{hilo.conversacion?.nombre || "Sin nombre"}</b> <small>{hilo.conversacion?.telefono || sel}</small>
-                    <div className="sub">
-                      estado <b>{hilo.conversacion?.estado}</b>
-                      {hilo.cotizacion ? <> · cot <a href={`/cotizacion/${String(hilo.cotizacion.id)}`} target="_blank">{String(hilo.cotizacion.id)}</a> {fmx(Number(hilo.cotizacion.total))} · {estadoCot(hilo.cotizacion as Cot["sitio"])}</> : null}
-                      {hilo.lote ? <> · lote <b>{hilo.lote.id}</b> ({hilo.lote.estado})</> : null}
-                    </div>
-                    <div className="sub">
-                      {hilo.compras ? <>🛍 <b>{hilo.compras.n} compra{hilo.compras.n === 1 ? "" : "s"}</b> · {fmx(hilo.compras.total)} · última {new Date(hilo.compras.ultima).toLocaleDateString("es-MX", { timeZone: "America/Mexico_City", day: "numeric", month: "short" })}</> : "Sin compras registradas"}
-                    </div>
-                    <details className="pb-ficha">
-                      <summary>Ficha y notas</summary>
-                      {hilo.compras?.detalle.map((d, i) => <div key={i} className="compra">{new Date(d.fecha).toLocaleDateString("es-MX", { timeZone: "America/Mexico_City", day: "numeric", month: "short", year: "2-digit" })} · {fmx(d.total)} · {d.que}</div>)}
-                      <textarea rows={3} placeholder="Notas de la clienta (qué le gusta, dónde vende, cuándo recompra…)" value={notas} onChange={(e) => setNotas(e.target.value)} />
-                      <button disabled={ocupado} onClick={guardarNotas}>Guardar notas</button>
-                    </details>
-                  </div>
-                  <div className="acciones">
-                    {hilo.conversacion?.estado !== "escalada" && <button onClick={() => estado(sel, "escalada")}>Tomar control</button>}
-                    {hilo.conversacion?.estado !== "bot" && <button onClick={() => estado(sel, "bot")}>Devolver al bot</button>}
-                    {hilo.conversacion?.estado !== "pausada" && <button onClick={() => estado(sel, "pausada")}>Pausar</button>}
-                    <button onClick={() => accion({ accion: "seguimiento", canalId: sel })}>Seguimiento</button>
-                  </div>
-                </div>
-                <div className="pb-msgs" onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); adjuntar(e.dataTransfer.files?.[0]); }}>
-                  {hilo.mensajes.map((m) => (
-                    <div key={m.id} className={"pb-msg " + (m.direccion === "in" ? "in" : m.por === "alan" ? "alan" : m.por === "sistema" ? "sis" : "bot")}>
-                      {m.tipo === "fotos" && m.media?.lote_id !== "panel" && <div className="tag">📷 fotos del {m.media?.lote_id}</div>}
-                      {m.media?.url && <img className="foto" src={m.media.url} alt="" loading="lazy" />}
-                      {m.tipo === "photo" && !m.media?.url && <div className="tag">📎 foto de la clienta</div>}
-                      <div className="txt">{m.texto}</div>
-                      <div className="meta">{m.direccion === "in" ? "clienta" : m.por} · {hora(m.creado)}
-                        {m.direccion === "out" && m.ext_id && sel?.startsWith("tg:") && Date.now() - Date.parse(m.creado) < 47 * 3600_000 && m.texto !== "[mensaje borrado]" && (
-                          <button className="borrar" title="Borrar para la clienta (solo Telegram)" onClick={async () => { if (window.confirm("¿Borrar este mensaje del chat de la clienta?")) { const d = await accion({ accion: "borrar", canalId: sel, extId: m.ext_id }); if (d?.ok) cargarHilo(sel); } }}>🗑</button>
-                        )}
+            {sel && hilo && (() => {
+              const cv = hilo.conversacion;
+              const sr = sinResponderDesde(cv);
+              const qv = quedaVentana(cv);
+              const cerrada = qv != null && qv <= 0;
+              const ESTADOS: Record<string, { t: string; c: string }> = { bot: { t: "🟢 Atiende el bot", c: "#16a34a" }, escalada: { t: "🙋 En control del equipo", c: "#e0a000" }, pausada: { t: "⏸ Pausada: nadie contesta", c: "#6b7280" } };
+              const est = ESTADOS[cv?.estado || "bot"] || ESTADOS.bot;
+              let diaPrevio = "";
+              return (
+                <>
+                  <div className="pb-hilo-top">
+                    <button className="volver" onClick={() => setSel(null)}>←</button>
+                    <div>
+                      <b>{cv?.nombre || "Sin nombre"}</b> <small>{cv?.telefono || sel}</small>
+                      <div className="sub">
+                        <span className="etq" style={{ background: est.c }}>{est.t}</span>
+                        {qv != null && <span className={"etq" + (cerrada || qv < 6 * 3600_000 ? " alerta" : " suave")}>{cerrada ? "Ventana de 24 h cerrada" : `Ventana abierta hasta las ${new Date(Date.now() + qv).toLocaleTimeString("es-MX", { timeZone: "America/Mexico_City", hour: "2-digit", minute: "2-digit" })} (quedan ${duracion(qv)})`}</span>}
+                        {hilo.cotizacion ? <> · cot <a href={`/cotizacion/${String(hilo.cotizacion.id)}`} target="_blank">{String(hilo.cotizacion.id)}</a> {fmx(Number(hilo.cotizacion.total))} · {estadoCot(hilo.cotizacion as Cot["sitio"])}</> : null}
+                        {hilo.lote ? <> · lote <b>{hilo.lote.id}</b> ({hilo.lote.estado})</> : null}
                       </div>
                     </div>
-                  ))}
-                  {pendsDe(sel).map((p) => (
-                    <div key={"p" + p.id} className="pb-msg pend">
-                      <div className="tag">⏳ Propuesta del bot por aprobar{p.adjunto ? ` (con fotos del ${p.adjunto.lote_id})` : ""}</div>
-                      <div className="txt">{p.texto}</div>
-                      <div className="btns">
-                        <button disabled={ocupado} onClick={() => pendiente(p.id, "ok")}>✅ Aprobar</button>
-                        <button disabled={ocupado} onClick={() => pendiente(p.id, "editar")}>✏️ Editar</button>
-                        <button disabled={ocupado} onClick={() => pendiente(p.id, "no")}>🗑 Descartar</button>
-                      </div>
+                    <div className="acciones">
+                      {cv?.estado !== "escalada" && <button onClick={() => estado(sel, "escalada")} title="El bot se calla; tú contestas">🙋 Tomar control</button>}
+                      {cv?.estado !== "bot" && <button onClick={() => estado(sel, "bot")} title="El bot vuelve y contesta lo que quedó pendiente">🤖 Devolver al bot</button>}
+                      {cv?.estado !== "pausada" && <button onClick={() => estado(sel, "pausada")}>⏸ Pausar</button>}
+                      <button onClick={() => accion({ accion: "seguimiento", canalId: sel })}>Seguimiento</button>
+                      <button onClick={() => atendida(sel)} title="Ya no necesita respuesta (p. ej. un «gracias»): quita la campana">👌 Atendida</button>
+                      <button className="ver-ficha" onClick={() => setVerFicha(true)}>👤 Ficha</button>
                     </div>
-                  ))}
-                  <div ref={finRef} />
-                </div>
-                <div className="pb-escribir">
-                  <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => adjuntar(e.target.files?.[0])} />
-                  <button className="clip" title="Adjuntar foto (se manda con el texto como pie)" disabled={ocupado} onClick={() => fileRef.current?.click()}>📎</button>
-                  <textarea placeholder="Escribir a la clienta (la conversación pasa a tu control). Puedes pegar o arrastrar una foto aquí." value={texto} onChange={(e) => setTexto(e.target.value)} rows={2}
-                    onPaste={(e) => { const f = Array.from(e.clipboardData.files || []).find((x) => x.type.startsWith("image/")); if (f) { e.preventDefault(); adjuntar(f); } }}
-                    onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); adjuntar(e.dataTransfer.files?.[0]); }} />
-                  <button disabled={ocupado || !texto.trim()} onClick={enviar}>Enviar</button>
-                </div>
-              </>
-            )}
+                  </div>
+                  {sr != null && (
+                    <div className="pb-banda">
+                      🔔 Te escribió hace <b>{duracion(sr)}</b> y nadie le ha contestado{cv?.estado === "bot" ? " (el bot no respondió: revisa o tómala)" : ""}.
+                      <button onClick={() => atendida(sel)}>👌 No necesita respuesta</button>
+                    </div>
+                  )}
+                  <div className="pb-msgs" onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); adjuntar(e.dataTransfer.files?.[0]); }}>
+                    {hilo.mensajes.map((m) => {
+                      const dia = new Date(m.creado).toLocaleDateString("es-MX", { timeZone: "America/Mexico_City", weekday: "long", day: "numeric", month: "long" });
+                      const cab = dia !== diaPrevio ? <div className="pb-dia">{dia[0].toUpperCase() + dia.slice(1)}</div> : null;
+                      diaPrevio = dia;
+                      const autor = m.direccion === "in" ? (cv?.nombre || "clienta") : m.media?.autor || (m.por === "alan" ? "Equipo" : m.por === "bot" ? "Bot" : m.por);
+                      return (
+                        <div key={m.id} className="pb-grupo">
+                          {cab}
+                          <div className={"pb-msg " + (m.direccion === "in" ? "in" : m.por === "alan" ? "alan" : m.por === "sistema" ? "sis" : "bot")}>
+                            {m.tipo === "fotos" && m.media?.lote_id !== "panel" && <div className="tag">📷 fotos del {m.media?.lote_id}</div>}
+                            {m.media?.url && <img className="foto" src={m.media.url} alt="" loading="lazy" />}
+                            {m.tipo === "photo" && !m.media?.url && <div className="tag">📎 foto de la clienta</div>}
+                            <div className="txt">{m.texto}</div>
+                            <div className="meta">{autor} · {new Date(m.creado).toLocaleTimeString("es-MX", { timeZone: "America/Mexico_City", hour: "2-digit", minute: "2-digit" })}
+                              {m.direccion === "out" && m.ext_id && sel?.startsWith("tg:") && Date.now() - Date.parse(m.creado) < 47 * 3600_000 && m.texto !== "[mensaje borrado]" && (
+                                <button className="borrar" title="Borrar para la clienta (solo Telegram)" onClick={async () => { if (window.confirm("¿Borrar este mensaje del chat de la clienta?")) { const d = await accion({ accion: "borrar", canalId: sel, extId: m.ext_id }); if (d?.ok) cargarHilo(sel); } }}>🗑</button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {pendsDe(sel).map((p) => (
+                      <div key={"p" + p.id} className="pb-msg pend">
+                        <div className="tag">⏳ Propuesta del bot por aprobar{p.adjunto ? ` (con fotos del ${p.adjunto.lote_id})` : ""}</div>
+                        <div className="txt">{p.texto}</div>
+                        <div className="btns">
+                          <button disabled={ocupado} onClick={() => pendiente(p.id, "ok")}>✅ Aprobar</button>
+                          <button disabled={ocupado} onClick={() => pendiente(p.id, "editar")}>✏️ Editar</button>
+                          <button disabled={ocupado} onClick={() => pendiente(p.id, "no")}>🗑 Descartar</button>
+                        </div>
+                      </div>
+                    ))}
+                    <div ref={finRef} />
+                  </div>
+                  {cerrada ? (
+                    <div className="pb-cerrada">
+                      ⏳ La ventana de 24 h de WhatsApp está cerrada{cv?.ultimo_cliente_en ? ` (escribió por última vez el ${hora(cv.ultimo_cliente_en)})` : ""}. WhatsApp solo deja mandar plantillas aprobadas:
+                      los seguimientos y avisos de pago/guía salen solos. En cuanto la clienta vuelva a escribir, se abre otra vez.
+                    </div>
+                  ) : (
+                    <div className="pb-caja">
+                      <div className="pb-rapidas">
+                        {RAPIDAS.map((r) => <button key={r.t} className="chip" title={r.x} onClick={() => setTexto((t) => (t.trim() ? t.trimEnd() + "\n" : "") + r.x)}>{r.t}</button>)}
+                      </div>
+                      <div className="pb-escribir">
+                        <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => adjuntar(e.target.files?.[0])} />
+                        <button className="clip" title="Adjuntar foto (se manda con el texto como pie)" disabled={ocupado} onClick={() => fileRef.current?.click()}>📎</button>
+                        <textarea placeholder="Escribir a la clienta (Ctrl+Enter manda; la conversación pasa a tu control). Puedes pegar o arrastrar una foto aquí." value={texto} onChange={(e) => setTexto(e.target.value)} rows={2}
+                          onKeyDown={(e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); enviar(); } }}
+                          onPaste={(e) => { const f = Array.from(e.clipboardData.files || []).find((x) => x.type.startsWith("image/")); if (f) { e.preventDefault(); adjuntar(f); } }}
+                          onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); adjuntar(e.dataTransfer.files?.[0]); }} />
+                        <button disabled={ocupado || !texto.trim()} onClick={enviar}>{ocupado ? "Enviando…" : "Enviar"}</button>
+                      </div>
+                      <small className="pb-quien">{cv?.estado === "bot" ? "El bot está atendiendo; si le escribes, la conversación pasa a tu control y el bot se calla." : cv?.estado === "escalada" ? "En control del equipo: el bot no contesta." : "Pausada: el bot no contesta."}</small>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
           </div>
+          {sel && hilo && (
+            <aside className={"pb-lado" + (verFicha ? " ver" : "")} aria-label="Ficha de la clienta">
+              <div className="pb-lado-top"><h3>Clienta</h3><button className="cerrar" onClick={() => setVerFicha(false)}>✕</button></div>
+              <div className="pb-campos">
+                {CAMPOS.map(([k, etiqueta]) => (
+                  <label key={k} className={k === "referencias" || k === "calle" || k === "nombre" ? "ancho" : ""}>
+                    <span>{etiqueta}</span>
+                    <input value={ficha[k] || ""} inputMode={k === "cp" || k === "telefono" ? "numeric" : undefined} onChange={(e) => { setFicha((f) => ({ ...f, [k]: e.target.value })); setFichaSucia(true); }} />
+                  </label>
+                ))}
+              </div>
+              <div className="btns">
+                <button className="primario" disabled={ocupado || !fichaSucia} onClick={guardarFicha}>{fichaSucia ? "Guardar datos" : "Guardado"}</button>
+                <button onClick={copiarDireccion}>📋 Copiar dirección</button>
+                {fichaSucia && <button onClick={() => { setFichaSucia(false); }}>Descartar cambios</button>}
+              </div>
+              <p className="nota">El bot llena estos datos cuando la clienta los da y usa lo que guardes aquí para cotizar y enviar.</p>
+
+              <div className="bloque">
+                <h4>Contacto</h4>
+                <div className="kv"><span>{sel.startsWith("wa:") ? "WhatsApp" : "Telegram"}</span><b>{hilo.conversacion?.telefono || sel}</b></div>
+                <div className="kv"><span>Etapa</span><b>{ETAPAS[convs.find((c) => c.canal_id === sel)?.etapa || "nueva"]?.t}</b></div>
+                {hilo.conversacion?.creada && <div className="kv"><span>Primer contacto</span><b>{hora(hilo.conversacion.creada)}</b></div>}
+                {hilo.conversacion?.origen && <div className="kv"><span>Origen</span><b>{hilo.conversacion.origen}</b></div>}
+                {hilo.lote && <div className="kv"><span>Lote</span><b>{hilo.lote.id} · {hilo.lote.estado}{hilo.lote.apartado_hasta ? ` hasta ${hora(hilo.lote.apartado_hasta)}` : ""}</b></div>}
+              </div>
+
+              <div className="bloque">
+                <h4>Cotizaciones</h4>
+                {!hilo.cotizaciones?.length && <p className="nota">El bot todavía no le cotiza.</p>}
+                {hilo.cotizaciones?.map((q) => {
+                  const link = q.link || `https://www.themakeup.com.mx/cotizacion/${q.id}`;
+                  return (
+                    <div key={q.id} className={"cot" + (q.sitio?.pagada ? " pagada" : "")}>
+                      <div className="kv"><b><a href={link} target="_blank">{q.id}</a></b><b>{fmx(q.sitio?.total ?? q.total)}</b></div>
+                      <small>{hora(q.creada)} · {estadoCot(q.sitio)}{q.lote_id ? ` · ${q.lote_id}` : ""} · seguimientos {q.seguimientos}/3</small>
+                      <div className="btns">
+                        <a className="btn" href={link} target="_blank">Ver</a>
+                        {!q.sitio?.pagada && !cerradaSel && <button disabled={ocupado} onClick={async () => { if (!window.confirm(`¿Mandarle el link de la ${q.id}? La conversación pasa a tu control.`)) return; const d = await accion({ accion: "enviar", canalId: sel, texto: `Te dejo tu cotización para que la revises y pagues cuando gustes: ${link}` }); if (d?.ok) { await cargarHilo(sel); await cargarLista(); } }}>Mandar link</button>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="bloque">
+                <h4>Compras {hilo.compras ? `· ${hilo.compras.n} · ${fmx(hilo.compras.total)}` : ""}</h4>
+                {!hilo.compras && <p className="nota">Sin compras registradas con este teléfono.</p>}
+                {hilo.compras?.detalle.map((d, i) => <div key={i} className="compra">{new Date(d.fecha).toLocaleDateString("es-MX", { timeZone: "America/Mexico_City", day: "numeric", month: "short", year: "2-digit" })} · {fmx(d.total)} · {d.que}</div>)}
+              </div>
+
+              <div className="bloque">
+                <h4>Notas internas</h4>
+                <p className="nota">Solo para el equipo: el bot no las lee ni se las dice a la clienta.</p>
+                <textarea rows={4} placeholder="Ej.: vende en tianguis los sábados, prefiere transferencia, recompra cada mes" value={notas} onChange={(e) => setNotas(e.target.value)} />
+                <button disabled={ocupado} onClick={guardarNotas}>Guardar nota</button>
+              </div>
+            </aside>
+          )}
         </section>
       )}
 
@@ -536,9 +701,56 @@ const estilos = `
   .pb-cots { padding: 14px; overflow: auto; } .pb-cots table { border-collapse: collapse; width: 100%; background: #fff; font-size: 14px; }
   .pb-cots th, .pb-cots td { padding: 8px 10px; border-bottom: 1px solid #f2e0d8; text-align: left; } .pb-cots tr.pagada { background: #f0fbf3; } .pb-cots tr.cerrada { opacity: .6; }
   .pb-cots button.link { border: 0; background: none; color: #9e5550; text-decoration: underline; padding: 0; }
+  .pb-modo .campana { font-size: 16px; padding: 5px 10px; position: relative; }
+  .pb-modo .campana.alerta { background: #fee2e2; border-color: #e11d48; animation: pb-late 1.6s ease-in-out infinite; }
+  @keyframes pb-late { 0%, 100% { transform: rotate(0); } 10% { transform: rotate(-14deg); } 20% { transform: rotate(12deg); } 30% { transform: rotate(-8deg); } 40% { transform: rotate(0); } }
+  .pb-conv .campanita { background: #e11d48; color: #fff; border-radius: 999px; font-size: 11px; padding: 1px 7px; font-weight: 600; white-space: nowrap; }
+  .pb-conv.sinresp { box-shadow: inset 0 0 0 1px #e11d48; }
+  .pb-hilo-top .etq { color: #fff; border-radius: 999px; padding: 1px 9px; font-size: 12px; margin-right: 6px; display: inline-block; }
+  .pb-hilo-top .etq.suave { background: #eef6ee; color: #3f6b46; } .pb-hilo-top .etq.alerta { background: #fde7d7; color: #9a3412; }
+  .pb-hilo-top .sub { margin-top: 4px; }
+  .pb-hilo { grid-template-rows: auto auto 1fr auto; }
+  .pb-banda { background: #fee2e2; color: #9f1239; padding: 8px 14px; font-size: 14px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; border-bottom: 1px solid #fecdd3; }
+  .pb-banda button { padding: 4px 10px; font-size: 13px; }
+  .pb-dia { text-align: center; font-size: 12px; color: #8a7068; margin: 8px 0 2px; }
+  .pb-grupo { display: grid; }
+  .pb-caja { background: #fff; border-top: 1px solid #f2e0d8; }
+  .pb-caja .pb-escribir { border-top: 0; padding-top: 4px; }
+  .pb-rapidas { display: flex; gap: 6px; flex-wrap: wrap; padding: 8px 14px 0; }
+  .pb-rapidas .chip { padding: 3px 10px; font-size: 12px; border-radius: 999px; }
+  .pb-quien { display: block; color: #8a7068; font-size: 12px; padding: 0 14px 8px; }
+  .pb-cerrada { background: #fff7ed; color: #9a3412; padding: 12px 14px; font-size: 14px; border-top: 1px solid #fed7aa; }
+  .pb-chats.con-hilo { grid-template-columns: 320px 1fr 330px; }
+  .pb-lado { background: #fff; border-left: 1px solid #f2e0d8; overflow: auto; padding: 12px 14px; font-size: 14px; }
+  .pb-lado-top { display: flex; align-items: center; justify-content: space-between; } .pb-lado h3 { margin: 0; font-size: 17px; }
+  .pb-lado .cerrar { display: none; padding: 2px 9px; }
+  .pb-lado h4 { margin: 0 0 6px; font-size: 14px; color: #9e5550; }
+  .pb-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 8px; margin: 10px 0 8px; }
+  .pb-campos label { display: grid; gap: 2px; } .pb-campos label.ancho { grid-column: 1 / -1; }
+  .pb-campos span { font-size: 11px; color: #8a7068; } .pb-campos input { padding: 7px 9px; }
+  .pb-lado .btns { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0; } .pb-lado .btns button, .pb-lado .btn { padding: 5px 10px; font-size: 13px; }
+  .pb-lado .btn { border: 1px solid #c9807a; border-radius: 10px; color: #9e5550; text-decoration: none; }
+  .pb-lado button.primario:not(:disabled) { background: #c9807a; color: #fff; }
+  .pb-lado .nota { color: #8a7068; font-size: 12px; margin: 4px 0 8px; }
+  .pb-lado .bloque { border-top: 1px solid #f2e0d8; padding-top: 10px; margin-top: 10px; }
+  .pb-lado .kv { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; margin: 3px 0; } .pb-lado .kv span { color: #8a7068; }
+  .pb-lado .cot { border: 1px solid #f2e0d8; border-radius: 10px; padding: 8px; margin-bottom: 6px; } .pb-lado .cot.pagada { background: #f0fbf3; }
+  .pb-lado .cot small { color: #8a7068; font-size: 12px; } .pb-lado .compra { font-size: 12px; color: #5b4a44; margin: 3px 0; }
+  .pb-lado textarea { font-size: 14px; margin-bottom: 6px; }
+  .pb-hilo-top .ver-ficha { display: none; }
+  @media (max-width: 1100px) {
+    .pb-chats.con-hilo { grid-template-columns: 320px 1fr; }
+    .pb-hilo-top .ver-ficha { display: inline-block; }
+    .pb-lado { display: none; position: fixed; top: 0; right: 0; bottom: 0; width: min(380px, 100%); z-index: 5; box-shadow: -8px 0 24px #0002; }
+    .pb-lado.ver { display: block; } .pb-lado .cerrar { display: inline-block; }
+  }
   @media (max-width: 760px) {
-    .pb-chats { grid-template-columns: 1fr; }
+    .pb-chats, .pb-chats.con-hilo { grid-template-columns: 1fr; }
     .pb-chats.con-hilo .pb-lista { display: none; } .pb-chats:not(.con-hilo) .pb-hilo { display: none; }
     .pb-hilo-top .volver { display: inline-block; } .pb-msg { max-width: 92%; }
+    .pb-hilo-top { padding: 8px 10px; gap: 6px; } .pb-hilo-top .acciones { margin-left: 0; gap: 4px; }
+    .pb-hilo-top .acciones button { padding: 4px 8px; font-size: 12px; }
+    .pb-top { padding: 8px 10px; } .pb-top nav button, .pb-modo button { padding: 5px 9px; font-size: 13px; }
+    .pb-banda { padding: 6px 10px; font-size: 13px; }
   }
 `;
