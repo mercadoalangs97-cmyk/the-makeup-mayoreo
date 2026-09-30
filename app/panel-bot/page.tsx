@@ -15,6 +15,21 @@ type Pend = { id: number; canal_id: string; texto: string; adjunto: { tipo: stri
 type Lote = { id: string; nombre: string; piezas: number; precio: number; tipo: string; descripcion: string | null; fotos: { url: string }[]; estado: string; apartado_para: string | null; apartado_hasta: string | null; cotizacion_id: string | null; vendido_a: string | null; salida_registrada: boolean; creado_en: string };
 type Cot = { id: string; canal_id: string; lote_id: string | null; total: number | null; link: string | null; creada: string; seguimientos: number; cerrada: boolean; sitio: { cliente_nombre: string | null; total: number; vistas: number | null; pago_click_en: number | null; pagada: boolean | null; transferencia_aviso_en: number | null; apartado_monto: number | null } | null };
 
+/** Achica una imagen a máx 1600 px y la pasa a JPEG (sirve también para HEIC en Safari). */
+async function achicarFoto(f: File): Promise<Blob> {
+  const url = URL.createObjectURL(f);
+  try {
+    const img = await new Promise<HTMLImageElement>((ok, mal) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => mal(new Error("No pude abrir la foto")); i.src = url; });
+    const esc = Math.min(1, 1600 / Math.max(img.naturalWidth, img.naturalHeight));
+    const c = document.createElement("canvas");
+    c.width = Math.round(img.naturalWidth * esc); c.height = Math.round(img.naturalHeight * esc);
+    c.getContext("2d")!.drawImage(img, 0, 0, c.width, c.height);
+    return await new Promise<Blob>((ok, mal) => c.toBlob((b) => (b ? ok(b) : mal(new Error("No pude convertir la foto"))), "image/jpeg", 0.85));
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
 const fmx = (n: number | null | undefined) => (n == null ? "—" : "$" + Number(n).toLocaleString("es-MX", { maximumFractionDigits: 0 }));
 const hace = (iso: string | null | undefined) => {
   if (!iso) return "—";
@@ -105,9 +120,15 @@ export default function PanelBot() {
     if (!sel || !f) return;
     setOcupado(true); setAviso("");
     try {
-      const fd = new FormData(); fd.append("archivo", f);
+      // Las fotos del iPhone pesan 3-8 MB (y pueden venir en HEIC): Vercel rechaza más de 4.5 MB con una
+      // respuesta que no es JSON y Safari lo mostraba como "The string did not match the expected pattern".
+      // Se achica en el navegador a 1600 px en JPEG antes de subir.
+      const chica = await achicarFoto(f);
+      const fd = new FormData(); fd.append("archivo", chica, "foto.jpg");
       const r = await fetch("/api/bot/panel", { method: "POST", headers: { authorization: `Bearer ${token}` }, body: fd });
-      const d = await r.json();
+      const txt = await r.text();
+      let d: { ok?: boolean; url?: string; error?: string } = {};
+      try { d = JSON.parse(txt); } catch { throw new Error(r.status === 413 ? "La foto pesa demasiado" : `El servidor respondió ${r.status}`); }
       if (!r.ok) throw new Error(d.error || `HTTP ${r.status}`);
       const e = await accion({ accion: "enviar", canalId: sel, fotoUrl: d.url, texto: texto.trim() });
       if (e?.ok) { setTexto(""); await cargarHilo(sel); await cargarLista(); }
@@ -230,7 +251,7 @@ export default function PanelBot() {
                   <div ref={finRef} />
                 </div>
                 <div className="pb-escribir">
-                  <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(e) => adjuntar(e.target.files?.[0])} />
+                  <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => adjuntar(e.target.files?.[0])} />
                   <button className="clip" title="Adjuntar foto (se manda con el texto como pie)" disabled={ocupado} onClick={() => fileRef.current?.click()}>📎</button>
                   <textarea placeholder="Escribir a la clienta (la conversación pasa a tu control). Puedes pegar o arrastrar una foto aquí." value={texto} onChange={(e) => setTexto(e.target.value)} rows={2}
                     onPaste={(e) => { const f = Array.from(e.clipboardData.files || []).find((x) => x.type.startsWith("image/")); if (f) { e.preventDefault(); adjuntar(f); } }}
