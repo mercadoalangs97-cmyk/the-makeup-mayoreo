@@ -9,14 +9,33 @@ import { createAdminSupabase, createServerSupabase } from "../../../lib/supabase
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-async function usuario(req: Request) {
+type Usuario = { id: string; email?: string | null };
+const sesiones = new Map<string, { u: Usuario; hasta: number }>();
+
+/** Vence el token según su propio `exp` (JWT); si no se puede leer, 5 min. */
+function venceToken(token: string) {
+  try {
+    const exp = Number(JSON.parse(Buffer.from(token.split(".")[1], "base64url").toString()).exp) * 1000;
+    if (exp) return exp;
+  } catch { /* token raro: se usa el tope */ }
+  return Date.now() + 5 * 60_000;
+}
+
+async function usuario(req: Request): Promise<Usuario | null> {
   const auth = req.headers.get("authorization") || "";
   const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
   if (!token) return null;
+  // Un token ya verificado se recuerda hasta 5 min (y nunca más allá de su vencimiento): el panel
+  // pregunta cada 10 s y cada vuelta a Supabase Auth costaba ~0.3 s.
+  const ya = sesiones.get(token);
+  if (ya && ya.hasta > Date.now()) return ya.u;
   try {
     const { data, error } = await createServerSupabase().auth.getUser(token);
     if (error || !data?.user) return null;
-    return data.user;
+    const u = { id: data.user.id, email: data.user.email };
+    if (sesiones.size > 200) sesiones.clear();
+    sesiones.set(token, { u, hasta: Math.min(Date.now() + 5 * 60_000, venceToken(token)) });
+    return u;
   } catch {
     return null;
   }
@@ -39,8 +58,19 @@ function nombreDe(email: string | null | undefined) {
   return p ? p[0].toUpperCase() + p.slice(1) : "Equipo";
 }
 
+type MapaCompras = Map<string, { n: number; total: number; ultima: number; nombre: string | null; detalle: { total: number; fecha: number; que: string }[] }>;
+let comprasCache: { hasta: number; p: Promise<MapaCompras> } | null = null;
+
+/** Igual que leerComprasPorTelefono, pero recordada 60 s (y una sola lectura aunque lleguen varias peticiones juntas). */
+function comprasPorTelefono(sb: Sb): Promise<MapaCompras> {
+  if (comprasCache && comprasCache.hasta > Date.now()) return comprasCache.p;
+  const p = leerComprasPorTelefono(sb).catch((e) => { comprasCache = null; throw e; });
+  comprasCache = { hasta: Date.now() + 60_000, p };
+  return p;
+}
+
 /** Compras pagadas en la web y por el bot, agrupadas por teléfono a 10 dígitos. */
-async function comprasPorTelefono(sb: Sb) {
+async function leerComprasPorTelefono(sb: Sb): Promise<MapaCompras> {
   const { data } = await sb.from("ordenes_web").select("id,total,wpp,envio,fecha_pago,creado_en,cliente,items").eq("status", "pagado").order("creado_en", { ascending: false }).limit(1000);
   const m = new Map<string, { n: number; total: number; ultima: number; nombre: string | null; detalle: { total: number; fecha: number; que: string }[] }>();
   for (const o of data || []) {
@@ -101,31 +131,24 @@ export async function GET(req: Request) {
     if (q === "mensajes") {
       const canal = url.searchParams.get("canal") || "";
       if (!canal) return j({ error: "Falta canal" }, 400);
-      const [{ data: msgs }, { data: conv }] = await Promise.all([
+      // Ronda 1 (en paralelo): mensajes, conversación, cotizaciones del bot y compras (en caché).
+      const [{ data: msgs }, { data: conv }, { data: cbs }, compras] = await Promise.all([
         sb.from("mk_mensajes").select("id,direccion,tipo,texto,media,por,creado,ext_id").eq("canal_id", canal).order("creado", { ascending: false }).limit(150),
         sb.from("mk_conversaciones").select("*").eq("canal_id", canal).maybeSingle(),
-      ]);
-      let cotizacion = null;
-      if (conv?.cotizacion_id) {
-        const { data } = await sb.from("cotizaciones").select("id,total,subtotal,envio_costo,envio_paqueteria,vistas,pago_click_en,pagada,orden_id,transferencia_aviso_en,apartado_monto,cliente_nombre,items").eq("id", conv.cotizacion_id).maybeSingle();
-        cotizacion = data;
-      }
-      let lote = null;
-      if (conv?.lote_id) {
-        const { data } = await sb.from("mk_lotes").select("id,nombre,piezas,precio,estado,fotos,apartado_hasta").eq("id", conv.lote_id).maybeSingle();
-        lote = data;
-      }
-      const t = tel10(conv?.telefono);
-      const [compras, { data: fichas }] = await Promise.all([
+        sb.from("mk_cotizaciones").select("id,lote_id,total,link,creada,seguimientos,cerrada").eq("canal_id", canal).order("creada", { ascending: false }).limit(10),
         comprasPorTelefono(sb),
+      ]);
+      // Ronda 2 (en paralelo): lo que depende de la conversación.
+      const t = tel10(conv?.telefono);
+      const idsCot = [...new Set([...(cbs || []).map((c) => c.id), ...(conv?.cotizacion_id ? [conv.cotizacion_id] : [])])];
+      const [{ data: sitioCots }, { data: lote }, { data: fichas }] = await Promise.all([
+        idsCot.length ? sb.from("cotizaciones").select("id,total,vistas,pago_click_en,pagada,orden_id,transferencia_aviso_en,apartado_monto,envio_paqueteria,cliente_nombre").in("id", idsCot) : Promise.resolve({ data: [] as Record<string, unknown>[] }),
+        conv?.lote_id ? sb.from("mk_lotes").select("id,nombre,piezas,precio,estado,fotos,apartado_hasta").eq("id", conv.lote_id).maybeSingle() : Promise.resolve({ data: null }),
         sb.from("mk_clientes").select("clave,nombre,telefono,email,calle,numero,colonia,cp,municipio,estado,referencias,notas,actualizada").or(`clave.eq.${t || "x"},clave.eq.${canal}`).limit(2),
       ]);
       const cp = compras.get(t);
-      // Todas las cotizaciones que el bot le hizo a este chat, con cómo van en el sitio.
-      const { data: cbs } = await sb.from("mk_cotizaciones").select("id,lote_id,total,link,creada,seguimientos,cerrada").eq("canal_id", canal).order("creada", { ascending: false }).limit(10);
-      const idsCot = (cbs || []).map((c) => c.id);
-      const { data: sitioCots } = idsCot.length ? await sb.from("cotizaciones").select("id,total,vistas,pago_click_en,pagada,transferencia_aviso_en,apartado_monto,envio_paqueteria").in("id", idsCot) : { data: [] };
-      const sitioPorId = new Map((sitioCots || []).map((c) => [c.id, c]));
+      const sitioPorId = new Map((sitioCots || []).map((c) => [String(c.id), c]));
+      const cotizacion = conv?.cotizacion_id ? sitioPorId.get(String(conv.cotizacion_id)) || null : null;
       const cotizaciones = (cbs || []).map((c) => ({ ...c, sitio: sitioPorId.get(c.id) || null }));
       // La clave de la ficha: el teléfono si lo hay (así la encuentra el bot), si no el canal.
       const ficha = (fichas || []).find((f) => f.clave === t) || (fichas || [])[0] || null;

@@ -95,6 +95,7 @@ function sonar() {
   } catch { /* sin audio */ }
 }
 type Msg = { id: number; direccion: "in" | "out"; tipo: string; texto: string | null; media: { lote_id?: string; url?: string; tg_file_id?: string; autor?: string } | null; por: string; creado: string; ext_id?: string | null };
+type HiloT = { mensajes: Msg[]; conversacion: Conv | null; cotizacion: Record<string, unknown> | null; lote: Lote | null; clienta?: Ficha; claveFicha?: string; cotizaciones?: CotChat[]; compras?: Compras; cargando?: boolean };
 type Pend = { id: number; canal_id: string; texto: string; adjunto: { tipo: string; lote_id: string } | null; creado: string };
 type Lote = { id: string; nombre: string; piezas: number; precio: number; tipo: string; descripcion: string | null; fotos: { url: string }[]; estado: string; apartado_para: string | null; apartado_hasta: string | null; cotizacion_id: string | null; vendido_a: string | null; salida_registrada: boolean; creado_en: string };
 type Cot = { id: string; canal_id: string; lote_id: string | null; total: number | null; link: string | null; creada: string; seguimientos: number; cerrada: boolean; sitio: { cliente_nombre: string | null; total: number; vistas: number | null; pago_click_en: number | null; pagada: boolean | null; transferencia_aviso_en: number | null; apartado_monto: number | null } | null };
@@ -144,7 +145,12 @@ export default function PanelBot() {
   const previoRef = useRef<Record<string, string> | null>(null);
   const [convs, setConvs] = useState<Conv[]>([]); const [pends, setPends] = useState<Pend[]>([]); const [modo, setModo] = useState("copiloto");
   const [sel, setSel] = useState<string | null>(null);
-  const [hilo, setHilo] = useState<{ mensajes: Msg[]; conversacion: Conv | null; cotizacion: Record<string, unknown> | null; lote: Lote | null; clienta?: Ficha; claveFicha?: string; cotizaciones?: CotChat[]; compras?: Compras } | null>(null);
+  const [hilo, setHilo] = useState<HiloT | null>(null);
+  // Velocidad: los chats ya abiertos se guardan en memoria y se muestran al instante al volver;
+  // la respuesta de un chat que ya no está abierto no pisa al actual.
+  const hilosRef = useRef(new Map<string, HiloT>());
+  const enVuelo = useRef(new Set<string>());
+  const selRef = useRef<string | null>(null);
   const [ficha, setFicha] = useState<Partial<Record<CampoFicha, string>>>({}); const fichaBase = useRef<Partial<Record<CampoFicha, string>>>({}); const [fichaSucia, setFichaSucia] = useState(false);
   const [verFicha, setVerFicha] = useState(false);
   const [, setTic] = useState(0);
@@ -204,19 +210,49 @@ export default function PanelBot() {
     } catch { /* se reintenta en el siguiente ciclo */ }
   }, [api, token]);
   const cargarHilo = useCallback(async (canal: string) => {
-    try { setHilo(await api("mensajes", `&canal=${encodeURIComponent(canal)}`)); } catch { /* idem */ }
+    enVuelo.current.add(canal);
+    try {
+      const h: HiloT = await api("mensajes", `&canal=${encodeURIComponent(canal)}`);
+      hilosRef.current.set(canal, h);
+      if (selRef.current === canal) setHilo(h);
+    } catch { /* idem */ } finally { enVuelo.current.delete(canal); }
   }, [api]);
+  /** Precarga un chat (al pasar el mouse o tocarlo) para que abra al instante. */
+  const precargar = useCallback((canal: string) => { if (!hilosRef.current.has(canal) && !enVuelo.current.has(canal)) cargarHilo(canal); }, [cargarHilo]);
   const cargarLotes = useCallback(async () => { try { setLotes((await api("lotes")).lotes || []); } catch { /* idem */ } }, [api]);
   const cargarCots = useCallback(async () => { try { setCots((await api("cotizaciones")).cotizaciones || []); } catch { /* idem */ } }, [api]);
   const cargarClientas = useCallback(async () => { try { setClientas((await api("clientes")).clientes || []); } catch { /* idem */ } }, [api]);
 
+  // Carga inicial (una vez por sesión, no en cada cambio de chat como antes).
   useEffect(() => {
     if (!token) return;
     cargarLista(); cargarLotes(); cargarCots();
-    const t = setInterval(() => { cargarLista(); if (sel) cargarHilo(sel); }, 10000);
-    return () => clearInterval(t);
-  }, [token, sel, cargarLista, cargarHilo, cargarLotes, cargarCots]);
-  useEffect(() => { if (sel) cargarHilo(sel); }, [sel, cargarHilo]);
+  }, [token, cargarLista, cargarLotes, cargarCots]);
+  // Refresco cada 10 s, solo con la pestaña a la vista; al volver a ella, refresca de inmediato.
+  useEffect(() => {
+    if (!token) return;
+    const vuelta = () => { if (document.hidden) return; cargarLista(); if (selRef.current) cargarHilo(selRef.current); };
+    const t = setInterval(vuelta, 10000);
+    document.addEventListener("visibilitychange", vuelta);
+    return () => { clearInterval(t); document.removeEventListener("visibilitychange", vuelta); };
+  }, [token, cargarLista, cargarHilo]);
+  // Al cambiar de chat: se pinta al instante con lo guardado (o con lo que ya dice la lista) y se trae lo fresco.
+  useEffect(() => {
+    selRef.current = sel;
+    if (!sel) return;
+    const ya = hilosRef.current.get(sel);
+    const cv = convs.find((c) => c.canal_id === sel) || null;
+    setHilo(ya || { mensajes: [], conversacion: cv, cotizacion: null, lote: null, cargando: true });
+    cargarHilo(sel);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sel, cargarHilo]);
+  // Al tener la lista por primera vez, se precargan los chats que más probablemente vas a abrir.
+  const precargados = useRef(false);
+  useEffect(() => {
+    if (precargados.current || !convs.length) return;
+    precargados.current = true;
+    convs.filter((c) => sinResponderDesde(c) != null || c.estado === "escalada").concat(convs).slice(0, 4).forEach((c) => precargar(c.canal_id));
+  }, [convs, precargar]);
   useEffect(() => {
     const v = leerVisto();
     setVisto(v);
@@ -244,7 +280,7 @@ export default function PanelBot() {
   useEffect(() => { document.title = (nSinResp ? `🔔${nSinResp} ` : "") + (nSinLeer ? `(${nSinLeer}) ` : "") + "Panel del bot · The Makeup"; }, [nSinLeer, nSinResp]);
   // Ficha y notas de la clienta abierta. Mientras no la estés editando, se refresca con lo que el bot vaya guardando.
   useEffect(() => {
-    if (!sel || hilo?.conversacion?.canal_id !== sel) return;
+    if (!sel || hilo?.conversacion?.canal_id !== sel || hilo.cargando) return;
     const nueva = notasCanal !== sel;
     if (nueva) { setNotas(hilo.clienta?.notas || ""); setNotasCanal(sel); setFichaSucia(false); }
     if (nueva || !fichaSucia) {
@@ -255,7 +291,7 @@ export default function PanelBot() {
   }, [sel, hilo, notasCanal, fichaSucia]);
   // Los "hace X min" y la ventana de 24 h se recalculan solos.
   useEffect(() => { const t = setInterval(() => setTic((n) => n + 1), 30_000); return () => clearInterval(t); }, []);
-  useEffect(() => { finRef.current?.scrollIntoView({ block: "end" }); }, [hilo?.mensajes.length]);
+  useEffect(() => { finRef.current?.scrollIntoView({ block: "end" }); }, [hilo?.mensajes.length, sel]);
 
   async function entrar(e: React.FormEvent) {
     e.preventDefault(); setErrLogin("");
@@ -265,8 +301,17 @@ export default function PanelBot() {
   }
   async function enviar() {
     if (!sel || !texto.trim() || ocupado) return;
-    const d = await accion({ accion: "enviar", canalId: sel, texto: texto.trim() });
-    if (d?.ok) { setTexto(""); await cargarHilo(sel); await cargarLista(); }
+    const canal = sel, txt = texto.trim();
+    const temp: Msg = { id: -Date.now(), direccion: "out", tipo: "text", texto: txt, media: { autor: "enviando…" }, por: "alan", creado: new Date().toISOString() };
+    setTexto("");
+    setHilo((h) => (h && h.conversacion?.canal_id === canal ? { ...h, mensajes: [...h.mensajes, temp] } : h));
+    const d = await accion({ accion: "enviar", canalId: canal, texto: txt });
+    if (!d?.ok) {
+      setTexto(txt);
+      setHilo((h) => (h ? { ...h, mensajes: h.mensajes.filter((m) => m.id !== temp.id) } : h));
+      return;
+    }
+    cargarHilo(canal); cargarLista();
   }
   async function adjuntar(f: File | undefined) {
     if (!sel || !f) return;
@@ -396,7 +441,7 @@ export default function PanelBot() {
               const sr = sinResponderDesde(c);
               const qv = quedaVentana(c);
               return (
-                <button key={c.canal_id} className={"pb-conv" + (sel === c.canal_id ? " sel" : "") + (c.estado !== "bot" ? " " + c.estado : "") + (nuevo ? " nuevo" : "") + (sr != null ? " sinresp" : "")} style={{ borderLeftColor: c.estado === "escalada" ? "#e0a000" : et.c }} onClick={() => setSel(c.canal_id)}>
+                <button key={c.canal_id} className={"pb-conv" + (sel === c.canal_id ? " sel" : "") + (c.estado !== "bot" ? " " + c.estado : "") + (nuevo ? " nuevo" : "") + (sr != null ? " sinresp" : "")} style={{ borderLeftColor: c.estado === "escalada" ? "#e0a000" : et.c }} onClick={() => setSel(c.canal_id)} onMouseEnter={() => precargar(c.canal_id)} onTouchStart={() => precargar(c.canal_id)}>
                   <div className="l1">{nuevo && <span className="punto" />}{canalIcono(c.canal_id)} <b>{c.nombre || "Sin nombre"}</b> {sr != null && <span className="campanita" title="Te escribió y nadie le ha contestado">🔔 {duracion(sr)}</span>}<span className="hace">{hace(c.ultimo_cliente_en)}</span></div>
                   <div className="l2">
                     <span className="etq" style={{ background: et.c }}>{et.t}</span>
@@ -451,6 +496,7 @@ export default function PanelBot() {
                     </div>
                   )}
                   <div className="pb-msgs" onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); adjuntar(e.dataTransfer.files?.[0]); }}>
+                    {hilo.cargando && !hilo.mensajes.length && <p className="pb-vacio">Cargando mensajes…</p>}
                     {hilo.mensajes.map((m) => {
                       const dia = new Date(m.creado).toLocaleDateString("es-MX", { timeZone: "America/Mexico_City", weekday: "long", day: "numeric", month: "long" });
                       const cab = dia !== diaPrevio ? <div className="pb-dia">{dia[0].toUpperCase() + dia.slice(1)}</div> : null;
@@ -512,7 +558,8 @@ export default function PanelBot() {
               );
             })()}
           </div>
-          {sel && hilo && (
+          {sel && hilo && hilo.cargando && <aside className={"pb-lado" + (verFicha ? " ver" : "")}><p className="nota">Cargando ficha…</p></aside>}
+          {sel && hilo && !hilo.cargando && (
             <aside className={"pb-lado" + (verFicha ? " ver" : "")} aria-label="Ficha de la clienta">
               <div className="pb-lado-top"><h3>Clienta</h3><button className="cerrar" onClick={() => setVerFicha(false)}>✕</button></div>
               <div className="pb-campos">
