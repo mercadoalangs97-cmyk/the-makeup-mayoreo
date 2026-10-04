@@ -32,13 +32,13 @@ const RAPIDAS: { t: string; x: string }[] = [
 
 /**
  * La clienta escribió y nadie le ha contestado. En control del equipo cuenta siempre (hasta 7 días);
- * con el bot atendiendo, solo entre 5 min (el bot tarda como persona) y 24 h; pausadas no cuentan.
+ * con el bot atendiendo, solo entre 10 min (el bot tarda 1.5-6 min como persona) y 24 h; pausadas no cuentan.
  */
 function sinResponderDesde(c: Conv | null | undefined): number | null {
   if (!c?.ultimo_cliente_en || c.estado === "pausada") return null;
   if (c.ultimo_bot_en && c.ultimo_bot_en >= c.ultimo_cliente_en) return null;
   const ms = Date.now() - Date.parse(c.ultimo_cliente_en);
-  if (c.estado === "bot" && (ms < 5 * 60_000 || ms > 24 * 3600_000)) return null;
+  if (c.estado === "bot" && (ms < 10 * 60_000 || ms > 24 * 3600_000)) return null;
   if (ms > 7 * 24 * 3600_000) return null;
   return ms;
 }
@@ -415,10 +415,18 @@ export default function PanelBot() {
             onClick={() => { if (!avisosOn) activarAvisos(); setTab("chats"); setFiltroEtapa(nSinResp ? "sin responder" : "todas"); if (window.innerWidth < 760) setSel(null); }}>
             🔔{nSinResp ? <span className="pb-badge">{nSinResp}</span> : null}
           </button>
-          {!avisosOn && <button className="avisos" onClick={activarAvisos}>🔈 Activar avisos</button>}
-          modo <b>{modo}</b>
-          <button onClick={async () => { const n = modo === "auto" ? "copiloto" : "auto"; if (await accion({ accion: "modo", modo: n })) setModo(n); }}>cambiar</button>
-          <button onClick={() => sb?.auth.signOut()}>salir</button>
+          {!avisosOn && <button className="avisos" onClick={activarAvisos} title="Activar sonido y avisos">🔈<span className="txt-largo"> Activar avisos</span></button>}
+          <span className="solo-ancho">modo <b>{modo}</b></span>
+          <button className="solo-ancho" onClick={async () => { const n = modo === "auto" ? "copiloto" : "auto"; if (await accion({ accion: "modo", modo: n })) setModo(n); }}>cambiar</button>
+          <button className="solo-ancho" onClick={() => sb?.auth.signOut()}>salir</button>
+          <details className="pb-menu solo-movil">
+            <summary>⋯</summary>
+            <div>
+              <span>modo <b>{modo}</b></span>
+              <button onClick={async () => { const n = modo === "auto" ? "copiloto" : "auto"; if (await accion({ accion: "modo", modo: n })) setModo(n); }}>cambiar a {modo === "auto" ? "copiloto" : "auto"}</button>
+              <button onClick={() => sb?.auth.signOut()}>salir</button>
+            </div>
+          </details>
         </span>
       </header>
       {aviso && <div className="pb-aviso">{aviso}</div>}
@@ -482,11 +490,16 @@ export default function PanelBot() {
                     </div>
                     <div className="acciones">
                       {cv?.estado !== "escalada" && <button onClick={() => estado(sel, "escalada")} title="El bot se calla; tú contestas">🙋 Tomar control</button>}
-                      {cv?.estado !== "bot" && <button onClick={() => estado(sel, "bot")} title="El bot vuelve y contesta lo que quedó pendiente">🤖 Devolver al bot</button>}
-                      {cv?.estado !== "pausada" && <button onClick={() => estado(sel, "pausada")}>⏸ Pausar</button>}
-                      <button onClick={() => accion({ accion: "seguimiento", canalId: sel })}>Seguimiento</button>
-                      <button onClick={() => atendida(sel)} title="Ya no necesita respuesta (p. ej. un «gracias»): quita la campana">👌 Atendida</button>
+                      {cv?.estado !== "bot" && <button onClick={() => { if (window.confirm("¿Devolver al bot?\n\nEl bot va a contestar en unos minutos lo que la clienta dejó pendiente y seguirá atendiéndola. Si alguien le prometió algo (fotos, tonos), mejor contesta tú.")) estado(sel, "bot"); }} title="El bot vuelve y contesta lo que quedó pendiente">🤖 Devolver al bot</button>}
                       <button className="ver-ficha" onClick={() => setVerFicha(true)}>👤 Ficha</button>
+                      <details className="pb-mas">
+                        <summary>Más ▾</summary>
+                        <div>
+                          {cv?.estado !== "pausada" && <button onClick={() => estado(sel, "pausada")}>⏸ Pausar</button>}
+                          <button onClick={() => atendida(sel)} title="Ya no necesita respuesta (p. ej. un «gracias»): quita la campana">👌 Atendida</button>
+                          <button onClick={() => accion({ accion: "seguimiento", canalId: sel })} title="El bot le escribe para retomar la cotización (solo si la atiende el bot)">Seguimiento</button>
+                        </div>
+                      </details>
                     </div>
                   </div>
                   {sr != null && (
@@ -502,6 +515,12 @@ export default function PanelBot() {
                       const cab = dia !== diaPrevio ? <div className="pb-dia">{dia[0].toUpperCase() + dia.slice(1)}</div> : null;
                       diaPrevio = dia;
                       const autor = m.direccion === "in" ? (cv?.nombre || "clienta") : m.media?.autor || (m.por === "alan" ? "Equipo" : m.por === "bot" ? "Bot" : m.por);
+                      if (m.tipo === "evento") return (
+                        <div key={m.id} className="pb-grupo">
+                          {cab}
+                          <div className="pb-evento">{m.texto} · {new Date(m.creado).toLocaleTimeString("es-MX", { timeZone: "America/Mexico_City", hour: "2-digit", minute: "2-digit" })}</div>
+                        </div>
+                      );
                       return (
                         <div key={m.id} className="pb-grupo">
                           {cab}
@@ -785,6 +804,13 @@ const estilos = `
   .pb-lado .cot small { color: #8a7068; font-size: 12px; } .pb-lado .compra { font-size: 12px; color: #5b4a44; margin: 3px 0; }
   .pb-lado textarea { font-size: 14px; margin-bottom: 6px; }
   .pb-hilo-top .ver-ficha { display: none; }
+  .pb-evento { justify-self: center; text-align: center; font-size: 12px; color: #6b5a54; background: #f1ebe5; border-radius: 999px; padding: 3px 12px; max-width: 92%; }
+  .pb-mas, .pb-menu { position: relative; }
+  .pb-mas summary, .pb-menu summary { list-style: none; cursor: pointer; font-size: 14px; padding: 8px 12px; border-radius: 10px; border: 1px solid #c9807a; color: #9e5550; background: #fff; }
+  .pb-mas summary::-webkit-details-marker, .pb-menu summary::-webkit-details-marker { display: none; }
+  .pb-mas > div, .pb-menu > div { position: absolute; right: 0; top: calc(100% + 4px); z-index: 6; background: #fff; border: 1px solid #f2e0d8; border-radius: 12px; box-shadow: 0 8px 24px #0002; padding: 6px; display: grid; gap: 4px; min-width: 180px; }
+  .pb-menu > div span { font-size: 13px; padding: 4px 8px; }
+  .solo-movil { display: none; }
   @media (max-width: 1100px) {
     .pb-chats.con-hilo { grid-template-columns: 320px 1fr; }
     .pb-hilo-top .ver-ficha { display: inline-block; }
@@ -797,7 +823,13 @@ const estilos = `
     .pb-hilo-top .volver { display: inline-block; } .pb-msg { max-width: 92%; }
     .pb-hilo-top { padding: 8px 10px; gap: 6px; } .pb-hilo-top .acciones { margin-left: 0; gap: 4px; }
     .pb-hilo-top .acciones button { padding: 4px 8px; font-size: 12px; }
-    .pb-top { padding: 8px 10px; } .pb-top nav button, .pb-modo button { padding: 5px 9px; font-size: 13px; }
+    .pb-top { padding: 6px 8px; gap: 6px; flex-wrap: nowrap; overflow-x: auto; } .pb-top > strong { display: none; }
+    .pb-top nav { gap: 4px; } .pb-top nav button, .pb-modo button { padding: 5px 8px; font-size: 13px; white-space: nowrap; }
+    .pb-modo .campana { padding: 4px 8px; font-size: 15px; } .pb-modo .avisos .txt-largo { display: none; }
+    .solo-ancho { display: none !important; } .solo-movil { display: inline-block; }
+    .pb-mas summary, .pb-menu summary { padding: 4px 9px; font-size: 12px; }
+    .pb-hilo-top .volver { padding: 2px 10px; font-size: 16px; }
+    .pb-rapidas { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; } .pb-rapidas .chip { white-space: nowrap; flex: none; }
     .pb-banda { padding: 6px 10px; font-size: 13px; }
   }
 `;

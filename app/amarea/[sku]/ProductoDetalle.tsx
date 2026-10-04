@@ -317,7 +317,7 @@ export default function ProductoDetalle({
               <ul className="pd-list">
                 <li>Envío a toda la República. 48 h en CDMX, 2–4 días al resto del país.</li>
                 <li>Envío GRATIS en compras desde {fmx(ENVIO_AMAREA_GRATIS_DESDE)} MXN. Debajo, {fmx(ENVIO_AMAREA_TARIFA)} fijo.</li>
-                <li>Empaque discreto y seguro. Factura disponible a petición.</li>
+                <li>Empaque discreto y seguro. No emitimos factura.</li>
                 <li>Cambios y aclaraciones por WhatsApp dentro de los primeros 7 días.</li>
               </ul>
             </Seccion>

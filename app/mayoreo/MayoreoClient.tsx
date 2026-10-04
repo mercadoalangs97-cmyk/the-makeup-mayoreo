@@ -692,8 +692,8 @@ export default function Home({
             <div className="step-num serif">4</div>
             <div className="step-title serif">Recibe y revende</div>
             <div className="step-desc">
-              Envio a toda la Republica. 48h en CDMX. Empaque discreto. Factura
-              disponible a peticion.
+              Envío a toda la República. 48 h en CDMX. Empaque discreto. No
+              emitimos factura.
             </div>
           </div>
         </div>

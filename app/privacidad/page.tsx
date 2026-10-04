@@ -58,7 +58,6 @@ export default function Privacidad() {
         <ul className="legal-list">
           <li>Procesar, preparar y enviar tus pedidos.</li>
           <li>Darte atención y responder tus dudas o aclaraciones.</li>
-          <li>Emitir tu factura, si la solicitas.</li>
           <li>
             Con tu consentimiento, enviarte novedades y promociones (puedes darte
             de baja cuando quieras).

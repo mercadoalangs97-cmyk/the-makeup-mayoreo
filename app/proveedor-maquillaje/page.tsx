@@ -162,7 +162,7 @@ export default function ProveedorMaquillaje() {
           <h2 className="serif">Quiénes somos</h2>
           <p className="prov-p">
             The Makeup / AMARÉA es un negocio mexicano con domicilio en el Estado
-            de México. Vendemos en línea a toda la República, facturamos y cada
+            de México. Vendemos en línea a toda la República y cada
             pedido sale con número de guía rastreable.{" "}
             <Link href="/nosotros">Conoce más de nosotros</Link> o revisa
             nuestra <Link href="/devoluciones">política de cambios</Link>.
