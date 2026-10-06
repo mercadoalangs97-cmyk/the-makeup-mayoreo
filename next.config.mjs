@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Sello de cada build: el panel del bot lo compara con el del servidor para recargarse solo
+  // cuando hay versión nueva (una pestaña abierta días seguía mostrando el panel viejo).
+  env: { PANEL_VERSION: String(Date.now()) },
   images: {
     remotePatterns: [
       {

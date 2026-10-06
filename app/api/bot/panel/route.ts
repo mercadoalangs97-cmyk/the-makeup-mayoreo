@@ -107,6 +107,7 @@ export async function GET(req: Request) {
   const q = url.searchParams.get("q") || "";
   const sb = createAdminSupabase();
   try {
+    if (q === "version") return j({ version: process.env.PANEL_VERSION || "" });
     if (q === "conversaciones") {
       const desde = new Date(Date.now() - 45 * 86400_000).toISOString();
       const [{ data: conv }, { data: pend }, { data: modo }] = await Promise.all([

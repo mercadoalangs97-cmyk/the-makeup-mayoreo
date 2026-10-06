@@ -228,6 +228,26 @@ export default function PanelBot() {
     if (!token) return;
     cargarLista(); cargarLotes(); cargarCots();
   }, [token, cargarLista, cargarLotes, cargarCots]);
+  // ¿Hay panel nuevo? Cada 5 min (y al volver a la pestaña) se compara la versión; si cambió, se recarga
+  // sola cuando no estás escribiendo, o te avisa.
+  const [panelNuevo, setPanelNuevo] = useState(false);
+  useEffect(() => {
+    if (!token) return;
+    const revisar = async () => {
+      if (document.hidden) return;
+      try {
+        const d = await api("version");
+        if (d.version && process.env.PANEL_VERSION && d.version !== process.env.PANEL_VERSION) {
+          const escribiendo = document.activeElement instanceof HTMLTextAreaElement || document.activeElement instanceof HTMLInputElement;
+          if (!escribiendo) window.location.reload(); else setPanelNuevo(true);
+        }
+      } catch { /* sin red: se reintenta */ }
+    };
+    revisar();
+    const t = setInterval(revisar, 5 * 60_000);
+    document.addEventListener("visibilitychange", revisar);
+    return () => { clearInterval(t); document.removeEventListener("visibilitychange", revisar); };
+  }, [token, api]);
   // Refresco cada 10 s, solo con la pestaña a la vista; al volver a ella, refresca de inmediato.
   useEffect(() => {
     if (!token) return;
@@ -429,6 +449,7 @@ export default function PanelBot() {
           </details>
         </span>
       </header>
+      {panelNuevo && <div className="pb-aviso">Hay una versión nueva del panel. <button onClick={() => window.location.reload()}>Recargar</button></div>}
       {aviso && <div className="pb-aviso">{aviso}</div>}
 
       {tab === "chats" && (
