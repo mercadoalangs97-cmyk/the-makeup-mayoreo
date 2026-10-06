@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { Preference } from "mercadopago";
 import { createAdminSupabase } from "../../../lib/supabase";
 import { mpClient, mpConfigurado } from "../../../lib/mercadopago";
-import { itemsDeCotizacion, resolverItems } from "../../../lib/cotItems";
+import { itemsDeCotizacion, loteFisicoOcupado, resolverItems } from "../../../lib/cotItems";
 import { lotesAgotados } from "../../../lib/disponibilidad";
 import { SITE_URL } from "../../../lib/site";
 
@@ -42,6 +42,10 @@ export async function POST(req: Request) {
 
   // Los precios SIEMPRE se recalculan del servidor (nunca se confía en el
   // cliente ni en lo que se guardó: si cambió un precio, manda el de hoy).
+  const ocupado = await loteFisicoOcupado(cot);
+  if (ocupado) {
+    return NextResponse.json({ error: `${ocupado} Escríbenos por WhatsApp y te mostramos otro.` }, { status: 409 });
+  }
   const resuelto = await resolverItems(itemsDeCotizacion(cot));
   if (resuelto.error) {
     return NextResponse.json({ error: resuelto.error }, { status: 409 });

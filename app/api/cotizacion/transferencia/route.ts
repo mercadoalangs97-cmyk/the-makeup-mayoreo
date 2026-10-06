@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { createAdminSupabase, createServerSupabase } from "../../../lib/supabase";
-import { itemsDeCotizacion, resolverItems } from "../../../lib/cotItems";
+import { itemsDeCotizacion, loteFisicoOcupado, resolverItems } from "../../../lib/cotItems";
 import { enviarCorreosVenta, type OrdenCorreo } from "../../../lib/email";
 import { LOTES } from "../../../lib/lotes";
 import { esBotAutorizado } from "../../../lib/botAuth";
@@ -93,6 +93,10 @@ export async function POST(req: Request) {
   }
 
   // Precios SIEMPRE del servidor, igual que en el pago normal.
+  const ocupado = await loteFisicoOcupado(cot);
+  if (ocupado) {
+    return NextResponse.json({ error: `${ocupado} Escríbenos por WhatsApp y te mostramos otro.` }, { status: 409 });
+  }
   const resuelto = await resolverItems(itemsDeCotizacion(cot));
   if (resuelto.error) {
     return json({ error: resuelto.error }, 409);

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { Preference } from "mercadopago";
 import { createAdminSupabase } from "../../../lib/supabase";
 import { mpClient, mpConfigurado } from "../../../lib/mercadopago";
-import { itemsDeCotizacion, resolverItems } from "../../../lib/cotItems";
+import { itemsDeCotizacion, loteFisicoOcupado, resolverItems } from "../../../lib/cotItems";
 import { SITE_URL } from "../../../lib/site";
 
 // APARTADO: la clienta paga un anticipo para reservar su lote y completa el
@@ -62,6 +62,10 @@ export async function POST(req: Request) {
   }
 
   // Precios SIEMPRE del servidor.
+  const ocupado = await loteFisicoOcupado(cot);
+  if (ocupado) {
+    return NextResponse.json({ error: `${ocupado} Escríbenos por WhatsApp y te mostramos otro.` }, { status: 409 });
+  }
   const resuelto = await resolverItems(itemsDeCotizacion(cot));
   if (resuelto.error) {
     return NextResponse.json({ error: resuelto.error }, { status: 409 });

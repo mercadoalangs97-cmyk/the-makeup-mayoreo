@@ -35,6 +35,8 @@ export type CotData = {
   estado: string;
   cp: string;
   pagada: boolean;
+  /** El lote con foto ya lo apartó o compró otra clienta: no se puede pagar. */
+  loteNoDisponible?: string | null;
   /** Anticipo ya pagado para apartar. 0 = no ha apartado. */
   apartado: number;
   /** Cuando se pagó el anticipo (ms). Marca el inicio de los 5 días. */
@@ -520,6 +522,16 @@ export default function CotizacionPago({ c }: { c: CotData }) {
         {c.pagada ? (
           <div className="cot-pagada">
             ✓ Esta cotización ya fue pagada. ¡Gracias por tu compra!
+          </div>
+        ) : c.loteNoDisponible ? (
+          <div className="cot-apartado-venc">
+            {c.loteNoDisponible} Los lotes con foto son piezas únicas y se
+            quedan con quien los aparta o paga primero.
+            <span>
+              <a href={`https://wa.me/5215658146140?text=${encodeURIComponent(`Hola, la cotización ${c.id} ya no está disponible. ¿Me muestran otro lote?`)}`}>
+                Escríbenos por WhatsApp y te mostramos otro
+              </a>
+            </span>
           </div>
         ) : (
           <>

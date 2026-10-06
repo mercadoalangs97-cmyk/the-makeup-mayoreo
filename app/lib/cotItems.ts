@@ -170,3 +170,29 @@ export function itemsDeCotizacion(cot: {
   }
   return [];
 }
+
+/**
+ * Lotes físicos con foto (L-###): son piezas ÚNICAS y cotizar ya no los aparta (Alan, 5-oct-2026: solo
+ * se apartan con el pago del apartado o el pago completo). Si otra clienta ya lo apartó con anticipo o
+ * lo compró, esta cotización ya no se puede pagar ni apartar. Devuelve el motivo, o null si está libre
+ * (o si el apartado es de esta misma cotización).
+ */
+export async function loteFisicoOcupado(cot: { id: string; items?: unknown; pagada?: boolean | null }): Promise<string | null> {
+  if (cot.pagada) return null;
+  const refs = ((cot.items || []) as { ref?: string }[])
+    .map((i) => String(i?.ref || "").toUpperCase())
+    .filter((r) => /^L-\d+$/.test(r));
+  if (!refs.length) return null;
+  const sb = createAdminSupabase();
+  const { data } = await sb.from("mk_lotes").select("id,estado,cotizacion_id,apartado_hasta").in("id", refs);
+  for (const l of data || []) {
+    const mio = l.cotizacion_id && String(l.cotizacion_id).toUpperCase() === cot.id.toUpperCase();
+    if (l.estado === "vendido" && !mio) return `El lote ${l.id} ya lo compró otra clienta.`;
+    if (l.estado === "retirado") return `El lote ${l.id} ya no está a la venta.`;
+    if (l.estado === "apartado" && !mio && (!l.apartado_hasta || Date.parse(l.apartado_hasta) > Date.now())) {
+      return `El lote ${l.id} ya lo apartó otra clienta.`;
+    }
+  }
+  return null;
+}
+

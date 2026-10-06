@@ -4,7 +4,7 @@ import SiteHeader from "../../components/SiteHeader";
 import SiteFooter from "../../components/SiteFooter";
 import { createAdminSupabase } from "../../lib/supabase";
 import { LOTES } from "../../lib/lotes";
-import { itemsDeCotizacion, resolverItems } from "../../lib/cotItems";
+import { itemsDeCotizacion, loteFisicoOcupado, resolverItems } from "../../lib/cotItems";
 import CotizacionPago, { type CotData } from "./CotizacionPago";
 
 // Cotización personal enviada por WhatsApp: NO debe indexarse.
@@ -72,6 +72,7 @@ export default async function CotizacionPorId({ params }: Params) {
     estado: env.estado || "",
     cp: env.cp || "",
     pagada: !!cot.pagada,
+    loteNoDisponible: await loteFisicoOcupado(cot),
     // Anticipo ya recibido: la pagina muestra el saldo y cambia los botones.
     apartado: Math.max(0, Math.round(Number(cot.apartado_monto) || 0)),
     // Cuando se aparto, para calcular los 5 dias de reserva.
