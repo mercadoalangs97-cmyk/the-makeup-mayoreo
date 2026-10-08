@@ -152,7 +152,10 @@ export async function cotizarEnvioReal(
   }
 
   return rates
-    .filter((r) => r.success)
+    // "Ocurre" (office_delivery_only): solo entrega en SUCURSAL y la guía exige
+    // elegir punto (office_delivery_point_id). Se cotizaba como si fuera a domicilio
+    // y luego la guía no salía (UVDTF, oct-2026). No se ofrece.
+    .filter((r) => r.success && !r.office_delivery_only)
     .map((r) => ({
       proveedor: String(r.provider_display_name ?? ""),
       proveedorKey: String(r.provider_name ?? r.provider_display_name ?? ""),
