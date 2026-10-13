@@ -91,7 +91,8 @@ async function leerComprasPorTelefono(sb: Sb): Promise<MapaCompras> {
  * nueva → interesada → cotizada → apartada → clienta → recompra; perdida si dijo que no.
  */
 function etapaDe(c: Record<string, unknown>, cot: Record<string, unknown> | null, compras: number) {
-  const r = (c.resumen || {}) as Record<string, unknown>;
+  // La lista trae solo noInteresadaEn e interes (no el resumen entero); el hilo sí trae el resumen completo.
+  const r = (c.resumen || { noInteresadaEn: c.noInteresadaEn, interes: c.interes }) as Record<string, unknown>;
   if (cot?.pagada) return compras >= 2 ? "recompra" : "clienta";
   if (compras >= 1) return "recompra"; // ya compró antes y volvió a escribir
   if (r.noInteresadaEn) return "perdida";
@@ -111,7 +112,7 @@ export async function GET(req: Request) {
     if (q === "conversaciones") {
       const desde = new Date(Date.now() - 45 * 86400_000).toISOString();
       const [{ data: conv }, { data: pend }, { data: modo }] = await Promise.all([
-        sb.from("mk_conversaciones").select("*").gte("actualizada", desde).order("ultimo_cliente_en", { ascending: false, nullsFirst: false }).limit(200),
+        sb.from("mk_conversaciones").select("canal_id,canal,nombre,telefono,estado,cotizacion_id,lote_id,ultimo_cliente_en,ultimo_bot_en,origen,creada,resumen->noInteresadaEn,resumen->interes").gte("actualizada", desde).order("ultimo_cliente_en", { ascending: false, nullsFirst: false }).limit(200),
         sb.from("mk_pendientes").select("id,canal_id,texto,adjunto,creado").order("id"),
         sb.from("mk_config").select("valor").eq("clave", "modo").maybeSingle(),
       ]);
