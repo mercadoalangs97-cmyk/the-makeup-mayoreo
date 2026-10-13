@@ -64,6 +64,14 @@ const ETAPAS: Record<string, { t: string; c: string }> = {
 };
 const FILTROS = ["todas", "sin responder", "sin leer", "en tu control", "nueva", "interesada", "cotizada", "apartada", "clienta", "recompra", "perdida"] as const;
 
+/* ---------- copia local: al abrir el panel se pinta al instante con lo último que viste ---------- */
+const CACHE_KEY = "pb-cache-v1";
+type CacheLocal = { convs: Conv[]; pends: Pend[]; modo: string; hilos: [string, HiloT][] };
+function leerCache(): CacheLocal | null {
+  try { const c = JSON.parse(localStorage.getItem(CACHE_KEY) || "null"); return c && Array.isArray(c.convs) ? c : null; } catch { return null; }
+}
+function borrarCache() { try { localStorage.removeItem(CACHE_KEY); } catch { /* sin storage */ } }
+
 /* ---------- "visto" por dispositivo: qué mensajes de clientas ya viste en ESTE panel ---------- */
 const VISTO_KEY = "pb-visto-v1";
 function leerVisto(): Record<string, string> {
@@ -149,6 +157,22 @@ export default function PanelBot() {
   // Velocidad: los chats ya abiertos se guardan en memoria y se muestran al instante al volver;
   // la respuesta de un chat que ya no está abierto no pisa al actual.
   const hilosRef = useRef(new Map<string, HiloT>());
+  // Copia local: lista + los 15 chats abiertos más recientes, guardada 1.5 s después del último cambio.
+  const cacheTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const listaRef = useRef<{ convs: Conv[]; pends: Pend[]; modo: string } | null>(null);
+  const guardarCache = useCallback((convsAhora?: Conv[], pendsAhora?: Pend[], modoAhora?: string) => {
+    if (convsAhora) listaRef.current = { convs: convsAhora, pends: pendsAhora ?? [], modo: modoAhora ?? "copiloto" };
+    if (cacheTimer.current) clearTimeout(cacheTimer.current);
+    cacheTimer.current = setTimeout(() => {
+      try {
+        const previo = leerCache();
+        const hilos = [...hilosRef.current.entries()].filter(([, h]) => !h.cargando).slice(-15);
+        const l = listaRef.current;
+        const c: CacheLocal = { convs: l?.convs ?? previo?.convs ?? [], pends: l?.pends ?? previo?.pends ?? [], modo: l?.modo ?? previo?.modo ?? "copiloto", hilos };
+        localStorage.setItem(CACHE_KEY, JSON.stringify(c));
+      } catch { /* lleno o en modo privado: sin copia */ }
+    }, 1500);
+  }, []);
   const enVuelo = useRef(new Set<string>());
   const selRef = useRef<string | null>(null);
   const [ficha, setFicha] = useState<Partial<Record<CampoFicha, string>>>({}); const fichaBase = useRef<Partial<Record<CampoFicha, string>>>({}); const [fichaSucia, setFichaSucia] = useState(false);
@@ -188,6 +212,7 @@ export default function PanelBot() {
       const d = await api("conversaciones");
       const lista: Conv[] = d.conversaciones || [];
       setConvs(lista); setPends(d.pendientes || []); setModo(d.modo || "copiloto");
+      guardarCache(lista, d.pendientes || [], d.modo || "copiloto");
       // ¿Qué clientas escribieron desde la última vuelta? → sonido + notificación del navegador.
       const actual: Record<string, string> = {};
       for (const c of lista) if (c.ultimo_cliente_en) actual[c.canal_id] = c.ultimo_cliente_en;
@@ -208,21 +233,35 @@ export default function PanelBot() {
         }
       }
     } catch { /* se reintenta en el siguiente ciclo */ }
-  }, [api, token]);
+  }, [api, token, guardarCache]);
   const cargarHilo = useCallback(async (canal: string) => {
     enVuelo.current.add(canal);
     try {
       const h: HiloT = await api("mensajes", `&canal=${encodeURIComponent(canal)}`);
-      hilosRef.current.set(canal, h);
+      hilosRef.current.delete(canal);
+      hilosRef.current.set(canal, h); // al final = el más reciente (la copia local guarda los últimos 15)
+      guardarCache();
       if (selRef.current === canal) setHilo(h);
     } catch { /* idem */ } finally { enVuelo.current.delete(canal); }
-  }, [api]);
+  }, [api, guardarCache]);
   /** Precarga un chat (al pasar el mouse o tocarlo) para que abra al instante. */
   const precargar = useCallback((canal: string) => { if (!hilosRef.current.has(canal) && !enVuelo.current.has(canal)) cargarHilo(canal); }, [cargarHilo]);
   const cargarLotes = useCallback(async () => { try { setLotes((await api("lotes")).lotes || []); } catch { /* idem */ } }, [api]);
   const cargarCots = useCallback(async () => { try { setCots((await api("cotizaciones")).cotizaciones || []); } catch { /* idem */ } }, [api]);
   const cargarClientas = useCallback(async () => { try { setClientas((await api("clientes")).clientes || []); } catch { /* idem */ } }, [api]);
 
+  // Con sesión: lo último que viste se pinta YA (la lista y los chats que tenías abiertos) y luego se refresca.
+  const hidratado = useRef(false);
+  useEffect(() => {
+    if (!token || hidratado.current) return;
+    hidratado.current = true;
+    const c = leerCache();
+    if (!c) return;
+    if (c.convs.length) setConvs((ya) => (ya.length ? ya : c.convs));
+    setPends((ya) => (ya.length ? ya : c.pends));
+    setModo(c.modo);
+    for (const [k, h] of c.hilos) if (!hilosRef.current.has(k)) hilosRef.current.set(k, h);
+  }, [token]);
   // Carga inicial (una vez por sesión, no en cada cambio de chat como antes).
   useEffect(() => {
     if (!token) return;
@@ -438,13 +477,13 @@ export default function PanelBot() {
           {!avisosOn && <button className="avisos" onClick={activarAvisos} title="Activar sonido y avisos">🔈<span className="txt-largo"> Activar avisos</span></button>}
           <span className="solo-ancho">modo <b>{modo}</b></span>
           <button className="solo-ancho" onClick={async () => { const n = modo === "auto" ? "copiloto" : "auto"; if (await accion({ accion: "modo", modo: n })) setModo(n); }}>cambiar</button>
-          <button className="solo-ancho" onClick={() => sb?.auth.signOut()}>salir</button>
+          <button className="solo-ancho" onClick={() => { borrarCache(); sb?.auth.signOut(); }}>salir</button>
           <details className="pb-menu solo-movil">
             <summary>⋯</summary>
             <div>
               <span>modo <b>{modo}</b></span>
               <button onClick={async () => { const n = modo === "auto" ? "copiloto" : "auto"; if (await accion({ accion: "modo", modo: n })) setModo(n); }}>cambiar a {modo === "auto" ? "copiloto" : "auto"}</button>
-              <button onClick={() => sb?.auth.signOut()}>salir</button>
+              <button onClick={() => { borrarCache(); sb?.auth.signOut(); }}>salir</button>
             </div>
           </details>
         </span>
