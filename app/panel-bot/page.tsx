@@ -278,7 +278,12 @@ export default function PanelBot() {
         const d = await api("version");
         if (d.version && process.env.PANEL_VERSION && d.version !== process.env.PANEL_VERSION) {
           const escribiendo = document.activeElement instanceof HTMLTextAreaElement || document.activeElement instanceof HTMLInputElement;
-          if (!escribiendo) window.location.reload(); else setPanelNuevo(true);
+          let reciente = false;
+          try { reciente = Date.now() - Number(sessionStorage.getItem("pb-recarga") || 0) < 10 * 60_000; } catch { reciente = true; }
+          if (!escribiendo && !reciente) {
+            try { sessionStorage.setItem("pb-recarga", String(Date.now())); } catch { /* sin storage */ }
+            window.location.reload();
+          } else setPanelNuevo(true);
         }
       } catch { /* sin red: se reintenta */ }
     };

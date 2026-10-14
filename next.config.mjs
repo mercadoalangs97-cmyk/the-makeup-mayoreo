@@ -1,8 +1,19 @@
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+
+// Huella del panel del bot: igual en el servidor y en el navegador del mismo build, y cambia solo
+// cuando cambia el código del panel.
+const huellaPanel = createHash("sha1")
+  .update(readFileSync(new URL("./app/panel-bot/page.tsx", import.meta.url)))
+  .update(readFileSync(new URL("./app/api/bot/panel/route.ts", import.meta.url)))
+  .digest("hex")
+  .slice(0, 12);
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Sello de cada build: el panel del bot lo compara con el del servidor para recargarse solo
   // cuando hay versión nueva (una pestaña abierta días seguía mostrando el panel viejo).
-  env: { PANEL_VERSION: String(Date.now()) },
+  env: { PANEL_VERSION: huellaPanel },
   images: {
     remotePatterns: [
       {
