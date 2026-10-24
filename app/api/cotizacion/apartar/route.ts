@@ -25,6 +25,14 @@ function montoApartado(total: number): number {
 }
 
 export async function POST(req: Request) {
+  // Desde el 23-oct-2026 el apartado es SOLO por transferencia (Alan): esta ruta de Mercado Pago queda
+  // cerrada; el link muestra la CLABE y el anticipo, y se confirma en /api/cotizacion/apartado-spei.
+  if (process.env.APARTADO_MP !== "1") {
+    return NextResponse.json(
+      { error: "El apartado es solo por transferencia: abre los datos bancarios en tu link y avísanos al transferir." },
+      { status: 410 }
+    );
+  }
   if (!mpConfigurado()) {
     return NextResponse.json(
       { error: "Mercado Pago no está configurado." },

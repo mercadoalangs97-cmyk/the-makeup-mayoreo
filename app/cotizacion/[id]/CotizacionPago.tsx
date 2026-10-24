@@ -64,6 +64,8 @@ export default function CotizacionPago({ c }: { c: CotData }) {
   // Segunda vía de pago. No compite con Mercado Pago: aparece para quien no
   // logró pagar ahí, que es la mayoría (solo 1 de cada 3 lo completa).
   const [verSpei, setVerSpei] = useState(false);
+  // "total" = pagar todo (o el resto) por transferencia; "apartado" = el 5 % para apartar (solo por transferencia).
+  const [modoSpei, setModoSpei] = useState<"total" | "apartado">("total");
   const [avisando, setAvisando] = useState(false);
   const [aviso, setAviso] = useState(false);
   const [copiadoQue, setCopiadoQue] = useState("");
@@ -82,7 +84,7 @@ export default function CotizacionPago({ c }: { c: CotData }) {
       await fetch("/api/cotizacion/transferencia-aviso", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: c.id, nombre: datos.nombre }),
+        body: JSON.stringify({ id: c.id, nombre: datos.nombre, tipo: modoSpei }),
       });
       setAviso(true);
     } catch {
@@ -186,28 +188,14 @@ export default function CotizacionPago({ c }: { c: CotData }) {
       })
     : "";
 
-  async function apartar() {
-    if (apartando) return;
-    setApartando(true);
-    setErr("");
+  // El apartado es SOLO por transferencia (23-oct-2026): abre los datos bancarios con el monto del 5 %.
+  function apartar() {
     gaLead("cotizacion_apartar_" + c.id);
-    try {
-      const res = await fetch("/api/cotizacion/apartar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: c.id }),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.init_point) {
-        setErr(data.error || "No se pudo abrir el apartado. Intenta de nuevo.");
-        setApartando(false);
-        return;
-      }
-      window.location.href = data.init_point;
-    } catch {
-      setErr("Error de conexión. Revisa tu internet e intenta de nuevo.");
-      setApartando(false);
-    }
+    setErr("");
+    setAviso(false);
+    setModoSpei("apartado");
+    setVerSpei(true);
+    setApartando(false);
   }
 
   async function pagar() {
@@ -597,12 +585,12 @@ export default function CotizacionPago({ c }: { c: CotData }) {
                 >
                   {apartando
                     ? "Abriendo…"
-                    : `🔒 Apartar con ${fmx(anticipo)} y pagar después`}
+                    : `🔒 Apartar con ${fmx(anticipo)} por transferencia`}
                 </button>
                 <p className="cot-apartar-nota">
-                  Con el 5% tu lote queda reservado a tu nombre{" "}
-                  <b>durante {DIAS_APARTADO} días</b>. El resto lo pagas desde
-                  este mismo link.
+                  Con el 5% <b>por transferencia</b> tu lote queda reservado a
+                  tu nombre <b>durante {DIAS_APARTADO} días</b>, en cuanto
+                  confirmemos que llegó. El resto lo pagas desde este mismo link.
                   <br />
                   <span>
                     Si pasan los {DIAS_APARTADO} días, tu dinero{" "}
@@ -633,16 +621,17 @@ export default function CotizacionPago({ c }: { c: CotData }) {
             <button
               type="button"
               className="cot-spei-abrir"
-              onClick={() => setVerSpei((v) => !v)}
+              onClick={() => { if (verSpei && modoSpei === "total") setVerSpei(false); else { setModoSpei("total"); setAviso(false); setVerSpei(true); } }}
             >
-              {verSpei ? "Ocultar" : "🏦 Prefiero pagar por transferencia"}
+              {verSpei && modoSpei === "total" ? "Ocultar" : "🏦 Prefiero pagar por transferencia"}
             </button>
 
             {verSpei && (
               <div className="cot-spei">
                 <p className="cot-spei-intro">
-                  Transfiere desde la app de tu banco. Es inmediato y funciona
-                  aunque el pago en línea te falle.
+                  {modoSpei === "apartado"
+                    ? `Para apartar tu lote transfiere ${fmx(anticipo)} (el 5 %) desde la app de tu banco. Lo reservamos ${DIAS_APARTADO} días en cuanto confirmemos que llegó.`
+                    : "Transfiere desde la app de tu banco. Es inmediato y funciona aunque el pago en línea te falle."}
                 </p>
 
                 <div className="cot-spei-row">
@@ -669,10 +658,10 @@ export default function CotizacionPago({ c }: { c: CotData }) {
 
                 <div className="cot-spei-campo">
                   <span>Monto exacto</span>
-                  <b>{fmx(c.total)}</b>
+                  <b>{fmx(modoSpei === "apartado" ? anticipo : saldo)}</b>
                   <button
                     type="button"
-                    onClick={() => copiar(String(c.total), "monto")}
+                    onClick={() => copiar(String(modoSpei === "apartado" ? anticipo : saldo), "monto")}
                   >
                     {copiadoQue === "monto" ? "✓ Copiado" : "Copiar"}
                   </button>
@@ -698,10 +687,10 @@ export default function CotizacionPago({ c }: { c: CotData }) {
                       target="_blank"
                       rel="noreferrer"
                       href={`https://wa.me/${WPP}?text=${encodeURIComponent(
-                        "Hola! Ya transferí mi cotización " +
+                        (modoSpei === "apartado" ? "Hola! Ya transferí el apartado de mi cotización " : "Hola! Ya transferí mi cotización ") +
                           c.id +
                           " por " +
-                          fmx(c.total) +
+                          fmx(modoSpei === "apartado" ? anticipo : saldo) +
                           ". Te mando mi comprobante."
                       )}`}
                     >
@@ -715,7 +704,7 @@ export default function CotizacionPago({ c }: { c: CotData }) {
                     onClick={avisarTransferencia}
                     disabled={avisando}
                   >
-                    {avisando ? "Avisando…" : "Ya transferí, avisar"}
+                    {avisando ? "Avisando…" : modoSpei === "apartado" ? "Ya transferí el apartado, avisar" : "Ya transferí, avisar"}
                   </button>
                 )}
               </div>

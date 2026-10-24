@@ -13,7 +13,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
-  let body: { id?: string; nombre?: string; referencia?: string };
+  let body: { id?: string; nombre?: string; referencia?: string; tipo?: string };
   try {
     body = await req.json();
   } catch {
@@ -28,7 +28,7 @@ export async function POST(req: Request) {
   const sb = createAdminSupabase();
   const { data: cot } = await sb
     .from("cotizaciones")
-    .select("id,cliente_nombre,total,pagada,envio,transferencia_aviso_en")
+    .select("id,cliente_nombre,total,pagada,envio,transferencia_aviso_en,apartado_monto,apartado_pago_id")
     .eq("id", id)
     .maybeSingle();
   if (!cot) {
@@ -37,14 +37,22 @@ export async function POST(req: Request) {
   if (cot.pagada) {
     return NextResponse.json({ ok: true, yaPagada: true });
   }
+  // Apartado por transferencia (el 5 %): se marca aparte (apartado_pago_id = "AVISO-SPEI") para que el
+  // bot pida confirmar el APARTADO y no el pago completo. No toca transferencia_aviso_en.
+  const esApartado = body.tipo === "apartado" && !(Number(cot.apartado_monto) > 0);
+  const anticipo = Math.max(100, Math.ceil((Number(cot.total) || 0) * 0.05));
   // Si ya avisó antes, no se vuelve a notificar (evita correos repetidos si le
   // da al botón varias veces).
-  const yaAviso = Boolean(cot.transferencia_aviso_en);
+  const yaAviso = esApartado ? cot.apartado_pago_id === "AVISO-SPEI" : Boolean(cot.transferencia_aviso_en);
 
-  await sb
-    .from("cotizaciones")
-    .update({ transferencia_aviso_en: cot.transferencia_aviso_en || Date.now() })
-    .eq("id", id);
+  if (esApartado) {
+    if (!cot.apartado_pago_id) await sb.from("cotizaciones").update({ apartado_pago_id: "AVISO-SPEI" }).eq("id", id);
+  } else {
+    await sb
+      .from("cotizaciones")
+      .update({ transferencia_aviso_en: cot.transferencia_aviso_en || Date.now() })
+      .eq("id", id);
+  }
 
   if (!yaAviso && emailConfigurado()) {
     try {
@@ -56,7 +64,7 @@ export async function POST(req: Request) {
       await resend.emails.send({
         from: `The Makeup Mayoreo <${EMAIL_NEGOCIO}>`,
         to: EMAIL_AVISOS,
-        subject: `💸 ${quien} dice que ya transfirió · ${fmx(Number(cot.total) || 0)} · ${id}`,
+        subject: esApartado ? `🔒 ${quien} dice que transfirió el APARTADO · ${fmx(anticipo)} · ${id}` : `💸 ${quien} dice que ya transfirió · ${fmx(Number(cot.total) || 0)} · ${id}`,
         html: `
           <div style="font-family:system-ui,-apple-system,Segoe UI,sans-serif;max-width:520px;margin:0 auto;padding:24px">
             <h2 style="margin:0 0 4px;font-size:19px;color:#2C2420">Avisó una transferencia</h2>
@@ -66,7 +74,7 @@ export async function POST(req: Request) {
             <table style="width:100%;border-collapse:collapse;font-size:14px;color:#2C2420">
               <tr><td style="padding:7px 0;color:#6b5d57">Cotización</td><td style="text-align:right"><b>${id}</b></td></tr>
               <tr><td style="padding:7px 0;color:#6b5d57">Clienta</td><td style="text-align:right"><b>${quien}</b></td></tr>
-              <tr><td style="padding:7px 0;color:#6b5d57">Monto que debió transferir</td><td style="text-align:right"><b>${fmx(Number(cot.total) || 0)}</b></td></tr>
+              <tr><td style="padding:7px 0;color:#6b5d57">Monto que debió transferir</td><td style="text-align:right"><b>${fmx(esApartado ? anticipo : Number(cot.total) || 0)}${esApartado ? " (apartado 5 %)" : ""}</b></td></tr>
               ${ref ? `<tr><td style="padding:7px 0;color:#6b5d57">Referencia que puso</td><td style="text-align:right"><b>${ref}</b></td></tr>` : ""}
               ${env.telefono ? `<tr><td style="padding:7px 0;color:#6b5d57">WhatsApp</td><td style="text-align:right"><b>${env.telefono}</b></td></tr>` : ""}
             </table>
