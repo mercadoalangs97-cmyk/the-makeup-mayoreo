@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 // Panel del bot vendedor: conversaciones de WhatsApp y Telegram, propuestas
@@ -10,8 +10,11 @@ type Conv = {
   canal_id: string; canal: string; nombre: string | null; telefono: string | null; estado: string; cotizacion_id: string | null;
   lote_id: string | null; ultimo_cliente_en: string | null; ultimo_bot_en: string | null; resumen: Record<string, unknown> | null;
   etapa?: string; compras?: number; total_compras?: number; origen?: string | null; creada?: string;
+  // CRM (26-oct-2026)
+  ultima_compra?: number | null; monto?: number | null; pagada?: boolean; apartado?: number; escalada_en?: string | null; motivo_escalacion?: string | null;
 };
-type Clienta = { telefono: string; nombre: string | null; ciudad: string | null; notas: string | null; canal_id: string | null; ultimo_contacto: string | null; compras: number; total: number; ultima: number };
+type Kpis = { dias: number; conversaciones: number; nuevas: number; cotizadas: number; apartadas: number; pagadas: number; sin_atender: number; por_confirmar: number; ventas: number; n_ventas: number; ticket: number };
+type Clienta = { telefono: string; nombre: string | null; ciudad: string | null; notas: string | null; canal_id: string | null; ultimo_contacto: string | null; compras: number; total: number; ultima: number; primera?: number; detalle?: { total: number; fecha: number; que: string }[] };
 const CAMPOS = [
   ["nombre", "Nombre"], ["telefono", "Teléfono de contacto"], ["email", "Correo"], ["calle", "Calle"], ["numero", "Número"],
   ["colonia", "Colonia"], ["cp", "Código postal"], ["municipio", "Municipio / alcaldía"], ["estado", "Estado"], ["referencias", "Referencias"],
@@ -53,16 +56,39 @@ const duracion = (ms: number) => { const m = Math.max(0, Math.round(ms / 60000))
 type Compras = { n: number; total: number; ultima: number; detalle: { total: number; fecha: number; que: string }[] } | null;
 
 // Etapas del CRM (las calcula el servidor con lo que ya se sabe de cada chat).
-const ETAPAS: Record<string, { t: string; c: string }> = {
-  nueva: { t: "Nueva", c: "#9ca3af" },
-  interesada: { t: "Interesada", c: "#e0a000" },
-  cotizada: { t: "Cotizada", c: "#3b82f6" },
-  apartada: { t: "Apartada", c: "#8b5cf6" },
-  clienta: { t: "Clienta", c: "#16a34a" },
-  recompra: { t: "Recompra", c: "#db2777" },
-  perdida: { t: "Perdida", c: "#6b7280" },
+// Embudo (26-oct-2026): una etapa por conversación; el orden es el del tablero.
+const ETAPAS: Record<string, { t: string; c: string; i: string; ayuda: string }> = {
+  contacto: { t: "Solo contacto", c: "#9ca3af", i: "🆕", ayuda: "Escribió, sin cotización" },
+  cotizada: { t: "Cotizada", c: "#3b82f6", i: "📄", ayuda: "Tiene link sin pagar" },
+  sin_atender: { t: "Escalada sin atender", c: "#e11d48", i: "🚨", ayuda: "El bot la pasó al equipo y nadie ha contestado" },
+  en_control: { t: "En tu control", c: "#e0a000", i: "🙋", ayuda: "La atiende alguien del equipo" },
+  por_confirmar: { t: "Pago por confirmar", c: "#ea580c", i: "💸", ayuda: "Dijo que transfirió o mandó comprobante" },
+  apartada: { t: "Apartada", c: "#8b5cf6", i: "🔒", ayuda: "Pagó el anticipo" },
+  compro: { t: "Compró", c: "#16a34a", i: "✅", ayuda: "Ya pagó (incluye clientas que regresan)" },
+  perdida: { t: "Perdida", c: "#6b7280", i: "❌", ayuda: "Dijo que no" },
 };
-const FILTROS = ["todas", "sin responder", "sin leer", "en tu control", "nueva", "interesada", "cotizada", "apartada", "clienta", "recompra", "perdida"] as const;
+const ORDEN_EMBUDO = ["contacto", "cotizada", "sin_atender", "en_control", "por_confirmar", "apartada", "compro", "perdida"] as const;
+const FILTROS = ["todas", "sin responder", "sin leer", ...ORDEN_EMBUDO] as const;
+const PERIODOS: [number, string][] = [[7, "7 días"], [30, "30 días"], [45, "45 días"], [90, "90 días"], [365, "1 año"], [0, "Todo"]];
+const fechaCorta = (ms: number | null | undefined) => (ms ? new Date(ms).toLocaleDateString("es-MX", { timeZone: "America/Mexico_City", day: "numeric", month: "short", year: "2-digit" }) : "—");
+/** Segmento de una clienta según sus compras. */
+function segmento(c: Clienta): { k: string; t: string; c: string } {
+  const dias = c.ultima ? (Date.now() - c.ultima) / 86400000 : null;
+  if (!c.compras) return { k: "sin_compra", t: "Sin compra", c: "#9ca3af" };
+  if (c.compras >= 3 || c.total >= 10000) return { k: "vip", t: "VIP", c: "#db2777" };
+  if (dias != null && dias > 45) return { k: "inactiva", t: "Inactiva", c: "#6b7280" };
+  if (c.compras >= 2) return { k: "recurrente", t: "Recurrente", c: "#16a34a" };
+  return { k: "una", t: "1 compra", c: "#3b82f6" };
+}
+/** Descarga un CSV (Excel lo abre con acentos gracias al BOM). */
+function bajarCsv(nombre: string, filas: (string | number)[][]) {
+  const csv = "\ufeff" + filas.map((f) => f.map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+  a.download = nombre;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
 
 /* ---------- copia local: al abrir el panel se pinta al instante con lo último que viste ---------- */
 const CACHE_KEY = "pb-cache-v1";
@@ -144,7 +170,14 @@ export default function PanelBot() {
   }, []);
   const [token, setToken] = useState<string | null>(null);
   const [email, setEmail] = useState(""); const [pass, setPass] = useState(""); const [errLogin, setErrLogin] = useState("");
-  const [tab, setTab] = useState<"chats" | "clientas" | "lotes" | "cots">("chats");
+  const [tab, setTab] = useState<"embudo" | "chats" | "clientas" | "lotes" | "cots">("embudo");
+  const [dias, setDias] = useState(45);
+  const [kpis, setKpis] = useState<Kpis | null>(null);
+  const [canalVer, setCanalVer] = useState<"todos" | "wa" | "tg">("todos");
+  const [soloSinResp, setSoloSinResp] = useState(false);
+  const [segVer, setSegVer] = useState("todos");
+  const [ordenCli, setOrdenCli] = useState<"total" | "compras" | "ultima" | "contacto">("total");
+  const [abierta, setAbierta] = useState<string | null>(null);
   const [filtroEtapa, setFiltroEtapa] = useState<(typeof FILTROS)[number]>("todas");
   const [visto, setVisto] = useState<Record<string, string>>({});
   const [avisosOn, setAvisosOn] = useState(false);
@@ -209,7 +242,8 @@ export default function PanelBot() {
   const cargarLista = useCallback(async () => {
     if (!token) return;
     try {
-      const d = await api("conversaciones");
+      const d = await api("conversaciones", `&dias=${dias}`);
+      if (d.kpis) setKpis(d.kpis);
       const lista: Conv[] = d.conversaciones || [];
       setConvs(lista); setPends(d.pendientes || []); setModo(d.modo || "copiloto");
       guardarCache(lista, d.pendientes || [], d.modo || "copiloto");
@@ -233,7 +267,7 @@ export default function PanelBot() {
         }
       }
     } catch { /* se reintenta en el siguiente ciclo */ }
-  }, [api, token, guardarCache]);
+  }, [api, token, guardarCache, dias]);
   const cargarHilo = useCallback(async (canal: string) => {
     enVuelo.current.add(canal);
     try {
@@ -441,9 +475,32 @@ export default function PanelBot() {
     const f = filtro.trim().toLowerCase();
     return convs
       .filter((c) => !f || (c.nombre ?? "").toLowerCase().includes(f) || (c.telefono ?? "").includes(f) || c.canal_id.includes(f))
-      .filter((c) => filtroEtapa === "todas" ? true : filtroEtapa === "sin responder" ? sinResponderDesde(c) != null : filtroEtapa === "sin leer" ? sinLeer(c) : filtroEtapa === "en tu control" ? c.estado === "escalada" : c.etapa === filtroEtapa);
-  }, [convs, filtro, filtroEtapa, sinLeer]);
-  const conteo = (f: (typeof FILTROS)[number]) => f === "todas" ? convs.length : f === "sin responder" ? nSinResp : f === "sin leer" ? nSinLeer : f === "en tu control" ? convs.filter((c) => c.estado === "escalada").length : convs.filter((c) => c.etapa === f).length;
+      .filter((c) => canalVer === "todos" || c.canal_id.startsWith(canalVer + ":"))
+      .filter((c) => filtroEtapa === "todas" ? true : filtroEtapa === "sin responder" ? sinResponderDesde(c) != null : filtroEtapa === "sin leer" ? sinLeer(c) : c.etapa === filtroEtapa);
+  }, [convs, filtro, filtroEtapa, sinLeer, canalVer]);
+  const conteo = (f: (typeof FILTROS)[number]) => f === "todas" ? convs.length : f === "sin responder" ? nSinResp : f === "sin leer" ? nSinLeer : convs.filter((c) => c.etapa === f).length;
+  // Embudo: mismas conversaciones, con búsqueda, canal y "solo sin responder".
+  const tablero = useMemo(() => {
+    const f = filtro.trim().toLowerCase();
+    const vis = convs
+      .filter((c) => !f || (c.nombre ?? "").toLowerCase().includes(f) || (c.telefono ?? "").includes(f) || (c.cotizacion_id ?? "").toLowerCase().includes(f) || (c.lote_id ?? "").toLowerCase().includes(f))
+      .filter((c) => canalVer === "todos" || c.canal_id.startsWith(canalVer + ":"))
+      .filter((c) => !soloSinResp || sinResponderDesde(c) != null);
+    return ORDEN_EMBUDO.map((k) => {
+      const items = vis.filter((c) => (c.etapa || "contacto") === k);
+      const suma = items.reduce((s, c) => s + (k === "compro" ? (c.monto && c.pagada ? c.monto : c.total_compras || 0) : c.monto || 0), 0);
+      return { k, items, suma };
+    });
+  }, [convs, filtro, canalVer, soloSinResp]);
+  // Clientes: segmentos, orden y búsqueda.
+  const clientesVis = useMemo(() => {
+    const f = filtro.trim().toLowerCase();
+    const l = clientas
+      .filter((c) => !f || (c.nombre ?? "").toLowerCase().includes(f) || c.telefono.includes(f) || (c.ciudad ?? "").toLowerCase().includes(f))
+      .filter((c) => segVer === "todos" || segmento(c).k === segVer || (segVer === "compradoras" && c.compras > 0));
+    const v = (c: Clienta) => ordenCli === "total" ? c.total : ordenCli === "compras" ? c.compras : ordenCli === "ultima" ? c.ultima || 0 : Date.parse(c.ultimo_contacto || "") || 0;
+    return [...l].sort((a, b) => v(b) - v(a));
+  }, [clientas, filtro, segVer, ordenCli]);
   const pendsDe = (canal: string) => pends.filter((p) => p.canal_id === canal);
   const qvSel = quedaVentana(hilo?.conversacion);
   const cerradaSel = qvSel != null && qvSel <= 0;
@@ -469,8 +526,9 @@ export default function PanelBot() {
       <header className="pb-top">
         <strong>Bot vendedor</strong>
         <nav>
+          <button className={tab === "embudo" ? "on" : ""} onClick={() => setTab("embudo")}>Embudo{kpis && kpis.sin_atender + kpis.por_confirmar ? <span className="pb-badge">{kpis.sin_atender + kpis.por_confirmar}</span> : null}</button>
           <button className={tab === "chats" ? "on" : ""} onClick={() => setTab("chats")}>Chats{nSinLeer ? <span className="pb-badge">{nSinLeer}</span> : null}{pends.length ? ` · ${pends.length} por aprobar` : ""}</button>
-          <button className={tab === "clientas" ? "on" : ""} onClick={() => { setTab("clientas"); cargarClientas(); }}>Clientas</button>
+          <button className={tab === "clientas" ? "on" : ""} onClick={() => { setTab("clientas"); cargarClientas(); }}>Clientes</button>
           <button className={tab === "lotes" ? "on" : ""} onClick={() => { setTab("lotes"); cargarLotes(); }}>Lotes</button>
           <button className={tab === "cots" ? "on" : ""} onClick={() => { setTab("cots"); cargarCots(); }}>Cotizaciones</button>
         </nav>
@@ -505,11 +563,11 @@ export default function PanelBot() {
                 const n = conteo(f);
                 if (!n && f !== "todas" && f !== filtroEtapa) return null;
                 const col = ETAPAS[f]?.c;
-                return <button key={f} className={"chip" + (filtroEtapa === f ? " on" : "")} style={col ? { borderColor: col, ...(filtroEtapa === f ? { background: col, color: "#fff" } : { color: col }) } : undefined} onClick={() => setFiltroEtapa(f)}>{ETAPAS[f]?.t || f} {n}</button>;
+                return <button key={f} title={ETAPAS[f]?.ayuda} className={"chip" + (filtroEtapa === f ? " on" : "")} style={col ? { borderColor: col, ...(filtroEtapa === f ? { background: col, color: "#fff" } : { color: col }) } : undefined} onClick={() => setFiltroEtapa(f)}>{ETAPAS[f]?.t || f} {n}</button>;
               })}
             </div>
             {lista.map((c) => {
-              const et = ETAPAS[c.etapa || "nueva"] || ETAPAS.nueva;
+              const et = ETAPAS[c.etapa || "contacto"] || ETAPAS.contacto;
               const nuevo = sinLeer(c);
               const sr = sinResponderDesde(c);
               const qv = quedaVentana(c);
@@ -664,7 +722,7 @@ export default function PanelBot() {
               <div className="bloque">
                 <h4>Contacto</h4>
                 <div className="kv"><span>{sel.startsWith("wa:") ? "WhatsApp" : "Telegram"}</span><b>{hilo.conversacion?.telefono || sel}</b></div>
-                <div className="kv"><span>Etapa</span><b>{ETAPAS[convs.find((c) => c.canal_id === sel)?.etapa || "nueva"]?.t}</b></div>
+                <div className="kv"><span>Etapa</span><b>{ETAPAS[convs.find((c) => c.canal_id === sel)?.etapa || "contacto"]?.t}</b></div>
                 {hilo.conversacion?.creada && <div className="kv"><span>Primer contacto</span><b>{hora(hilo.conversacion.creada)}</b></div>}
                 {hilo.conversacion?.origen && <div className="kv"><span>Origen</span><b>{hilo.conversacion.origen}</b></div>}
                 {hilo.lote && <div className="kv"><span>Lote</span><b>{hilo.lote.id} · {hilo.lote.estado}{hilo.lote.apartado_hasta ? ` hasta ${hora(hilo.lote.apartado_hasta)}` : ""}</b></div>}
@@ -705,23 +763,125 @@ export default function PanelBot() {
         </section>
       )}
 
+      {tab === "embudo" && (
+        <section className="pb-embudo">
+          {kpis && (
+            <div className="pb-kpis">
+              <div><b>{kpis.conversaciones}</b><span>conversaciones</span></div>
+              <div><b>{kpis.nuevas}</b><span>nuevas</span></div>
+              <div><b>{kpis.cotizadas}</b><span>cotizadas · {kpis.conversaciones ? Math.round((kpis.cotizadas / kpis.conversaciones) * 100) : 0}%</span></div>
+              <div><b>{kpis.pagadas}</b><span>pagaron · {kpis.cotizadas ? Math.round((kpis.pagadas / kpis.cotizadas) * 100) : 0}% de las cotizadas</span></div>
+              <div><b>{fmx(kpis.ventas)}</b><span>{kpis.n_ventas} ventas en el sitio</span></div>
+              <div><b>{fmx(kpis.ticket)}</b><span>ticket promedio</span></div>
+              {kpis.sin_atender + kpis.por_confirmar > 0 && <div className="alerta"><b>{kpis.sin_atender + kpis.por_confirmar}</b><span>urgentes (sin atender / pago por confirmar)</span></div>}
+            </div>
+          )}
+          <div className="pb-filtros-embudo">
+            <input placeholder="Buscar nombre, teléfono, cotización o lote" value={filtro} onChange={(e) => setFiltro(e.target.value)} />
+            <select value={dias} onChange={(e) => setDias(Number(e.target.value))}>{PERIODOS.map(([d, t]) => <option key={d} value={d}>{t}</option>)}</select>
+            <select value={canalVer} onChange={(e) => setCanalVer(e.target.value as "todos" | "wa" | "tg")}><option value="todos">WhatsApp y Telegram</option><option value="wa">Solo WhatsApp</option><option value="tg">Solo Telegram</option></select>
+            <label className="chk"><input type="checkbox" checked={soloSinResp} onChange={(e) => setSoloSinResp(e.target.checked)} /> Solo sin responder</label>
+          </div>
+          <div className="pb-columnas">
+            {tablero.map(({ k, items, suma }) => {
+              const et = ETAPAS[k];
+              return (
+                <div key={k} className="pb-col" style={{ borderTopColor: et.c }}>
+                  <div className="pb-col-top" title={et.ayuda}>
+                    <b>{et.i} {et.t}</b>
+                    <span>{items.length}{suma ? ` · ${fmx(suma)}` : ""}</span>
+                  </div>
+                  <div className="pb-col-items">
+                    {items.map((c) => {
+                      const sr = sinResponderDesde(c);
+                      return (
+                        <button key={c.canal_id} className={"pb-card" + (sr != null ? " sinresp" : "")} onClick={() => { setTab("chats"); setSel(c.canal_id); }} onMouseEnter={() => precargar(c.canal_id)}>
+                          <div className="l1"><span>{canalIcono(c.canal_id)}</span><b>{c.nombre || c.telefono || "Sin nombre"}</b><span className="hace">{hace(c.ultimo_cliente_en)}</span></div>
+                          <div className="l2">
+                            {c.monto ? <span className="monto">{fmx(c.monto)}</span> : null}
+                            {c.cotizacion_id ? <span>{c.cotizacion_id}</span> : null}
+                            {c.lote_id ? <span>{c.lote_id}</span> : null}
+                            {c.apartado ? <span className="ap">apartado {fmx(c.apartado)}</span> : null}
+                            {(c.compras ?? 0) > 0 ? <span className="cli">🛍 {c.compras}{(c.compras ?? 0) > 1 ? " compras" : " compra"}</span> : null}
+                            {sr != null ? <span className="campanita">🔔 {duracion(sr)}</span> : null}
+                          </div>
+                          {k === "sin_atender" && c.motivo_escalacion ? <div className="l3">Motivo: {c.motivo_escalacion}</div> : null}
+                        </button>
+                      );
+                    })}
+                    {!items.length && <p className="vacio">—</p>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       {tab === "clientas" && (
-        <section className="pb-cots">
-          <p className="pb-vacio" style={{ padding: "0 0 10px" }}>Todas las clientas que han escrito al bot o comprado en la web, con sus compras. Las que ya compraron y no han vuelto son candidatas a recompra.</p>
+        <section className="pb-cots pb-clientes">
+          {(() => {
+            const compradoras = clientas.filter((c) => c.compras > 0);
+            const total = compradoras.reduce((s, c) => s + c.total, 0);
+            const recurrentes = compradoras.filter((c) => c.compras >= 2).length;
+            return (
+              <div className="pb-kpis">
+                <div><b>{compradoras.length}</b><span>clientas que compraron</span></div>
+                <div><b>{recurrentes}</b><span>recurrentes · {compradoras.length ? Math.round((recurrentes / compradoras.length) * 100) : 0}%</span></div>
+                <div><b>{fmx(total)}</b><span>vendido en total</span></div>
+                <div><b>{fmx(compradoras.length ? total / compradoras.reduce((s, c) => s + c.compras, 0) : 0)}</b><span>ticket promedio</span></div>
+                <div><b>{clientas.length - compradoras.length}</b><span>contactos sin compra</span></div>
+              </div>
+            );
+          })()}
+          <div className="pb-filtros-embudo">
+            <input placeholder="Buscar nombre, teléfono o ciudad" value={filtro} onChange={(e) => setFiltro(e.target.value)} />
+            <select value={segVer} onChange={(e) => setSegVer(e.target.value)}>
+              <option value="todos">Todas</option><option value="compradoras">Compraron</option><option value="vip">VIP (3+ compras o $10k+)</option>
+              <option value="recurrente">Recurrentes</option><option value="una">1 compra</option><option value="inactiva">Inactivas (+45 días)</option><option value="sin_compra">Sin compra</option>
+            </select>
+            <select value={ordenCli} onChange={(e) => setOrdenCli(e.target.value as typeof ordenCli)}>
+              <option value="total">Ordenar: más compraron ($)</option><option value="compras">Ordenar: más compras</option><option value="ultima">Ordenar: compra más reciente</option><option value="contacto">Ordenar: último contacto</option>
+            </select>
+            <button onClick={() => bajarCsv(`clientes-themakeup-${new Date().toISOString().slice(0, 10)}.csv`, [["Nombre", "Teléfono", "Ciudad", "Segmento", "Compras", "Total", "Ticket promedio", "Primera compra", "Última compra", "Último contacto", "Notas"], ...clientesVis.map((c) => [c.nombre || "", c.telefono, c.ciudad || "", segmento(c).t, c.compras, Math.round(c.total), c.compras ? Math.round(c.total / c.compras) : 0, fechaCorta(c.primera), fechaCorta(c.ultima), c.ultimo_contacto ? new Date(c.ultimo_contacto).toLocaleDateString("es-MX") : "", c.notas || ""])])}>⬇ Exportar CSV ({clientesVis.length})</button>
+          </div>
           <table>
-            <thead><tr><th>Clienta</th><th>Teléfono</th><th>Compras</th><th>Total</th><th>Última compra</th><th>Último contacto</th><th>Notas</th></tr></thead>
+            <thead><tr><th>Clienta</th><th>Segmento</th><th>Compras</th><th>Total</th><th>Ticket</th><th>Última compra</th><th>Días sin comprar</th><th>Último contacto</th><th>Notas</th></tr></thead>
             <tbody>
-              {clientas.map((c) => (
-                <tr key={c.telefono} className={c.compras >= 2 ? "pagada" : ""}>
-                  <td>{c.canal_id ? <button className="link" onClick={() => { setTab("chats"); setSel(c.canal_id); }}>{c.nombre || "—"}</button> : (c.nombre || "—")}</td>
-                  <td>{c.telefono}</td>
-                  <td>{c.compras || "—"}</td>
-                  <td>{c.compras ? fmx(c.total) : "—"}</td>
-                  <td>{c.ultima ? new Date(c.ultima).toLocaleDateString("es-MX", { timeZone: "America/Mexico_City", day: "numeric", month: "short", year: "2-digit" }) : "—"}</td>
-                  <td>{c.ultimo_contacto ? hace(c.ultimo_contacto) : "—"}</td>
-                  <td style={{ maxWidth: 260 }}>{c.notas || ""}</td>
-                </tr>
-              ))}
+              {clientesVis.map((c) => {
+                const s = segmento(c);
+                const diasSin = c.ultima ? Math.floor((Date.now() - c.ultima) / 86400000) : null;
+                return (
+                  <Fragment key={c.telefono}>
+                    <tr className={abierta === c.telefono ? "abierta" : ""} onClick={() => setAbierta(abierta === c.telefono ? null : c.telefono)}>
+                      <td><b>{c.nombre || "—"}</b><div className="sub">{c.telefono}{c.ciudad ? ` · ${c.ciudad}` : ""}</div></td>
+                      <td><span className="etq" style={{ background: s.c }}>{s.t}</span></td>
+                      <td>{c.compras || "—"}</td>
+                      <td>{c.compras ? fmx(c.total) : "—"}</td>
+                      <td>{c.compras ? fmx(c.total / c.compras) : "—"}</td>
+                      <td>{fechaCorta(c.ultima)}</td>
+                      <td>{diasSin ?? "—"}</td>
+                      <td>{c.ultimo_contacto ? hace(c.ultimo_contacto) : "—"}</td>
+                      <td style={{ maxWidth: 220 }}>{c.notas || ""}</td>
+                    </tr>
+                    {abierta === c.telefono && (
+                      <tr className="ficha"><td colSpan={9}>
+                        <div className="pb-ficha-cli">
+                          <div>
+                            <b>Compras</b>
+                            {c.detalle?.length ? c.detalle.map((d, i) => <div key={i} className="compra">{fechaCorta(d.fecha)} · <b>{fmx(d.total)}</b> · {d.que}</div>) : <p className="nota">Sin compras registradas con este teléfono.</p>}
+                            {c.primera ? <p className="nota">Clienta desde {fechaCorta(c.primera)}.</p> : null}
+                          </div>
+                          <div className="acc">
+                            {c.canal_id && <button onClick={(e) => { e.stopPropagation(); setTab("chats"); setSel(c.canal_id); }}>💬 Abrir chat</button>}
+                            <a className="btn" href={`https://wa.me/52${c.telefono}`} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>WhatsApp directo</a>
+                          </div>
+                        </div>
+                      </td></tr>
+                    )}
+                  </Fragment>
+                );
+              })}
             </tbody>
           </table>
           {!clientas.length && <p className="pb-vacio">Cargando…</p>}
@@ -876,6 +1036,30 @@ const estilos = `
   .pb-mas > div, .pb-menu > div { position: absolute; right: 0; top: calc(100% + 4px); z-index: 6; background: #fff; border: 1px solid #f2e0d8; border-radius: 12px; box-shadow: 0 8px 24px #0002; padding: 6px; display: grid; gap: 4px; min-width: 180px; }
   .pb-menu > div span { font-size: 13px; padding: 4px 8px; }
   .solo-movil { display: none; }
+  .pb-embudo, .pb-clientes { padding: 12px 14px; }
+  .pb-kpis { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+  .pb-kpis > div { background: #fff; border: 1px solid #f2e0d8; border-radius: 12px; padding: 8px 12px; min-width: 120px; display: grid; }
+  .pb-kpis b { font-size: 20px; } .pb-kpis span { font-size: 12px; color: #8a7068; }
+  .pb-kpis .alerta { border-color: #e11d48; background: #fff1f2; } .pb-kpis .alerta b { color: #e11d48; }
+  .pb-filtros-embudo { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+  .pb-filtros-embudo input:not([type=checkbox]) { max-width: 320px; } .pb-filtros-embudo select { font: inherit; font-size: 14px; padding: 8px; border: 1px solid #d4b8a8; border-radius: 10px; background: #fff; }
+  .pb-filtros-embudo .chk { font-size: 14px; display: flex; gap: 6px; align-items: center; } .pb-filtros-embudo .chk input { width: auto; }
+  .pb-columnas { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(230px, 1fr); gap: 10px; overflow-x: auto; padding-bottom: 8px; align-items: start; }
+  .pb-col { background: #f6efe8; border-radius: 12px; border-top: 4px solid #ccc; display: grid; grid-template-rows: auto 1fr; max-height: calc(100vh - 260px); min-height: 200px; }
+  .pb-col-top { display: flex; justify-content: space-between; gap: 6px; padding: 8px 10px; font-size: 13px; } .pb-col-top span { color: #8a7068; white-space: nowrap; }
+  .pb-col-items { overflow-y: auto; padding: 0 8px 8px; display: grid; gap: 6px; align-content: start; }
+  .pb-col .vacio { color: #b6a49c; text-align: center; font-size: 13px; }
+  .pb-card { text-align: left; width: 100%; background: #fff !important; color: inherit !important; border: 1px solid #f2e0d8 !important; border-radius: 10px !important; padding: 7px 9px !important; display: grid; gap: 4px; }
+  .pb-card:hover { border-color: #c9807a !important; } .pb-card.sinresp { box-shadow: inset 0 0 0 1px #e11d48; }
+  .pb-card .l1 { display: flex; gap: 5px; align-items: baseline; font-size: 14px; } .pb-card .l1 b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .pb-card .hace { margin-left: auto; font-size: 11px; color: #8a7068; }
+  .pb-card .l2 { display: flex; flex-wrap: wrap; gap: 4px; font-size: 11px; color: #8a7068; } .pb-card .l2 span { background: #f6efe8; border-radius: 999px; padding: 0 7px; }
+  .pb-card .l2 .monto { background: #e8f0fe; color: #1e40af; font-weight: 600; } .pb-card .l2 .ap { background: #ede9fe; color: #6d28d9; } .pb-card .l2 .cli { background: #dcfce7; color: #166534; }
+  .pb-card .l2 .campanita { background: #e11d48; color: #fff; } .pb-card .l3 { font-size: 11px; color: #9f1239; }
+  .pb-clientes table tr { cursor: pointer; } .pb-clientes tr.abierta { background: #fdf3f0; } .pb-clientes .sub { font-size: 12px; color: #8a7068; }
+  .pb-clientes .etq { color: #fff; border-radius: 999px; padding: 1px 8px; font-size: 11px; }
+  .pb-clientes tr.ficha { cursor: default; background: #fffaf7; } .pb-ficha-cli { display: flex; gap: 20px; flex-wrap: wrap; justify-content: space-between; padding: 6px 2px; }
+  .pb-ficha-cli .compra { font-size: 13px; margin: 3px 0; } .pb-ficha-cli .nota { font-size: 12px; color: #8a7068; } .pb-ficha-cli .acc { display: flex; gap: 6px; align-items: flex-start; }
+  .pb-ficha-cli .btn { border: 1px solid #c9807a; border-radius: 10px; color: #9e5550; text-decoration: none; padding: 8px 12px; font-size: 14px; }
   @media (max-width: 1100px) {
     .pb-chats.con-hilo { grid-template-columns: 320px 1fr; }
     .pb-hilo-top .ver-ficha { display: inline-block; }

@@ -90,16 +90,39 @@ async function leerComprasPorTelefono(sb: Sb): Promise<MapaCompras> {
  * Etapa del CRM calculada con lo que ya se sabe (no hay que capturar nada):
  * nueva → interesada → cotizada → apartada → clienta → recompra; perdida si dijo que no.
  */
-function etapaDe(c: Record<string, unknown>, cot: Record<string, unknown> | null, compras: number) {
-  // La lista trae solo noInteresadaEn e interes (no el resumen entero); el hilo sí trae el resumen completo.
-  const r = (c.resumen || { noInteresadaEn: c.noInteresadaEn, interes: c.interes }) as Record<string, unknown>;
-  if (cot?.pagada) return compras >= 2 ? "recompra" : "clienta";
-  if (compras >= 1) return "recompra"; // ya compró antes y volvió a escribir
-  if (r.noInteresadaEn) return "perdida";
+/**
+ * Etapa del EMBUDO (una sola por conversación), calculada con lo que ya existe (nada se captura a mano).
+ * Orden de prioridad: lo urgente primero.
+ *   sin_atender  → el bot la pasó al equipo y nadie del equipo ha actuado desde entonces
+ *   por_confirmar→ dijo que transfirió (pago o apartado) o mandó comprobante sin confirmar
+ *   en_control   → en control de alguien del equipo
+ *   compro       → su cotización está pagada
+ *   apartada     → pagó el anticipo
+ *   cotizada     → tiene link sin pagar
+ *   compro       → compró antes y no tiene cotización abierta (clienta que regresa)
+ *   perdida      → dijo que no
+ *   contacto     → solo escribió
+ */
+function etapaDe(c: Record<string, unknown>, cot: Record<string, unknown> | null, compras: number, ultimaAccionEquipo: string | null) {
+  const r = (c.resumen || { noInteresadaEn: c.noInteresadaEn, interes: c.interes, escalacion: c.escalacion, comprobante: c.comprobante }) as Record<string, unknown>;
+  const esc = (r.escalacion || null) as { fecha?: string } | null;
+  const comp = (r.comprobante || null) as { cotizacionId?: string; confirmadoEn?: string; rechazadoEn?: string } | null;
+  if (c.estado === "escalada") {
+    const desde = esc?.fecha || String(c.creada || "");
+    if (!ultimaAccionEquipo || ultimaAccionEquipo < desde) return "sin_atender";
+  }
+  if (cot && !cot.pagada) {
+    const avisoTransfer = Boolean(cot.transferencia_aviso_en) || cot.apartado_pago_id === "AVISO-SPEI";
+    const compPendiente = comp && comp.cotizacionId === cot.id && !comp.confirmadoEn && !comp.rechazadoEn;
+    if ((avisoTransfer && !(Number(cot.apartado_monto) > 0 && cot.apartado_pago_id === "AVISO-SPEI")) || compPendiente) return "por_confirmar";
+  }
+  if (c.estado === "escalada") return "en_control";
+  if (cot?.pagada) return "compro";
   if (Number(cot?.apartado_monto) > 0) return "apartada";
   if (cot) return "cotizada";
-  if (c.lote_id || r.interes) return "interesada";
-  return "nueva";
+  if (compras >= 1) return "compro";
+  if (r.noInteresadaEn) return "perdida";
+  return "contacto";
 }
 
 export async function GET(req: Request) {
@@ -110,25 +133,62 @@ export async function GET(req: Request) {
   try {
     if (q === "version") return j({ version: process.env.PANEL_VERSION || "" });
     if (q === "conversaciones") {
-      const desde = new Date(Date.now() - 45 * 86400_000).toISOString();
+      // Período: ?dias=7|30|90|365; 0 = todo (hasta 1000 conversaciones). Por omisión 45.
+      const diasParam = Number(url.searchParams.get("dias") ?? 45);
+      const dias = Number.isFinite(diasParam) && diasParam >= 0 ? diasParam : 45;
+      const desde = new Date(dias ? Date.now() - dias * 86400_000 : 0).toISOString();
       const [{ data: conv }, { data: pend }, { data: modo }] = await Promise.all([
-        sb.from("mk_conversaciones").select("canal_id,canal,nombre,telefono,estado,cotizacion_id,lote_id,ultimo_cliente_en,ultimo_bot_en,origen,creada,resumen->noInteresadaEn,resumen->interes").gte("actualizada", desde).order("ultimo_cliente_en", { ascending: false, nullsFirst: false }).limit(200),
+        sb.from("mk_conversaciones").select("canal_id,canal,nombre,telefono,estado,cotizacion_id,lote_id,ultimo_cliente_en,ultimo_bot_en,origen,creada,resumen->noInteresadaEn,resumen->interes,resumen->escalacion,resumen->comprobante").gte("actualizada", desde).order("ultimo_cliente_en", { ascending: false, nullsFirst: false }).limit(dias ? 500 : 1000),
         sb.from("mk_pendientes").select("id,canal_id,texto,adjunto,creado").order("id"),
         sb.from("mk_config").select("valor").eq("clave", "modo").maybeSingle(),
       ]);
       const lista = conv || [];
       const ids = lista.map((c) => c.cotizacion_id).filter(Boolean) as string[];
-      const [{ data: cots }, compras] = await Promise.all([
-        ids.length ? sb.from("cotizaciones").select("id,pagada,apartado_monto,total").in("id", ids) : Promise.resolve({ data: [] as Record<string, unknown>[] }),
+      // Última acción del equipo en las escaladas: escribirle (por=alan), tomar el control o marcarla atendida.
+      const escaladas = lista.filter((c) => c.estado === "escalada").map((c) => c.canal_id);
+      const [{ data: cots }, compras, { data: acciones }] = await Promise.all([
+        ids.length ? sb.from("cotizaciones").select("id,pagada,apartado_monto,apartado_pago_id,transferencia_aviso_en,total,creada_en").in("id", ids) : Promise.resolve({ data: [] as Record<string, unknown>[] }),
         comprasPorTelefono(sb),
+        escaladas.length
+          ? sb.from("mk_mensajes").select("canal_id,creado,por,tipo,texto").in("canal_id", escaladas).or("por.eq.alan,tipo.eq.evento").order("creado", { ascending: false }).limit(3000)
+          : Promise.resolve({ data: [] as Record<string, unknown>[] }),
       ]);
+      const ultimaAccion = new Map<string, string>();
+      for (const m of (acciones || []) as { canal_id: string; creado: string; por: string; tipo: string; texto: string | null }[]) {
+        const esEquipo = m.por === "alan" || (m.tipo === "evento" && /^(🙋|👌|🔒)/u.test(m.texto || ""));
+        if (esEquipo && !ultimaAccion.has(m.canal_id)) ultimaAccion.set(m.canal_id, m.creado);
+      }
       const cotPorId = new Map((cots || []).map((x) => [String(x.id), x as Record<string, unknown>]));
       const enriquecidas = lista.map((c) => {
         const cp = compras.get(tel10(c.telefono));
         const cot = c.cotizacion_id ? cotPorId.get(String(c.cotizacion_id)) || null : null;
-        return { ...c, etapa: etapaDe(c, cot, cp?.n ?? 0), compras: cp?.n ?? 0, total_compras: cp?.total ?? 0 };
+        const etapa = etapaDe(c, cot, cp?.n ?? 0, ultimaAccion.get(c.canal_id) || null);
+        // Sin el resumen completo en la lista: solo lo que la tarjeta usa.
+        const { escalacion, comprobante, ...resto } = c as Record<string, unknown> & { canal_id: string; creada?: string | null; cotizacion_id?: string | null };
+        void comprobante;
+        return {
+          ...resto, etapa,
+          compras: cp?.n ?? 0, total_compras: cp?.total ?? 0, ultima_compra: cp?.ultima ?? null,
+          monto: cot ? Number(cot.total) || 0 : null, pagada: Boolean(cot?.pagada), apartado: Number(cot?.apartado_monto) || 0,
+          escalada_en: (escalacion as { fecha?: string } | null)?.fecha ?? null,
+          motivo_escalacion: (escalacion as { motivo?: string } | null)?.motivo ?? null,
+        };
       });
-      return j({ conversaciones: enriquecidas, pendientes: pend || [], modo: modo?.valor || "copiloto" });
+      // Indicadores del período (las ventas salen de TODAS las órdenes pagadas del sitio, con o sin chat).
+      const desdeMs = Date.parse(desde);
+      let ventas = 0, nVentas = 0;
+      for (const cp of compras.values()) for (const d of cp.detalle) if (d.fecha >= desdeMs) { ventas += d.total; nVentas++; }
+      const cuenta = (et: string) => enriquecidas.filter((x) => x.etapa === et).length;
+      const kpis = {
+        dias, conversaciones: enriquecidas.length,
+        nuevas: enriquecidas.filter((x) => String(x.creada || "") >= desde).length,
+        cotizadas: enriquecidas.filter((x) => x.cotizacion_id).length,
+        apartadas: enriquecidas.filter((x) => x.apartado > 0 && !x.pagada).length,
+        pagadas: enriquecidas.filter((x) => x.pagada).length,
+        sin_atender: cuenta("sin_atender"), por_confirmar: cuenta("por_confirmar"),
+        ventas, n_ventas: nVentas, ticket: nVentas ? Math.round(ventas / nVentas) : 0,
+      };
+      return j({ conversaciones: enriquecidas, pendientes: pend || [], modo: modo?.valor || "copiloto", kpis });
     }
     if (q === "mensajes") {
       const canal = url.searchParams.get("canal") || "";
@@ -162,9 +222,10 @@ export async function GET(req: Request) {
         sb.from("mk_clientes").select("clave,nombre,telefono,email,municipio,estado,notas,actualizada").order("actualizada", { ascending: false }).limit(500),
         sb.from("mk_conversaciones").select("canal_id,nombre,telefono,ultimo_cliente_en").limit(1000),
       ]);
-      const porTel = new Map<string, { telefono: string; nombre: string | null; ciudad: string | null; notas: string | null; canal_id: string | null; ultimo_contacto: string | null; compras: number; total: number; ultima: number }>();
+      type Detalle = { total: number; fecha: number; que: string };
+      const porTel = new Map<string, { telefono: string; nombre: string | null; ciudad: string | null; notas: string | null; canal_id: string | null; ultimo_contacto: string | null; compras: number; total: number; ultima: number; primera: number; detalle: Detalle[] }>();
       const toma = (tel: string) => {
-        if (!porTel.has(tel)) porTel.set(tel, { telefono: tel, nombre: null, ciudad: null, notas: null, canal_id: null, ultimo_contacto: null, compras: 0, total: 0, ultima: 0 });
+        if (!porTel.has(tel)) porTel.set(tel, { telefono: tel, nombre: null, ciudad: null, notas: null, canal_id: null, ultimo_contacto: null, compras: 0, total: 0, ultima: 0, primera: 0, detalle: [] });
         return porTel.get(tel)!;
       };
       for (const f of fichas || []) {
@@ -183,6 +244,8 @@ export async function GET(req: Request) {
       for (const [tel, cp] of compras) {
         const x = toma(tel);
         x.nombre ||= cp.nombre; x.compras = cp.n; x.total = cp.total; x.ultima = cp.ultima;
+        x.detalle = [...cp.detalle].sort((a, b) => b.fecha - a.fecha).slice(0, 20);
+        x.primera = cp.detalle.reduce((m, d) => (d.fecha && (!m || d.fecha < m) ? d.fecha : m), 0);
       }
       const clientes = [...porTel.values()].sort((a, b) => b.compras - a.compras || (b.ultimo_contacto || "").localeCompare(a.ultimo_contacto || ""));
       return j({ clientes });
