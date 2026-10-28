@@ -137,6 +137,18 @@ export async function GET(req: Request) {
       const diasParam = Number(url.searchParams.get("dias") ?? 45);
       const dias = Number.isFinite(diasParam) && diasParam >= 0 ? diasParam : 45;
       const desde = new Date(dias ? Date.now() - dias * 86400_000 : 0).toISOString();
+      // "¿Cambió algo?" (28-oct-2026): el panel pregunta cada 10 s; antes bajaba la lista entera (~130 KB)
+      // aunque nada hubiera cambiado. La marca junta lo último de cada fuente; si es la misma, no se manda nada.
+      const [{ data: mc }, { data: mp }, { data: mo }, { data: mt }, { data: ma }] = await Promise.all([
+        sb.from("mk_conversaciones").select("actualizada").order("actualizada", { ascending: false }).limit(1),
+        sb.from("mk_pendientes").select("id").order("id", { ascending: false }).limit(1),
+        sb.from("ordenes_web").select("fecha_pago").not("fecha_pago", "is", null).order("fecha_pago", { ascending: false }).limit(1),
+        sb.from("cotizaciones").select("transferencia_aviso_en").not("transferencia_aviso_en", "is", null).order("transferencia_aviso_en", { ascending: false }).limit(1),
+        sb.from("cotizaciones").select("apartado_en").not("apartado_en", "is", null).order("apartado_en", { ascending: false }).limit(1),
+      ]);
+      const { count: nPend } = await sb.from("mk_pendientes").select("id", { count: "exact", head: true });
+      const marca = [dias, mc?.[0]?.actualizada, mp?.[0]?.id, nPend, mo?.[0]?.fecha_pago, mt?.[0]?.transferencia_aviso_en, ma?.[0]?.apartado_en].join("|");
+      if (url.searchParams.get("marca") === marca) return j({ sinCambios: true, marca });
       const [{ data: conv }, { data: pend }, { data: modo }] = await Promise.all([
         sb.from("mk_conversaciones").select("canal_id,canal,nombre,telefono,estado,cotizacion_id,lote_id,ultimo_cliente_en,ultimo_bot_en,origen,creada,resumen->noInteresadaEn,resumen->interes,resumen->escalacion,resumen->comprobante").gte("actualizada", desde).order("ultimo_cliente_en", { ascending: false, nullsFirst: false }).limit(dias ? 500 : 1000),
         sb.from("mk_pendientes").select("id,canal_id,texto,adjunto,creado").order("id"),
@@ -150,7 +162,7 @@ export async function GET(req: Request) {
         ids.length ? sb.from("cotizaciones").select("id,pagada,apartado_monto,apartado_pago_id,transferencia_aviso_en,total,creada_en").in("id", ids) : Promise.resolve({ data: [] as Record<string, unknown>[] }),
         comprasPorTelefono(sb),
         escaladas.length
-          ? sb.from("mk_mensajes").select("canal_id,creado,por,tipo,texto").in("canal_id", escaladas).or("por.eq.alan,tipo.eq.evento").order("creado", { ascending: false }).limit(3000)
+          ? sb.from("mk_mensajes").select("canal_id,creado,por,tipo,texto").in("canal_id", escaladas).or("por.eq.alan,tipo.eq.evento").gte("creado", desde).order("creado", { ascending: false }).limit(1500)
           : Promise.resolve({ data: [] as Record<string, unknown>[] }),
       ]);
       const ultimaAccion = new Map<string, string>();
@@ -188,7 +200,7 @@ export async function GET(req: Request) {
         sin_atender: cuenta("sin_atender"), por_confirmar: cuenta("por_confirmar"),
         ventas, n_ventas: nVentas, ticket: nVentas ? Math.round(ventas / nVentas) : 0,
       };
-      return j({ conversaciones: enriquecidas, pendientes: pend || [], modo: modo?.valor || "copiloto", kpis });
+      return j({ conversaciones: enriquecidas, pendientes: pend || [], modo: modo?.valor || "copiloto", kpis, marca });
     }
     if (q === "mensajes") {
       const canal = url.searchParams.get("canal") || "";

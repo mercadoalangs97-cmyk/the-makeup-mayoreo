@@ -178,6 +178,8 @@ export default function PanelBot() {
   const [segVer, setSegVer] = useState("todos");
   const [ordenCli, setOrdenCli] = useState<"total" | "compras" | "ultima" | "contacto">("total");
   const [abierta, setAbierta] = useState<string | null>(null);
+  const [limiteLista, setLimiteLista] = useState(80);
+  const [colAbiertas, setColAbiertas] = useState<Record<string, boolean>>({});
   const [filtroEtapa, setFiltroEtapa] = useState<(typeof FILTROS)[number]>("todas");
   const [visto, setVisto] = useState<Record<string, string>>({});
   const [avisosOn, setAvisosOn] = useState(false);
@@ -239,14 +241,31 @@ export default function PanelBot() {
     } catch (e) { setAviso("❌ " + (e as Error).message); return null; } finally { setOcupado(false); }
   }, [token]);
 
-  const cargarLista = useCallback(async () => {
-    if (!token) return;
+  // Velocidad (28-oct-2026): la marca dice si algo cambió; sin cambios el servidor no manda la lista.
+  const marcaRef = useRef("");
+  const listaJsonRef = useRef("");
+  const firmaRef = useRef<Record<string, string>>({});
+  const cargarLista = useCallback(async (forzar = false): Promise<Set<string> | null> => {
+    if (!token) return null;
     try {
-      const d = await api("conversaciones", `&dias=${dias}`);
+      const d = await api("conversaciones", `&dias=${dias}${!forzar && marcaRef.current ? `&marca=${encodeURIComponent(marcaRef.current)}` : ""}`);
+      if (d.sinCambios) return new Set<string>();
+      marcaRef.current = d.marca || "";
       if (d.kpis) setKpis(d.kpis);
       const lista: Conv[] = d.conversaciones || [];
-      setConvs(lista); setPends(d.pendientes || []); setModo(d.modo || "copiloto");
-      guardarCache(lista, d.pendientes || [], d.modo || "copiloto");
+      // Qué chats cambiaron (para recargar el abierto solo si es uno de ellos).
+      const cambiados = new Set<string>();
+      const firmas: Record<string, string> = {};
+      for (const c of lista) {
+        const f = `${c.ultimo_cliente_en}|${c.ultimo_bot_en}|${c.estado}|${c.etapa}|${c.cotizacion_id}`;
+        firmas[c.canal_id] = f;
+        if (firmaRef.current[c.canal_id] !== f) cambiados.add(c.canal_id);
+      }
+      firmaRef.current = firmas;
+      const json = JSON.stringify(lista);
+      if (json !== listaJsonRef.current) { listaJsonRef.current = json; setConvs(lista); }
+      setPends(d.pendientes || []); setModo(d.modo || "copiloto");
+      if (cambiados.size) guardarCache(lista, d.pendientes || [], d.modo || "copiloto");
       // ¿Qué clientas escribieron desde la última vuelta? → sonido + notificación del navegador.
       const actual: Record<string, string> = {};
       for (const c of lista) if (c.ultimo_cliente_en) actual[c.canal_id] = c.ultimo_cliente_en;
@@ -266,7 +285,8 @@ export default function PanelBot() {
           }
         }
       }
-    } catch { /* se reintenta en el siguiente ciclo */ }
+      return cambiados;
+    } catch { /* se reintenta en el siguiente ciclo */ return null; }
   }, [api, token, guardarCache, dias]);
   const cargarHilo = useCallback(async (canal: string) => {
     enVuelo.current.add(canal);
@@ -329,10 +349,19 @@ export default function PanelBot() {
   // Refresco cada 10 s, solo con la pestaña a la vista; al volver a ella, refresca de inmediato.
   useEffect(() => {
     if (!token) return;
-    const vuelta = () => { if (document.hidden) return; cargarLista(); if (selRef.current) cargarHilo(selRef.current); };
-    const t = setInterval(vuelta, 10000);
-    document.addEventListener("visibilitychange", vuelta);
-    return () => { clearInterval(t); document.removeEventListener("visibilitychange", vuelta); };
+    let n = 0;
+    const vuelta = async (forzar = false) => {
+      if (document.hidden) return;
+      n++;
+      const completo = forzar || n % 6 === 0; // una vez por minuto, todo
+      const cambiados = await cargarLista(completo);
+      const s = selRef.current;
+      if (s && (completo || cambiados?.has(s))) cargarHilo(s);
+    };
+    const t = setInterval(() => vuelta(), 10000);
+    const alVolver = () => vuelta(true);
+    document.addEventListener("visibilitychange", alVolver);
+    return () => { clearInterval(t); document.removeEventListener("visibilitychange", alVolver); };
   }, [token, cargarLista, cargarHilo]);
   // Al cambiar de chat: se pinta al instante con lo guardado (o con lo que ya dice la lista) y se trae lo fresco.
   useEffect(() => {
@@ -566,7 +595,7 @@ export default function PanelBot() {
                 return <button key={f} title={ETAPAS[f]?.ayuda} className={"chip" + (filtroEtapa === f ? " on" : "")} style={col ? { borderColor: col, ...(filtroEtapa === f ? { background: col, color: "#fff" } : { color: col }) } : undefined} onClick={() => setFiltroEtapa(f)}>{ETAPAS[f]?.t || f} {n}</button>;
               })}
             </div>
-            {lista.map((c) => {
+            {lista.slice(0, limiteLista).map((c) => {
               const et = ETAPAS[c.etapa || "contacto"] || ETAPAS.contacto;
               const nuevo = sinLeer(c);
               const sr = sinResponderDesde(c);
@@ -586,6 +615,7 @@ export default function PanelBot() {
                 </button>
               );
             })}
+            {lista.length > limiteLista && <button className="pb-mas-lista" onClick={() => setLimiteLista((x) => x + 100)}>Mostrar {Math.min(100, lista.length - limiteLista)} más ({lista.length - limiteLista} restantes)</button>}
             {!lista.length && <p className="pb-vacio">Sin conversaciones todavía.</p>}
           </aside>
           <div className="pb-hilo">
@@ -792,7 +822,7 @@ export default function PanelBot() {
                     <span>{items.length}{suma ? ` · ${fmx(suma)}` : ""}</span>
                   </div>
                   <div className="pb-col-items">
-                    {items.map((c) => {
+                    {items.slice(0, colAbiertas[k] ? items.length : 30).map((c) => {
                       const sr = sinResponderDesde(c);
                       return (
                         <button key={c.canal_id} className={"pb-card" + (sr != null ? " sinresp" : "")} onClick={() => { setTab("chats"); setSel(c.canal_id); }} onMouseEnter={() => precargar(c.canal_id)}>
@@ -809,6 +839,7 @@ export default function PanelBot() {
                         </button>
                       );
                     })}
+                    {items.length > 30 && !colAbiertas[k] && <button className="pb-mas-lista" onClick={() => setColAbiertas((x) => ({ ...x, [k]: true }))}>Ver {items.length - 30} más</button>}
                     {!items.length && <p className="vacio">—</p>}
                   </div>
                 </div>
@@ -1037,6 +1068,7 @@ const estilos = `
   .pb-menu > div span { font-size: 13px; padding: 4px 8px; }
   .solo-movil { display: none; }
   .pb-embudo, .pb-clientes { padding: 12px 14px; }
+  .pb-mas-lista { width: 100%; font-size: 13px !important; padding: 6px !important; }
   .pb-kpis { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
   .pb-kpis > div { background: #fff; border: 1px solid #f2e0d8; border-radius: 12px; padding: 8px 12px; min-width: 120px; display: grid; }
   .pb-kpis b { font-size: 20px; } .pb-kpis span { font-size: 12px; color: #8a7068; }
