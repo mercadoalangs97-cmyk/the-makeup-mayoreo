@@ -169,7 +169,8 @@ fbq('init', '${META_PIXEL_ID}');fbq('track', 'PageView');`}
               email: NEGOCIO.email,
               address: {
                 "@type": "PostalAddress",
-                streetAddress: NEGOCIO.calle,
+                // Sin streetAddress: el domicilio es una casa. Google acepta
+                // la dirección a nivel colonia/municipio para un negocio en línea.
                 addressLocality: NEGOCIO.ciudad,
                 addressRegion: NEGOCIO.estado,
                 postalCode: NEGOCIO.cp,

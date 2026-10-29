@@ -9,9 +9,12 @@ export const SITE_NAME = "The Makeup Mayoreo CDMX";
 
 // Datos del negocio (usar SIEMPRE estos para que coincidan en todo el sitio y en
 // Merchant Center — la consistencia es clave contra "Misrepresentation").
+// La calle y el número NO viven aquí a propósito: esto se imprime en el pie de
+// cada página, y el domicilio es una casa. Lo que se publica llega hasta la
+// colonia, que ubica al negocio sin dar el domicilio exacto de nadie.
+// El remitente real de las guías es ORIGEN, en lib/skydropx.ts.
 export const NEGOCIO = {
   nombre: "The Makeup · AMARÉA",
-  calle: "Bosque de Checoslovaquia 78",
   colonia: "Bosques de Aragón",
   cp: "57170",
   ciudad: "Nezahualcóyotl",
@@ -21,4 +24,4 @@ export const NEGOCIO = {
   whatsapp: "5215658146140",
   email: "ventas@themakeup.com.mx",
 };
-export const NEGOCIO_DIR = `${NEGOCIO.calle}, ${NEGOCIO.colonia}, C.P. ${NEGOCIO.cp}, ${NEGOCIO.ciudad}, ${NEGOCIO.estado}, ${NEGOCIO.pais}`;
+export const NEGOCIO_DIR = `${NEGOCIO.colonia}, C.P. ${NEGOCIO.cp}, ${NEGOCIO.ciudad}, ${NEGOCIO.estado}, ${NEGOCIO.pais}`;
