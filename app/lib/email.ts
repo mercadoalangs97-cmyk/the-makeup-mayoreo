@@ -244,6 +244,13 @@ function htmlGuiaCliente(o: OrdenCorreo, g: DatosGuia): string {
 // ---- Correo de SOLICITUD DE OPINIÓN (a los ~7 días de la compra) ----
 // Pide la opinión por WhatsApp/correo. Con su autorización, esas opiniones
 // REALES son las que después se publican en el sitio.
+// Link a /opinar con el pedido y el nombre ya puestos: lo que se escribe ahí cae en `opiniones` y se
+// puede publicar en el sitio (lo que mandan por WhatsApp no).
+function linkOpinion(o: OrdenCorreo): string {
+  const nombre = (o.cliente || o.envio?.nombre || "").trim().split(/\s+/)[0] || "";
+  return `${SITE_URL}/opinar?p=${o.id.slice(0, 8).toUpperCase()}${nombre ? `&n=${encodeURIComponent(nombre)}` : ""}`;
+}
+
 function htmlResena(o: OrdenCorreo): string {
   const marca = o.items.some((i) => i.tipo === "lote") ? "The Makeup Mayoreo" : "AMARÉA";
   const nombre = o.cliente || o.envio?.nombre || "";
@@ -255,10 +262,10 @@ function htmlResena(o: OrdenCorreo): string {
       Nos ayuda muchísimo y nos toma menos de un minuto.
     </p>
     <p style="text-align:center;margin:22px 0 6px">
-      <a href="https://wa.me/${WPP}?text=${encodeURIComponent("Hola! Les comparto mi opinión sobre mi pedido " + pedidoNum(o.id) + ": ")}" style="display:inline-block;background:#1DA851;color:#fff;text-decoration:none;padding:13px 28px;border-radius:999px;font-size:15px;font-weight:bold">Dejar mi opinión por WhatsApp</a>
+      <a href="${linkOpinion(o)}" style="display:inline-block;background:${C.roseDk};color:#fff;text-decoration:none;padding:13px 28px;border-radius:999px;font-size:15px;font-weight:bold">Dejar mi opinión ⭐</a>
     </p>
     <p style="text-align:center;color:${C.muted};font-size:13px;margin:14px 0 0">
-      O simplemente responde a este correo. ${hayLote ? "" : "¿Ya se te acabó algo? "}
+      O <a href="https://wa.me/${WPP}?text=${encodeURIComponent("Hola! Les comparto mi opinión sobre mi pedido " + pedidoNum(o.id) + ": ")}" style="color:${C.roseDk}">mándanosla por WhatsApp</a>. ${hayLote ? "" : "¿Ya se te acabó algo? "}
       <a href="${SITE_URL}${hayLote ? "/mayoreo" : "/amarea"}" style="color:${C.roseDk}">Volver a la tienda</a>
     </p>
     <p style="color:${C.muted};font-size:11.5px;margin-top:20px;text-align:center">

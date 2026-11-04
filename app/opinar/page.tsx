@@ -5,7 +5,7 @@ import OpinarClient from "./OpinarClient";
 
 // Página personal que mandamos por WhatsApp/correo: no debe indexarse.
 export const metadata: Metadata = {
-  title: "Déjanos tu opinión · AMARÉA",
+  title: "Déjanos tu opinión · The Makeup",
   robots: { index: false, follow: false },
 };
 export const dynamic = "force-dynamic";
