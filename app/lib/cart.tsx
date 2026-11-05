@@ -10,6 +10,15 @@ import {
   useState,
 } from "react";
 import { WPP, fmx, ENVIO_AMAREA_GRATIS_DESDE, calcularEnvio } from "./lotes";
+import {
+  type Mayoreo,
+  totalConMayoreo,
+  familiasEnMayoreo,
+  precioUnitario,
+  ahorroMayoreo,
+  avisosMayoreo,
+  type AvisoMayoreo,
+} from "./mayoreo";
 import { gaAddToCart, gaLead } from "./analytics";
 
 export type CartItem = {
@@ -21,12 +30,20 @@ export type CartItem = {
   qty: number;
   max?: number; // tope de stock (solo productos individuales)
   sub?: string; // etiqueta corta (ej "10 piezas" o la marca)
+  /** Tarifa por cantidad, si el producto la tiene. El total la aplica solo. */
+  mayoreo?: Mayoreo | null;
 };
 
 type CartCtx = {
   items: CartItem[];
   count: number;
   total: number;
+  /** Precio por pieza ya con el mayoreo aplicado, por id de renglón. */
+  precioAplicado: (id: string) => number;
+  /** Cuánto se está ahorrando el carrito contra el precio de pieza suelta. */
+  ahorro: number;
+  /** Por familia: si ya alcanzó el mayoreo o cuántas piezas le faltan. */
+  avisos: AvisoMayoreo[];
   hayLotes: boolean;
   envioCobrado: number | null;
   faltaEnvioGratis: number;
@@ -131,8 +148,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     () => items.reduce((a, it) => a + it.qty, 0),
     [items]
   );
-  const total = useMemo(
-    () => items.reduce((a, it) => a + it.precio * it.qty, 0),
+  // El mayoreo se cuenta sobre TODO el carrito, así que el total no puede ser
+  // una simple suma de renglones.
+  const total = useMemo(() => totalConMayoreo(items), [items]);
+  const ahorro = useMemo(() => ahorroMayoreo(items), [items]);
+  const avisos = useMemo(() => avisosMayoreo(items), [items]);
+  const precioAplicado = useCallback(
+    (id: string) => {
+      const it = items.find((x) => x.id === id);
+      if (!it) return 0;
+      return precioUnitario(it, familiasEnMayoreo(items));
+    },
     [items]
   );
   const hayLotes = useMemo(() => items.some((it) => it.tipo === "lote"), [items]);
@@ -185,6 +211,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     items,
     count,
     total,
+    precioAplicado,
+    ahorro,
+    avisos,
     hayLotes,
     envioCobrado,
     faltaEnvioGratis,

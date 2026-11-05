@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { fmx, ENVIO_AMAREA_GRATIS_DESDE, ENVIO_AMAREA_TARIFA } from "../../lib/lotes";
 import { useCart } from "../../lib/cart";
+import { mayoreoDeFila } from "../../lib/mayoreo";
 import { imgOpt } from "../../lib/img";
 import { getBrowserSupabase, supabasePublicConfigurado } from "../../lib/supabase";
 import { nombreDisplay, nombreCorto, type Producto } from "../../lib/productos";
@@ -126,6 +127,7 @@ export default function ProductoDetalle({
         foto: imgOpt(producto.foto, 200) ?? producto.foto,
         max: stock,
         sub: producto.marcaNorm,
+        mayoreo: mayoreoDeFila(producto),
       },
       qty
     );
@@ -197,6 +199,18 @@ export default function ProductoDetalle({
           <div className="pd-precio serif">
             {precio ? fmx(precio) : "—"} <span className="pd-moneda">MXN</span>
           </div>
+          {(() => {
+            const may = mayoreoDeFila(producto);
+            if (!may) return null;
+            return (
+              <div className="pd-mayoreo">
+                💰 <b>Precio de mayoreo:</b> a partir de {may.desde} piezas,{" "}
+                <b>{fmx(may.precio)} c/u</b>. Las piezas se cuentan entre todos
+                los colores, y el descuento se aplica solo en el carrito.
+                {may.nota ? <div style={{ marginTop: 4 }}>{may.nota}</div> : null}
+              </div>
+            );
+          })()}
 
           {/* Stock en tiempo real */}
           <div className="pd-stock">

@@ -9,6 +9,9 @@ export default function CartDrawer() {
     items,
     count,
     total,
+    precioAplicado,
+    ahorro,
+    avisos,
     isOpen,
     closeCart,
     changeQty,
@@ -86,7 +89,14 @@ export default function CartDrawer() {
                 <div>
                   <div className="cart-item-name">{item.nombre}</div>
                   <div className="cart-item-price">
-                    {fmx(item.precio)} MXN
+                    {precioAplicado(item.id) < item.precio ? (
+                      <>
+                        <s style={{ opacity: 0.5 }}>{fmx(item.precio)}</s>{" "}
+                        <b>{fmx(precioAplicado(item.id))} MXN</b>
+                      </>
+                    ) : (
+                      <>{fmx(item.precio)} MXN</>
+                    )}
                     {item.sub ? (
                       <span className="cart-item-sub"> · {item.sub}</span>
                     ) : null}
@@ -122,6 +132,26 @@ export default function CartDrawer() {
 
         {count > 0 && (
           <div className="cart-footer">
+            {/* El empujon mas barato que hay: decirle que con N piezas mas
+                baja el precio de TODAS las de esa familia. */}
+            {avisos.map((a) =>
+              a.faltan > 0 ? (
+                <div key={a.familia} className="cart-mayoreo cart-mayoreo-falta">
+                  Agrega <b>{a.faltan}</b> {a.faltan === 1 ? "pieza" : "piezas"} más y
+                  todas te quedan a <b>{fmx(a.precio)}</b> c/u
+                </div>
+              ) : (
+                <div key={a.familia} className="cart-mayoreo cart-mayoreo-ok">
+                  ✓ Precio de mayoreo aplicado: <b>{fmx(a.precio)}</b> c/u
+                  {a.nota ? <span> · {a.nota}</span> : null}
+                </div>
+              )
+            )}
+            {ahorro > 0 && (
+              <div className="cart-mayoreo cart-mayoreo-ok">
+                Te ahorras <b>{fmx(ahorro)}</b> con el precio de mayoreo 🎉
+              </div>
+            )}
             <div className="cart-total-row">
               <div className="cart-total-label">Total</div>
               <div className="cart-total-val serif">{fmx(total)}</div>

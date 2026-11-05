@@ -33,6 +33,56 @@ export async function GET(req: Request) {
   } catch {
     // sin base: el catálogo de lotes sigue sirviendo
   }
+  // Accesorios y cualquier producto suelto con precio por cantidad, agrupados
+  // por familia: al bot no le sirve una lista de 10 SKUs, le sirve saber
+  // "puffs, 3 colores, $40 o $29 desde 6 piezas".
+  type Accesorio = {
+    familia: string;
+    nombre: string;
+    colores: string[];
+    precio: number;
+    precioMayoreo: number;
+    desde: number;
+    nota: string | null;
+    piezasDisponibles: number;
+    foto: string | null;
+  };
+  let accesorios: Accesorio[] = [];
+  try {
+    const sb = createAdminSupabase();
+    const { data } = await sb
+      .from("productos")
+      .select("sku,nombre,variante,precio_mxn,stock,foto,mayoreo_precio,mayoreo_desde,mayoreo_familia,mayoreo_nota")
+      .not("mayoreo_familia", "is", null);
+    const porFamilia = new Map<string, Accesorio>();
+    for (const p of data || []) {
+      const fam = String(p.mayoreo_familia || "").trim();
+      if (!fam) continue;
+      const ya = porFamilia.get(fam);
+      const stock = Number(p.stock) || 0;
+      if (ya) {
+        if (p.variante) ya.colores.push(String(p.variante));
+        ya.piezasDisponibles += stock;
+        if (!ya.foto && p.foto) ya.foto = String(p.foto);
+        continue;
+      }
+      porFamilia.set(fam, {
+        familia: fam,
+        nombre: String(p.nombre || fam),
+        colores: p.variante ? [String(p.variante)] : [],
+        precio: Number(p.precio_mxn) || 0,
+        precioMayoreo: Number(p.mayoreo_precio) || 0,
+        desde: Number(p.mayoreo_desde) || 0,
+        nota: (p.mayoreo_nota as string | null) ?? null,
+        piezasDisponibles: stock,
+        foto: (p.foto as string | null) ?? null,
+      });
+    }
+    accesorios = [...porFamilia.values()];
+  } catch {
+    // Si aun no existen las columnas de mayoreo, el resto del catalogo sirve igual.
+  }
+
   return NextResponse.json({
     lotes: LOTES.map((l) => ({
       id: l.id,
@@ -50,6 +100,7 @@ export async function GET(req: Request) {
     stockTotal,
     ppuReferencia: PPU_REFERENCIA,
     publicados,
+    accesorios,
     generado: new Date().toISOString(),
   });
 }

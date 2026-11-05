@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { fmx } from "../lib/lotes";
 import { useCart } from "../lib/cart";
+import { mayoreoDeFila } from "../lib/mayoreo";
 import { imgOpt } from "../lib/img";
 import {
   nombreDisplay,
@@ -236,6 +237,7 @@ export default function ShopClient({
         foto: imgOpt(p.foto, 200) ?? p.foto,
         max: p.stock,
         sub: p.marcaNorm,
+        mayoreo: mayoreoDeFila(p),
       },
       1
     );
@@ -274,6 +276,14 @@ export default function ShopClient({
         <div className="prod-bottom">
           <div className="prod-precio serif">
             {p.precio_mxn ? fmx(p.precio_mxn) : "—"}
+            {(() => {
+              const may = mayoreoDeFila(p);
+              return may ? (
+                <span className="prod-mayoreo">
+                  {may.desde}+ pzas {fmx(may.precio)} c/u
+                </span>
+              ) : null;
+            })()}
           </div>
           {multi ? (
             <Link href={`/amarea/${p.sku}`} className="prod-add">

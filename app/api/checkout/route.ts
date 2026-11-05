@@ -14,6 +14,7 @@ import { cotizarEnvioReal, filtrarPaqueterias,
 } from "../../lib/skydropx";
 import { SITE_URL } from "../../lib/site";
 import { lotesAgotados } from "../../lib/disponibilidad";
+import { mayoreoDeFila, familiasEnMayoreo, precioUnitario } from "../../lib/mayoreo";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -121,7 +122,7 @@ export async function POST(req: Request) {
   if (skus.length > 0) {
     const { data: prods, error } = await supabase
       .from("productos")
-      .select("sku,nombre,nombre_seo,precio_mxn,stock")
+      .select("sku,nombre,nombre_seo,precio_mxn,stock,mayoreo_precio,mayoreo_desde,mayoreo_familia,mayoreo_nota")
       .in("sku", skus);
     if (error) {
       return NextResponse.json(
@@ -130,6 +131,20 @@ export async function POST(req: Request) {
       );
     }
     const porSku = new Map((prods || []).map((p) => [p.sku, p]));
+    // El precio por cantidad se decide AQUI, con el carrito completo: el
+    // navegador solo lo muestra. Si se calculara alla, bastaria con editar
+    // el carrito guardado para pagar precio de mayoreo llevando una pieza.
+    const paraMayoreo = entradas
+      .filter((i) => i.id.startsWith("prod:"))
+      .map((i) => {
+        const p = porSku.get(i.id.slice(5));
+        return {
+          qty: Math.floor(Number(i.qty)) || 0,
+          precio: Number(p?.precio_mxn ?? 0),
+          mayoreo: p ? mayoreoDeFila(p) : null,
+        };
+      });
+    const familiasListas = familiasEnMayoreo(paraMayoreo);
     for (const e of entradas.filter((i) => i.id.startsWith("prod:"))) {
       const sku = e.id.slice(5);
       const p = porSku.get(sku);
@@ -149,11 +164,15 @@ export async function POST(req: Request) {
           { status: 409 }
         );
       }
+      const precioFinal = precioUnitario(
+        { qty, precio: Number(p.precio_mxn ?? 0), mayoreo: mayoreoDeFila(p) },
+        familiasListas
+      );
       itemsOrden.push({
         tipo: "producto",
         ref: sku,
         nombre: (p.nombre_seo || p.nombre || sku).slice(0, 250),
-        precio: Number(p.precio_mxn ?? 0),
+        precio: precioFinal,
         qty,
       });
     }

@@ -18,6 +18,12 @@ export type Producto = {
   foto: string | null;
   notas: string | null;
   barcode: string | null; // GTIN/EAN/UPC — para Google Shopping (Merchant Center)
+  // Precio por cantidad: vacío en casi todo el catálogo, lleno en los
+  // accesorios que se venden más barato a partir de cierto número de piezas.
+  mayoreo_precio: number | null;
+  mayoreo_desde: number | null;
+  mayoreo_familia: string | null;
+  mayoreo_nota: string | null;
 };
 
 // Nombre que se muestra en la tienda: el optimizado si existe, si no el original.
@@ -38,7 +44,7 @@ export function nombreCorto(p: {
 }
 
 const COLS =
-  "sku,nombre,nombre_seo,marca,categoria,variante,precio_mxn,stock,stock_min,foto,notas,barcode";
+  "sku,nombre,nombre_seo,marca,categoria,variante,precio_mxn,stock,stock_min,foto,notas,barcode,mayoreo_precio,mayoreo_desde,mayoreo_familia,mayoreo_nota";
 
 // Las marcas vienen inconsistentes en la base (e.l.f. / e.l.f. Skin /
 // Maybelline / Maybelline New York / L'Oreal Paris ...). Las agrupamos.
@@ -58,7 +64,7 @@ export function normalizaMarca(raw: string | null): string {
 }
 
 // Orden preferido de categorias en los filtros (las demas van al final).
-const ORDEN_CATEGORIAS = ["Rostro", "Base", "Labios", "Ojos", "Cejas", "Contorno"];
+const ORDEN_CATEGORIAS = ["Rostro", "Base", "Labios", "Ojos", "Cejas", "Contorno", "Accesorios"];
 
 export function ordenarCategorias(cats: string[]): string[] {
   return [...cats].sort((a, b) => {
