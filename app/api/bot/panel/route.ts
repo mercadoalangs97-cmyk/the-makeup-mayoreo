@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { createAdminSupabase, createServerSupabase } from "../../../lib/supabase";
 
@@ -292,12 +293,14 @@ export async function POST(req: Request) {
       const form = await req.formData();
       const f = form.get("archivo");
       if (!(f instanceof File)) return j({ error: "Falta el archivo" }, 400);
-      if (!/^image\/(jpeg|png|webp)$/.test(f.type)) return j({ error: "Solo imágenes JPG, PNG o WebP" }, 415);
-      if (f.size > 8 * 1024 * 1024) return j({ error: "La imagen pesa más de 8 MB" }, 413);
-      const ext = f.type === "image/png" ? "png" : f.type === "image/webp" ? "webp" : "jpg";
-      const ruta = `panel/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const esPdf = f.type === "application/pdf" || /\.pdf$/i.test(f.name);
+      if (!esPdf && !/^image\/(jpeg|png|webp)$/.test(f.type)) return j({ error: "Solo imágenes JPG, PNG o WebP, o PDF" }, 415);
+      if (f.size > 8 * 1024 * 1024) return j({ error: "El archivo pesa más de 8 MB" }, 413);
+      const ext = esPdf ? "pdf" : f.type === "image/png" ? "png" : f.type === "image/webp" ? "webp" : "jpg";
+      // Las guías traen la dirección de la clienta: el nombre no se puede adivinar aunque el bucket sea público.
+      const ruta = `panel/${Date.now()}-${randomUUID()}.${ext}`;
       const sb = createAdminSupabase();
-      const { error } = await sb.storage.from("lotes-fotos").upload(ruta, Buffer.from(await f.arrayBuffer()), { contentType: f.type, upsert: false });
+      const { error } = await sb.storage.from("lotes-fotos").upload(ruta, Buffer.from(await f.arrayBuffer()), { contentType: esPdf ? "application/pdf" : f.type, upsert: false });
       if (error) return j({ error: "No se pudo subir: " + error.message }, 500);
       return j({ ok: true, url: sb.storage.from("lotes-fotos").getPublicUrl(ruta).data.publicUrl });
     } catch (e) {

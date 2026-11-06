@@ -128,7 +128,7 @@ function sonar() {
     });
   } catch { /* sin audio */ }
 }
-type Msg = { id: number; direccion: "in" | "out"; tipo: string; texto: string | null; media: { lote_id?: string; url?: string; tg_file_id?: string; autor?: string } | null; por: string; creado: string; ext_id?: string | null };
+type Msg = { id: number; direccion: "in" | "out"; tipo: string; texto: string | null; media: { lote_id?: string; url?: string; tg_file_id?: string; autor?: string; doc_url?: string; doc_nombre?: string } | null; por: string; creado: string; ext_id?: string | null };
 type HiloT = { mensajes: Msg[]; conversacion: Conv | null; cotizacion: Record<string, unknown> | null; lote: Lote | null; clienta?: Ficha; claveFicha?: string; cotizaciones?: CotChat[]; compras?: Compras; cargando?: boolean };
 type Pend = { id: number; canal_id: string; texto: string; adjunto: { tipo: string; lote_id: string } | null; creado: string };
 type Lote = { id: string; nombre: string; piezas: number; precio: number; tipo: string; descripcion: string | null; fotos: { url: string }[]; estado: string; apartado_para: string | null; apartado_hasta: string | null; cotizacion_id: string | null; vendido_a: string | null; salida_registrada: boolean; creado_en: string };
@@ -447,14 +447,18 @@ export default function PanelBot() {
       // Las fotos del iPhone pesan 3-8 MB (y pueden venir en HEIC): Vercel rechaza más de 4.5 MB con una
       // respuesta que no es JSON y Safari lo mostraba como "The string did not match the expected pattern".
       // Se achica en el navegador a 1600 px en JPEG antes de subir.
-      const chica = await achicarFoto(f);
-      const fd = new FormData(); fd.append("archivo", chica, "foto.jpg");
+      // Los PDF (guías) van tal cual; Vercel corta arriba de 4.5 MB.
+      const esPdf = f.type === "application/pdf" || /\.pdf$/i.test(f.name);
+      if (esPdf && f.size > 4 * 1024 * 1024) throw new Error("El PDF pesa más de 4 MB");
+      const fd = new FormData();
+      if (esPdf) fd.append("archivo", f, f.name);
+      else fd.append("archivo", await achicarFoto(f), "foto.jpg");
       const r = await fetch("/api/bot/panel", { method: "POST", headers: { authorization: `Bearer ${token}` }, body: fd });
       const txt = await r.text();
       let d: { ok?: boolean; url?: string; error?: string } = {};
       try { d = JSON.parse(txt); } catch { throw new Error(r.status === 413 ? "La foto pesa demasiado" : `El servidor respondió ${r.status}`); }
       if (!r.ok) throw new Error(d.error || `HTTP ${r.status}`);
-      const e = await accion({ accion: "enviar", canalId: sel, fotoUrl: d.url, texto: texto.trim() });
+      const e = await accion(esPdf ? { accion: "enviar", canalId: sel, docUrl: d.url, docNombre: f.name, texto: texto.trim() } : { accion: "enviar", canalId: sel, fotoUrl: d.url, texto: texto.trim() });
       if (e?.ok) { setTexto(""); await cargarHilo(sel); await cargarLista(); }
     } catch (e) { setAviso("❌ " + (e as Error).message); } finally { setOcupado(false); if (fileRef.current) fileRef.current.value = ""; }
   }
@@ -680,8 +684,9 @@ export default function PanelBot() {
                           <div className={"pb-msg " + (m.direccion === "in" ? "in" : m.por === "alan" ? "alan" : m.por === "sistema" ? "sis" : "bot")}>
                             {m.tipo === "fotos" && m.media?.lote_id !== "panel" && <div className="tag">📷 fotos del {m.media?.lote_id}</div>}
                             {m.media?.url && <img className="foto" src={m.media.url} alt="" loading="lazy" />}
+                            {m.media?.doc_url && <a className="tag" href={m.media.doc_url} target="_blank" rel="noreferrer">📄 {m.media.doc_nombre || "Abrir PDF"}</a>}
                             {m.tipo === "photo" && !m.media?.url && <div className="tag">📎 foto de la clienta</div>}
-                            <div className="txt">{m.texto}</div>
+                            {!(m.media?.doc_url && m.texto === `📄 ${m.media.doc_nombre}`) && <div className="txt">{m.texto}</div>}
                             <div className="meta">{autor} · {new Date(m.creado).toLocaleTimeString("es-MX", { timeZone: "America/Mexico_City", hour: "2-digit", minute: "2-digit" })}
                               {m.direccion === "out" && m.ext_id && sel?.startsWith("tg:") && Date.now() - Date.parse(m.creado) < 47 * 3600_000 && m.texto !== "[mensaje borrado]" && (
                                 <button className="borrar" title="Borrar para la clienta (solo Telegram)" onClick={async () => { if (window.confirm("¿Borrar este mensaje del chat de la clienta?")) { const d = await accion({ accion: "borrar", canalId: sel, extId: m.ext_id }); if (d?.ok) cargarHilo(sel); } }}>🗑</button>
@@ -715,11 +720,11 @@ export default function PanelBot() {
                         {RAPIDAS.map((r) => <button key={r.t} className="chip" title={r.x} onClick={() => setTexto((t) => (t.trim() ? t.trimEnd() + "\n" : "") + r.x)}>{r.t}</button>)}
                       </div>
                       <div className="pb-escribir">
-                        <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => adjuntar(e.target.files?.[0])} />
+                        <input ref={fileRef} type="file" accept="image/*,application/pdf,.pdf" hidden onChange={(e) => adjuntar(e.target.files?.[0])} />
                         <button className="clip" title="Adjuntar foto (se manda con el texto como pie)" disabled={ocupado} onClick={() => fileRef.current?.click()}>📎</button>
-                        <textarea placeholder="Escribir a la clienta (Ctrl+Enter manda; la conversación pasa a tu control). Puedes pegar o arrastrar una foto aquí." value={texto} onChange={(e) => setTexto(e.target.value)} rows={2}
+                        <textarea placeholder="Escribir a la clienta (Ctrl+Enter manda; la conversación pasa a tu control). Puedes pegar o arrastrar una foto o un PDF aquí." value={texto} onChange={(e) => setTexto(e.target.value)} rows={2}
                           onKeyDown={(e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); enviar(); } }}
-                          onPaste={(e) => { const f = Array.from(e.clipboardData.files || []).find((x) => x.type.startsWith("image/")); if (f) { e.preventDefault(); adjuntar(f); } }}
+                          onPaste={(e) => { const f = Array.from(e.clipboardData.files || []).find((x) => x.type.startsWith("image/") || x.type === "application/pdf"); if (f) { e.preventDefault(); adjuntar(f); } }}
                           onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); adjuntar(e.dataTransfer.files?.[0]); }} />
                         <button disabled={ocupado || !texto.trim()} onClick={enviar}>{ocupado ? "Enviando…" : "Enviar"}</button>
                       </div>
