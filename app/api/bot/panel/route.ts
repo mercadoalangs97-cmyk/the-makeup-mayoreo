@@ -106,9 +106,10 @@ async function leerComprasPorTelefono(sb: Sb): Promise<MapaCompras> {
  */
 function etapaDe(c: Record<string, unknown>, cot: Record<string, unknown> | null, compras: number, ultimaAccionEquipo: string | null) {
   const r = (c.resumen || { noInteresadaEn: c.noInteresadaEn, interes: c.interes, escalacion: c.escalacion, comprobante: c.comprobante }) as Record<string, unknown>;
-  const esc = (r.escalacion || null) as { fecha?: string } | null;
+  const esc = (r.escalacion || null) as { fecha?: string; abierta?: boolean } | null;
   const comp = (r.comprobante || null) as { cotizacionId?: string; confirmadoEn?: string; rechazadoEn?: string } | null;
-  if (c.estado === "escalada") {
+  // abierta: el bot le avisó al equipo pero sigue atendiendo (Alan, 6-nov-2026).
+  if (c.estado === "escalada" || esc?.abierta) {
     const desde = esc?.fecha || String(c.creada || "");
     if (!ultimaAccionEquipo || ultimaAccionEquipo < desde) return "sin_atender";
   }

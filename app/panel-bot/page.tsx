@@ -29,7 +29,6 @@ const RAPIDAS: { t: string; x: string }[] = [
   { t: "Datos de envío", x: "Para mandarte tu pedido necesito tu nombre completo, calle y número, colonia, código postal, ciudad y un teléfono de contacto." },
   { t: "Lo reviso", x: "Déjame revisarlo y en un momento te confirmo." },
   { t: "Formas de pago", x: "En el link puedes pagar con tarjeta, en OXXO o por transferencia. En cuanto se refleje te aviso por aquí." },
-  { t: "Foto antes de enviar", x: "Antes de enviarlo te mando foto de tu lote ya armado." },
   { t: "Ya salió", x: "Tu pedido ya salió. Te paso la guía por aquí para que lo rastrees." },
 ];
 
