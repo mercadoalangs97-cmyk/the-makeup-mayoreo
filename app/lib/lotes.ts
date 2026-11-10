@@ -267,15 +267,21 @@ export function parcelsDeItems(
 ): Paquete[] {
   const parcels: Paquete[] = [];
   let hayProducto = false;
+  let hayAccesorioChico = false;
   for (const it of items) {
     if (it.tipo === "lote") {
       const piezas = it.piezas ?? loteDeItemId(it.id)?.piezas ?? 0;
       const caja = parcelDeLote(piezas);
       if (caja) for (let i = 0; i < it.qty; i++) parcels.push(caja);
+    } else if (/^prod:AC-(?!COS)/.test(it.id)) {
+      // Esponjas, cepillos y brochas caben en la caja del lote; la cosmetiquera no.
+      hayAccesorioChico = true;
     } else {
       hayProducto = true;
     }
   }
-  if (hayProducto) parcels.push({ length: 20, width: 15, height: 10, weight: 0.5 });
+  if (hayProducto || (hayAccesorioChico && !parcels.length)) {
+    parcels.push({ length: 20, width: 15, height: 10, weight: 0.5 });
+  }
   return parcels;
 }

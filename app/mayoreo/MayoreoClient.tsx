@@ -10,6 +10,7 @@ import {
   type Lote,
 } from "../lib/lotes";
 import { useCart } from "../lib/cart";
+import AvisoSalida from "../components/AvisoSalida";
 import { imgOpt } from "../lib/img";
 import { gaLead } from "../lib/analytics";
 import SiteHeader from "../components/SiteHeader";
@@ -364,10 +365,11 @@ export default function Home({
             <p>
               Enviamos por <strong>Estafeta</strong> a toda la República con número
               de guía. Según el tamaño del lote y tu C.P., normalmente entre{" "}
-              <strong>$137 y $250 MXN</strong>, con entrega de{" "}
-              <strong>1 a 5 días hábiles</strong>. El costo exacto lo calculamos con
-              tu código postal antes de pagar — sin sorpresas al final.
+              <strong>$137 y $250 MXN</strong>, y la paquetería entrega en{" "}
+              <strong>1 a 5 días hábiles</strong> desde que sale. El costo exacto lo
+              calculamos con tu código postal antes de pagar — sin sorpresas al final.
             </p>
+            <AvisoSalida />
           </div>
         </div>
 

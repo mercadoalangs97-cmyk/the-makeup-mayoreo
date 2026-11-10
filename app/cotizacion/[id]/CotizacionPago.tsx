@@ -7,6 +7,7 @@ import { imgOpt } from "../../lib/img";
 import { gaLead } from "../../lib/analytics";
 import { NEGOCIO } from "../../lib/site";
 import { DATOS_BANCARIOS, clabeLegible } from "../../lib/pago";
+import AvisoSalida from "../../components/AvisoSalida";
 
 export type CotData = {
   id: string;
@@ -330,6 +331,7 @@ export default function CotizacionPago({ c }: { c: CotData }) {
             <span>Total a pagar</span>
             <b className="serif">{fmx(c.total)}</b>
           </div>
+          <AvisoSalida />
         </div>
 
         {ganancia > 0 && (

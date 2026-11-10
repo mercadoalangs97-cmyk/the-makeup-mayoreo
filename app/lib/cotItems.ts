@@ -1,5 +1,6 @@
 import { LOTES, parcelsDeItems, type Paquete } from "./lotes";
 import { createAdminSupabase } from "./supabase";
+import { familiasEnMayoreo, mayoreoDeFila, precioUnitario, type Mayoreo } from "./mayoreo";
 
 // Una cotización puede llevar un lote, productos sueltos, un lote armado a la
 // medida ("personalizado"), o cualquier mezcla.
@@ -80,22 +81,32 @@ export async function resolverItems(items: ItemCot[]): Promise<CotResuelta> {
   const skus = items.filter((i) => i.tipo === "producto").map((i) => i.ref);
   const porSku = new Map<
     string,
-    { nombre: string; precio: number; stock: number }
+    { nombre: string; precio: number; stock: number; mayoreo: Mayoreo | null }
   >();
   if (skus.length) {
     const sb = createAdminSupabase();
     const { data } = await sb
       .from("productos")
-      .select("sku,nombre,nombre_seo,precio_mxn,stock")
+      .select("sku,nombre,nombre_seo,variante,precio_mxn,stock,mayoreo_precio,mayoreo_desde,mayoreo_familia,mayoreo_nota")
       .in("sku", skus);
     (data || []).forEach((p) => {
+      const base = (p.nombre_seo || p.nombre || p.sku) as string;
       porSku.set(p.sku, {
-        nombre: (p.nombre_seo || p.nombre || p.sku) as string,
+        // El color distingue los renglones de accesorios; los lotes de tonos ya lo traen en nombre_seo.
+        nombre: p.mayoreo_familia && p.variante ? `${base} · ${p.variante}` : base,
         precio: Number(p.precio_mxn) || 0,
         stock: Number(p.stock) || 0,
+        mayoreo: mayoreoDeFila(p),
       });
     });
   }
+
+  // El mínimo de mayoreo se cuenta por familia, sumando todos los colores de la cotización.
+  const familias = familiasEnMayoreo(
+    items
+      .filter((i) => i.tipo === "producto" && porSku.has(i.ref))
+      .map((i) => ({ qty: i.qty, precio: porSku.get(i.ref)!.precio, mayoreo: porSku.get(i.ref)!.mayoreo }))
+  );
 
   const resueltos: ItemResuelto[] = [];
   for (const it of items) {
@@ -131,12 +142,13 @@ export async function resolverItems(items: ItemCot[]): Promise<CotResuelta> {
       if (p.precio <= 0) {
         return { ...vacio, error: `${p.nombre} no tiene precio de venta.` };
       }
+      const precio = precioUnitario({ qty: it.qty, precio: p.precio, mayoreo: p.mayoreo }, familias);
       resueltos.push({
         ...it,
         nombre: p.nombre,
-        precio: p.precio,
+        precio,
         piezas: 0,
-        importe: p.precio * it.qty,
+        importe: precio * it.qty,
         stock: p.stock,
       });
     }

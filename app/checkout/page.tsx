@@ -7,6 +7,7 @@ import SiteFooter from "../components/SiteFooter";
 import { useCart } from "../lib/cart";
 import { fmx, ENVIO_AMAREA_GRATIS_DESDE, calcularEnvio, modoEnvio } from "../lib/lotes";
 import { gaBeginCheckout } from "../lib/analytics";
+import AvisoSalida from "../components/AvisoSalida";
 
 type OpcionEnvio = {
   proveedor: string;
@@ -347,6 +348,7 @@ export default function CheckoutPage() {
                 ? "Llena tu dirección y cotiza el envío: elige la paquetería que prefieras y se suma a tu total."
                 : "Con estos datos preparamos y enviamos tu pedido. El envío ya está incluido en tu total."}
             </p>
+            <AvisoSalida />
 
             <div className="co-grid">
               {/* FORMULARIO */}

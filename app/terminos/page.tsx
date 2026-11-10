@@ -17,7 +17,7 @@ export default function Terminos() {
       <SiteHeader variant="landing" />
       <main className="legal-page">
         <h1 className="serif">Términos y condiciones</h1>
-        <p className="legal-updated">Última actualización: julio 2026</p>
+        <p className="legal-updated">Última actualización: noviembre 2026</p>
 
         <h2>1. Sobre la tienda</h2>
         <p>
@@ -48,9 +48,12 @@ export default function Terminos() {
         <p>
           Enviamos a todo México por paquetería con número de rastreo. El envío
           es <strong>gratis en compras desde $599 MXN</strong>; en compras
-          menores tiene un costo fijo de <strong>$129 MXN</strong>. Los tiempos de
-          entrega son estimados (aprox. 2 a 5 días hábiles según el destino) y
-          dependen de la paquetería.
+          menores tiene un costo fijo de <strong>$129 MXN</strong>. Hacemos envíos
+          los <strong>martes, miércoles y jueves</strong>, excepto días festivos: los pedidos con pago
+          acreditado antes de las 12:00 h de esos días salen el mismo día, y los
+          demás salen el siguiente día de envío. Una vez que sale tu pedido, los
+          tiempos de entrega son estimados (aprox. 2 a 5 días hábiles según el
+          destino) y dependen de la paquetería.
         </p>
 
         <h2>5. Cambios y devoluciones</h2>

@@ -1,6 +1,7 @@
 import { Resend } from "resend";
 import { fmx, WPP } from "./lotes";
 import { SITE_URL } from "./site";
+import { DIAS_ENVIO, proximaSalida } from "./diasEnvio";
 
 // Remitente (debe ser del dominio verificado en Resend)
 export const EMAIL_NEGOCIO = "ventas@themakeup.com.mx";
@@ -127,7 +128,7 @@ export function htmlCliente(o: OrdenCorreo): string {
     : totalRow("Envío", envioCobrado === 0 ? "Gratis" : fmx(envioCobrado));
   const mensajeEnvio = coordinar
     ? `📲 <b>Te contactaremos por WhatsApp</b> para coordinar el envío y su costo. Si algún dato de arriba está mal, respóndenos este correo.`
-    : `📦 <b>Preparamos y enviamos tu pedido en 24–48 h.</b> Te avisaremos por WhatsApp con tu número de guía. Si algún dato de arriba está mal, respóndenos este correo.`;
+    : `📦 <b>Tu pedido sale ${proximaSalida().etiqueta}</b> (hacemos envíos ${DIAS_ENVIO}). Te avisaremos por WhatsApp con tu número de guía. Si algún dato de arriba está mal, respóndenos este correo.`;
   const cuerpo = `
     <p style="color:${C.text};font-size:15px;margin:0 0 16px">¡Hola ${nombre}! Recibimos tu pago y tu pedido está confirmado. 💄</p>
     ${tablaItems(o.items)}

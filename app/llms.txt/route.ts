@@ -15,7 +15,7 @@ export function GET() {
 ## Qué ofrece
 - Maquillaje original por pieza: labiales, bases, correctores, sombras, rubores, máscaras de pestañas, productos para cejas y skincare.
 - Lotes de maquillaje al mayoreo (de 10 a 500 piezas) para revendedoras.
-- Envío a todo México: GRATIS en compras desde $599 MXN; en compras menores, $129 MXN.
+- Envío a todo México: GRATIS en compras desde $599 MXN; en compras menores, $129 MXN. Los pedidos salen martes, miércoles y jueves.
 - Pago seguro con Mercado Pago.
 
 ## Diferenciadores

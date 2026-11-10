@@ -65,7 +65,7 @@ export default function SiteHeader({
           </div>
           {cpConfirmado ? (
             <div className="cp-ok">
-              ✓ Envío a <b>C.P. {cpConfirmado}</b> · 48h en CDMX, 2-4 días resto
+              ✓ Envío a <b>C.P. {cpConfirmado}</b> · Salidas martes, miércoles y jueves
               <button
                 className="cp-btn"
                 style={{ marginLeft: 4 }}

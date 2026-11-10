@@ -40,6 +40,7 @@ export async function GET(req: Request) {
     familia: string;
     nombre: string;
     colores: string[];
+    variantes: { sku: string; color: string; stock: number }[];
     precio: number;
     precioMayoreo: number;
     desde: number;
@@ -60,7 +61,9 @@ export async function GET(req: Request) {
       if (!fam) continue;
       const ya = porFamilia.get(fam);
       const stock = Number(p.stock) || 0;
+      const variante = { sku: String(p.sku), color: String(p.variante || ""), stock };
       if (ya) {
+        ya.variantes.push(variante);
         if (p.variante) ya.colores.push(String(p.variante));
         ya.piezasDisponibles += stock;
         if (!ya.foto && p.foto) ya.foto = String(p.foto);
@@ -70,6 +73,7 @@ export async function GET(req: Request) {
         familia: fam,
         nombre: String(p.nombre || fam),
         colores: p.variante ? [String(p.variante)] : [],
+        variantes: [variante],
         precio: Number(p.precio_mxn) || 0,
         precioMayoreo: Number(p.mayoreo_precio) || 0,
         desde: Number(p.mayoreo_desde) || 0,
