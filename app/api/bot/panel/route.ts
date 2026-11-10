@@ -350,7 +350,7 @@ export async function POST(req: Request) {
     if (error) return j({ error: error.message }, 500);
     return j({ ok: true });
   }
-  const rutas: Record<string, string> = { enviar: "/admin/enviar", pendiente: "/admin/pendiente", estado: "/admin/estado", modo: "/admin/modo", lote: "/admin/lote", seguimiento: "/admin/seguimiento", borrar: "/admin/borrar", atendida: "/admin/atendida" };
+  const rutas: Record<string, string> = { enviar: "/admin/enviar", pendiente: "/admin/pendiente", estado: "/admin/estado", modo: "/admin/modo", lote: "/admin/lote", seguimiento: "/admin/seguimiento", saludo: "/admin/saludo", borrar: "/admin/borrar", atendida: "/admin/atendida" };
   const ruta = rutas[accion];
   if (!ruta) return j({ error: "acción desconocida" }, 400);
   if (!process.env.BOT_SECRET) return j({ error: "Falta BOT_SECRET en el servidor" }, 503);

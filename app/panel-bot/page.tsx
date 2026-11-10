@@ -440,6 +440,15 @@ export default function PanelBot() {
     }
     cargarHilo(canal); cargarLista();
   }
+  async function saludar() {
+    if (!sel || ocupado) return;
+    const canal = sel;
+    if (!window.confirm("¿Mandar este saludo por WhatsApp?\n\n¡Hola! ¿Cómo estás? Soy María, de The Makeup 😊 ¿Te podemos ayudar en algo?")) return;
+    const d = await accion({ accion: "saludo", canalId: canal });
+    if (!d?.ok) return;
+    setAviso("👋 Saludo enviado");
+    cargarHilo(canal); cargarLista();
+  }
   async function adjuntar(f: File | undefined) {
     if (!sel || !f) return;
     setOcupado(true); setAviso("");
@@ -713,6 +722,9 @@ export default function PanelBot() {
                     <div className="pb-cerrada">
                       ⏳ La ventana de 24 h de WhatsApp está cerrada{cv?.ultimo_cliente_en ? ` (escribió por última vez el ${hora(cv.ultimo_cliente_en)})` : ""}. WhatsApp solo deja mandar plantillas aprobadas:
                       los seguimientos y avisos de pago/guía salen solos. En cuanto la clienta vuelva a escribir, se abre otra vez.
+                      <div style={{ marginTop: 8 }}>
+                        <button disabled={ocupado} title="Manda la plantilla de saludo a esta clienta" onClick={saludar}>👋 Mandar saludo</button>
+                      </div>
                     </div>
                   ) : (
                     <div className="pb-caja">
