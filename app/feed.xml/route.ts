@@ -24,7 +24,8 @@ export async function GET() {
   const { productos } = await fetchProductosTienda();
 
   const items = productos
-    .filter((p) => p.foto && p.precio_mxn)
+    // Los accesorios no van al feed: el texto y la categoría del feed son de maquillaje de marca.
+    .filter((p) => p.foto && p.precio_mxn && !p.sku.startsWith("AC-"))
     .map((p) => {
       const nombre = nombreDisplay(p);
       const url = `${SITE_URL}/amarea/${p.sku}`;

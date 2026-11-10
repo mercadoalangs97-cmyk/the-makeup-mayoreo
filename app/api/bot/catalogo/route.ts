@@ -40,7 +40,7 @@ export async function GET(req: Request) {
     familia: string;
     nombre: string;
     colores: string[];
-    variantes: { sku: string; color: string; stock: number }[];
+    variantes: { sku: string; color: string; stock: number; foto: string | null }[];
     precio: number;
     precioMayoreo: number;
     desde: number;
@@ -61,7 +61,7 @@ export async function GET(req: Request) {
       if (!fam) continue;
       const ya = porFamilia.get(fam);
       const stock = Number(p.stock) || 0;
-      const variante = { sku: String(p.sku), color: String(p.variante || ""), stock };
+      const variante = { sku: String(p.sku), color: String(p.variante || ""), stock, foto: (p.foto as string | null) ?? null };
       if (ya) {
         ya.variantes.push(variante);
         if (p.variante) ya.colores.push(String(p.variante));
