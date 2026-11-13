@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { Preference } from "mercadopago";
 import { createAdminSupabase } from "../../../lib/supabase";
+import { compradorBloqueado, MENSAJE_BLOQUEO } from "../../../lib/antifraude";
 import { mpClient, mpConfigurado } from "../../../lib/mercadopago";
 import { itemsDeCotizacion, loteFisicoOcupado, resolverItems } from "../../../lib/cotItems";
 import { lotesAgotados } from "../../../lib/disponibilidad";
@@ -140,6 +141,9 @@ export async function POST(req: Request) {
       { error: "Nos falta " + faltan.join(", ") + ".", faltan },
       { status: 400 }
     );
+  }
+  if (await compradorBloqueado(env)) {
+    return NextResponse.json({ error: MENSAJE_BLOQUEO }, { status: 403 });
   }
 
   const itemsOrden = resuelto.items.map((i, idx) => ({

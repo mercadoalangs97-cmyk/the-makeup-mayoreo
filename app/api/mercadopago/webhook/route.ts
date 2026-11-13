@@ -7,6 +7,7 @@ import { LOTES } from "../../../lib/lotes";
 import { metaPurchase } from "../../../lib/metaCapi";
 import { idEventoCompra } from "../../../lib/analytics";
 import { SITE_URL } from "../../../lib/site";
+import { ESTADO_REVISION, motivoRevision } from "../../../lib/antifraude";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -202,6 +203,34 @@ async function manejar(req: Request): Promise<NextResponse> {
       }
     } catch (e) {
       console.error("[webhook] marcar cotización pagada:", e);
+    }
+  }
+
+  // Antifraude: pago grande con tarjeta de alguien que nunca escribió por
+  // WhatsApp → "en revisión". Sale de Despacho (lista "pagado%") y el bot le
+  // pide al equipo aprobarlo o rechazarlo en Telegram. Solo la primera vez.
+  if (resultado === "ok") {
+    try {
+      const { data: ord } = await supabase.from("ordenes_web").select("status,wpp,envio").eq("id", ordenId).single();
+      const env = (ord?.envio || {}) as Record<string, unknown>;
+      const motivo = ord
+        ? await motivoRevision({
+            tipoPago: pago.payment_type_id,
+            monto: Number(pago.transaction_amount) || 0,
+            telefono: (ord.wpp as string) || (env.telefono as string) || null,
+          })
+        : null;
+      if (ord && motivo) {
+        await supabase
+          .from("ordenes_web")
+          .update({
+            status: ESTADO_REVISION,
+            envio: { ...env, revision: { motivo, status_previo: ord.status, desde: Date.now() } },
+          })
+          .eq("id", ordenId);
+      }
+    } catch (e) {
+      console.error("[webhook] revisión antifraude:", e);
     }
   }
 

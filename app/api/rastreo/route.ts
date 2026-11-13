@@ -44,7 +44,8 @@ export async function POST(req: Request) {
   }
 
   const env = (o.envio || {}) as Record<string, unknown>;
-  const pagado = String(o.status || "").startsWith("pagado");
+  // "en revisión" (antifraude) también está pagado: para la clienta no cambia nada.
+  const pagado = /^(pagado|en revisión)/.test(String(o.status || ""));
 
   // Estado en lenguaje de la clienta, no del sistema.
   let etapa = 1;

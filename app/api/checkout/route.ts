@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { Preference } from "mercadopago";
 import { createAdminSupabase } from "../../lib/supabase";
 import { mpClient, mpConfigurado } from "../../lib/mercadopago";
+import { compradorBloqueado, MENSAJE_BLOQUEO } from "../../lib/antifraude";
 import {
   LOTES,
   calcularEnvio,
@@ -88,6 +89,9 @@ export async function POST(req: Request) {
       { error: "Faltan o son inválidos: " + faltan.join(", ") },
       { status: 400 }
     );
+  }
+  if (await compradorBloqueado(envio)) {
+    return NextResponse.json({ error: MENSAJE_BLOQUEO }, { status: 403 });
   }
 
   const supabase = createAdminSupabase();
