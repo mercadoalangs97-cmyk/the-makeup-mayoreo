@@ -208,7 +208,11 @@ export default function CotizacionPago({ c }: { c: CotData }) {
       const res = await fetch("/api/cotizacion/pagar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: c.id, datos }),
+        body: JSON.stringify({
+          id: c.id,
+          datos,
+          device_id: (window as unknown as { MP_DEVICE_SESSION_ID?: string }).MP_DEVICE_SESSION_ID,
+        }),
       });
       const data = await res.json();
       if (!res.ok || !data.init_point) {

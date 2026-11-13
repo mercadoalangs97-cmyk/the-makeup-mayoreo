@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { Preference } from "mercadopago";
 import { createAdminSupabase } from "../../lib/supabase";
 import { mpClient, mpConfigurado } from "../../lib/mercadopago";
+import { payerMP, deviceIdMP } from "../../lib/mpAntifraude";
 import { compradorBloqueado, MENSAJE_BLOQUEO } from "../../lib/antifraude";
 import {
   LOTES,
@@ -46,6 +47,7 @@ export async function POST(req: Request) {
     envio?: Record<string, string>;
     envioServicio?: string; // servicioCode elegido (modo cotizar/lotes)
     cupon?: string; // código de descuento (opcional)
+    device_id?: string; // Device ID de Mercado Pago (security.js)
   };
   try {
     body = await req.json();
@@ -412,11 +414,7 @@ export async function POST(req: Request) {
         items: mpItems,
         external_reference: ordenId,
         metadata: { orden_id: ordenId },
-        payer: {
-          name: envio.nombre,
-          email: envio.email,
-          phone: { area_code: "", number: envio.telefono },
-        },
+        payer: payerMP(envio),
         back_urls: {
           success: `${SITE_URL}/checkout/exito`,
           pending: `${SITE_URL}/checkout/pendiente`,
@@ -426,6 +424,7 @@ export async function POST(req: Request) {
         notification_url: `${SITE_URL}/api/mercadopago/webhook`,
         statement_descriptor: "THEMAKEUP",
       },
+      requestOptions: { meliSessionId: deviceIdMP(body.device_id) },
     });
 
     await supabase

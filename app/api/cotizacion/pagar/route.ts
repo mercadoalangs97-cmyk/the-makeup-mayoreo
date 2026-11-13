@@ -4,6 +4,7 @@ import { Preference } from "mercadopago";
 import { createAdminSupabase } from "../../../lib/supabase";
 import { compradorBloqueado, MENSAJE_BLOQUEO } from "../../../lib/antifraude";
 import { mpClient, mpConfigurado } from "../../../lib/mercadopago";
+import { payerMP, deviceIdMP } from "../../../lib/mpAntifraude";
 import { itemsDeCotizacion, loteFisicoOcupado, resolverItems } from "../../../lib/cotItems";
 import { lotesAgotados } from "../../../lib/disponibilidad";
 import { SITE_URL } from "../../../lib/site";
@@ -21,7 +22,7 @@ export async function POST(req: Request) {
     );
   }
 
-  let body: { id?: string; datos?: Record<string, string> };
+  let body: { id?: string; datos?: Record<string, string>; device_id?: string };
   try {
     body = await req.json();
   } catch {
@@ -241,20 +242,9 @@ export async function POST(req: Request) {
         metadata: { orden_id: ordenId, cotizacion: id },
         // El correo es opcional: si no lo tenemos, NO mandamos la llave vacía
         // (Mercado Pago la rechaza) y él lo captura al pagar.
-        payer: {
-          name: env.nombre || "",
-          ...(env.email ? { email: env.email } : {}),
-          // Lada aparte: mandar area_code vacio es basura para Mercado Pago
-          // y le impide pre-llenar el telefono en su pantalla.
-          ...(env.telefono.length === 10
-            ? {
-                phone: {
-                  area_code: env.telefono.slice(0, 2),
-                  number: env.telefono.slice(2),
-                },
-              }
-            : {}),
-        },
+        // Comprador completo (nombre/apellido, lada aparte, dirección): el
+        // antifraude de Mercado Pago decide mejor con más datos.
+        payer: payerMP(env),
         back_urls: {
           success: `${SITE_URL}/checkout/exito`,
           pending: `${SITE_URL}/checkout/pendiente`,
@@ -264,6 +254,7 @@ export async function POST(req: Request) {
         notification_url: `${SITE_URL}/api/mercadopago/webhook`,
         statement_descriptor: "THEMAKEUP",
       },
+      requestOptions: { meliSessionId: deviceIdMP(body.device_id) },
     });
 
     await sb

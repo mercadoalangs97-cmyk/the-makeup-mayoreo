@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { Preference } from "mercadopago";
 import { createAdminSupabase } from "../../../lib/supabase";
 import { mpClient, mpConfigurado } from "../../../lib/mercadopago";
+import { payerMP, deviceIdMP } from "../../../lib/mpAntifraude";
 import { itemsDeCotizacion, loteFisicoOcupado, resolverItems } from "../../../lib/cotItems";
 import { SITE_URL } from "../../../lib/site";
 
@@ -40,7 +41,7 @@ export async function POST(req: Request) {
     );
   }
 
-  let body: { id?: string };
+  let body: { id?: string; device_id?: string };
   try {
     body = await req.json();
   } catch {
@@ -104,18 +105,7 @@ export async function POST(req: Request) {
         // El prefijo le dice al webhook que esto es un ANTICIPO, no una venta.
         external_reference: "APART-" + id,
         metadata: { cotizacion: id, tipo: "apartado", anticipo, total },
-        payer: {
-          name: env.nombre || cot.cliente_nombre || "",
-          ...(env.email ? { email: env.email } : {}),
-          ...(String(env.telefono || "").length === 10
-            ? {
-                phone: {
-                  area_code: String(env.telefono).slice(0, 2),
-                  number: String(env.telefono).slice(2),
-                },
-              }
-            : {}),
-        },
+        payer: payerMP({ ...env, nombre: env.nombre || cot.cliente_nombre || "" }),
         back_urls: {
           success: `${SITE_URL}/cotizacion/${id}`,
           pending: `${SITE_URL}/cotizacion/${id}`,
@@ -125,6 +115,7 @@ export async function POST(req: Request) {
         notification_url: `${SITE_URL}/api/mercadopago/webhook`,
         statement_descriptor: "THEMAKEUP",
       },
+      requestOptions: { meliSessionId: deviceIdMP(body.device_id) },
     });
 
     const initPoint = result.init_point || result.sandbox_init_point;

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { notFound } from "next/navigation";
 import SiteHeader from "../../components/SiteHeader";
 import SiteFooter from "../../components/SiteFooter";
@@ -91,6 +92,12 @@ export default async function CotizacionPorId({ params }: Params) {
 
   return (
     <>
+      {/* Device ID de Mercado Pago para su antifraude (ver app/lib/mpAntifraude.ts). */}
+      <Script
+        src="https://www.mercadopago.com/v2/security.js"
+        {...{ view: "checkout" }}
+        strategy="afterInteractive"
+      />
       <SiteHeader variant="mayoreo" />
       <main className="cot-main">
         <CotizacionPago c={c} />

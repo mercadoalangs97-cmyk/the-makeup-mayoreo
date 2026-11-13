@@ -283,6 +283,7 @@ export default function CheckoutPage() {
           envio: f,
           envioServicio: envioSel || undefined,
           cupon: cuponInfo?.codigo || undefined,
+          device_id: (window as unknown as { MP_DEVICE_SESSION_ID?: string }).MP_DEVICE_SESSION_ID,
         }),
       });
       const data = await res.json();
