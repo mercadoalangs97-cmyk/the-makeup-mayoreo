@@ -134,6 +134,38 @@ export async function GET(req: Request) {
   const sb = createAdminSupabase();
   try {
     if (q === "version") return j({ version: process.env.PANEL_VERSION || "" });
+    // Buscar de qué chat salió una cotización (llega un pago con el folio y no
+    // se sabe de quién es). 1) la tabla del bot; 2) quién la creó en el sitio;
+    // 3) el teléfono de envío contra las conversaciones.
+    if (q === "buscar-cot") {
+      const folio = (url.searchParams.get("id") || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12);
+      if (folio.length < 4) return j({ resultados: [] });
+      const [{ data: bots }, { data: sitio }] = await Promise.all([
+        sb.from("mk_cotizaciones").select("id,canal_id").ilike("id", `${folio}%`).limit(5),
+        sb.from("cotizaciones").select("id,cliente_nombre,total,pagada,creada_por,envio,transferencia_aviso_en").ilike("id", `${folio}%`).limit(5),
+      ]);
+      const ids = [...new Set([...(bots || []).map((b) => b.id), ...(sitio || []).map((c) => c.id)])];
+      const resultados = [];
+      for (const id of ids) {
+        const c = (sitio || []).find((x) => x.id === id);
+        let canal = (bots || []).find((b) => b.id === id)?.canal_id || null;
+        const cp = String(c?.creada_por || "");
+        if (!canal && cp.startsWith("bot:")) canal = cp.slice(4);
+        const env = (c?.envio || {}) as Record<string, string>;
+        const tel = String(env.telefono || "").replace(/\D/g, "").slice(-10);
+        if (!canal && tel.length === 10) {
+          const { data: cv } = await sb.from("mk_conversaciones").select("canal_id").ilike("canal_id", `%${tel}`).limit(1);
+          canal = cv?.[0]?.canal_id || null;
+        }
+        const { data: conv } = canal ? await sb.from("mk_conversaciones").select("canal_id,nombre,telefono").eq("canal_id", canal).maybeSingle() : { data: null };
+        resultados.push({
+          id, canal_id: conv?.canal_id || canal, nombre: conv?.nombre || c?.cliente_nombre || env.nombre || null,
+          total: c?.total ?? null, pagada: !!c?.pagada, aviso_transferencia: !!c?.transferencia_aviso_en,
+          tel_envio: tel || null, existe_chat: !!conv,
+        });
+      }
+      return j({ resultados });
+    }
     if (q === "conversaciones") {
       // Período: ?dias=7|30|90|365; 0 = todo (hasta 1000 conversaciones). Por omisión 45.
       const diasParam = Number(url.searchParams.get("dias") ?? 45);

@@ -216,6 +216,9 @@ export default function PanelBot() {
   const [lotes, setLotes] = useState<Lote[]>([]); const [cots, setCots] = useState<Cot[]>([]);
   const [texto, setTexto] = useState(""); const [ocupado, setOcupado] = useState(false); const [aviso, setAviso] = useState("");
   const [filtro, setFiltro] = useState("");
+  // Folio de cotización (TA3A6T): se busca en el servidor, porque la cotización
+  // puede no ser la última del chat o el chat puede no estar en la lista cargada.
+  const [cotHallada, setCotHallada] = useState<{ q: string; resultados: { id: string; canal_id: string | null; nombre: string | null; total: number | null; pagada: boolean; aviso_transferencia: boolean; tel_envio: string | null; existe_chat: boolean }[] } | null>(null);
   const finRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -513,10 +516,20 @@ export default function PanelBot() {
     if (await accion({ accion: "lote", id, op: acc, ...extra })) await cargarLotes();
   }
 
+  useEffect(() => {
+    const f = filtro.trim().toUpperCase();
+    // Folio: 4 a 8 letras/números con al menos una letra (un teléfono no entra).
+    if (!token || !/^[A-Z0-9]{4,8}$/.test(f) || !/[A-Z]/.test(f)) { setCotHallada(null); return; }
+    const t = setTimeout(() => {
+      api("buscar-cot", `&id=${encodeURIComponent(f)}`).then((d) => setCotHallada({ q: f, resultados: d?.resultados || [] })).catch(() => {});
+    }, 350);
+    return () => clearTimeout(t);
+  }, [filtro, token, api]);
+
   const lista = useMemo(() => {
     const f = filtro.trim().toLowerCase();
     return convs
-      .filter((c) => !f || (c.nombre ?? "").toLowerCase().includes(f) || (c.telefono ?? "").includes(f) || c.canal_id.includes(f))
+      .filter((c) => !f || (c.nombre ?? "").toLowerCase().includes(f) || (c.telefono ?? "").includes(f) || c.canal_id.includes(f) || (c.cotizacion_id ?? "").toLowerCase().includes(f) || (c.lote_id ?? "").toLowerCase().includes(f))
       .filter((c) => canalVer === "todos" || c.canal_id.startsWith(canalVer + ":"))
       .filter((c) => filtroEtapa === "todas" ? true : filtroEtapa === "sin responder" ? sinResponderDesde(c) != null : filtroEtapa === "sin leer" ? sinLeer(c) : c.etapa === filtroEtapa);
   }, [convs, filtro, filtroEtapa, sinLeer, canalVer]);
@@ -599,7 +612,18 @@ export default function PanelBot() {
       {tab === "chats" && (
         <section className={"pb-chats" + (sel ? " con-hilo" : "")}>
           <aside className="pb-lista">
-            <input placeholder="Buscar nombre o teléfono" value={filtro} onChange={(e) => setFiltro(e.target.value)} />
+            <input placeholder="Buscar nombre, teléfono o folio de cotización" value={filtro} onChange={(e) => setFiltro(e.target.value)} />
+            {cotHallada && cotHallada.q === filtro.trim().toUpperCase() && (
+              <div className="pb-cot-hallada">
+                {cotHallada.resultados.length === 0 && <small>No hay ninguna cotización con el folio {cotHallada.q}.</small>}
+                {cotHallada.resultados.map((r) => (
+                  <button key={r.id} disabled={!r.canal_id} onClick={() => { if (!r.canal_id) return; setFiltroEtapa("todas"); setSel(r.canal_id); }}>
+                    <b>🧾 {r.id}</b> {r.total != null ? fmx(r.total) : ""} · {r.pagada ? "pagada" : r.aviso_transferencia ? "dice que ya transfirió" : "sin pagar"}
+                    <br />{r.canal_id ? <>Abrir chat de <b>{r.nombre || r.canal_id}</b> {canalIcono(r.canal_id)}</> : <>Sin chat del bot{r.nombre ? ` · ${r.nombre}` : ""}{r.tel_envio ? ` · tel. ${r.tel_envio}` : ""}</>}
+                  </button>
+                ))}
+              </div>
+            )}
             <div className="pb-filtros">
               {FILTROS.map((f) => {
                 const n = conteo(f);
@@ -1009,6 +1033,9 @@ const estilos = `
   .pb-conv .punto { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #e11d48; margin-right: 2px; flex: none; }
   .pb-conv .etq { color: #fff; border-radius: 999px; padding: 1px 8px; font-size: 11px; }
   .pb-filtros { display: flex; flex-wrap: wrap; gap: 4px; }
+  .pb-cot-hallada { display: flex; flex-direction: column; gap: 6px; margin: 6px 0; }
+  .pb-cot-hallada button { text-align: left; padding: 8px 10px; border: 1px solid #16a34a; background: #eefaf1; border-radius: 10px; font-size: 13px; line-height: 1.4; }
+  .pb-cot-hallada small { color: #6b7280; }
   .pb-filtros .chip { padding: 3px 9px; font-size: 12px; border-radius: 999px; }
   .pb-badge { display: inline-block; background: #e11d48; color: #fff; border-radius: 999px; font-size: 11px; padding: 0 7px; margin-left: 6px; }
   .pb-modo .avisos { background: #fde68a; border-color: #e0a000; color: #7a5200; }
