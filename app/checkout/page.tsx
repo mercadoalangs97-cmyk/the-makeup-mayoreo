@@ -283,12 +283,11 @@ export default function CheckoutPage() {
           envio: f,
           envioServicio: envioSel || undefined,
           cupon: cuponInfo?.codigo || undefined,
-          device_id: (window as unknown as { MP_DEVICE_SESSION_ID?: string }).MP_DEVICE_SESSION_ID,
         }),
       });
       const data = await res.json();
       if (!res.ok || !data.init_point) {
-        setError(data.error || "No se pudo iniciar el pago. Intenta de nuevo.");
+        setError(data.error || "No se pudo generar tu pedido. Intenta de nuevo.");
         setEnviando(false);
         return;
       }
@@ -454,12 +453,12 @@ export default function CheckoutPage() {
                   disabled={enviando || (modo === "cotizar" && !envioSel)}
                 >
                   {enviando
-                    ? "Abriendo el pago seguro…"
+                    ? "Generando tu pedido…"
                     : modo === "cotizar" && !envioSel
                     ? "Cotiza y elige tu envío"
-                    : `Ir a pagar · ${fmx(totalPagar)}`}
+                    : `Continuar · ${fmx(totalPagar)}`}
                 </button>
-                <p className="co-nota">🔒 Pago seguro con Stripe · tarjeta (con meses) u OXXO</p>
+                <p className="co-nota">Al continuar te damos los datos para pagar por transferencia o depósito en OXXO, y nos mandas tu comprobante por WhatsApp.</p>
               </form>
 
               {/* RESUMEN */}

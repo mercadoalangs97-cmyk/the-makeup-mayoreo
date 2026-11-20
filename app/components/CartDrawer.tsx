@@ -157,7 +157,7 @@ export default function CartDrawer() {
               <div className="cart-total-val serif">{fmx(total)}</div>
             </div>
             <button className="btn-mp" onClick={checkoutMP}>
-              Pagar con tarjeta u OXXO
+              Continuar al pago
             </button>
             {/* WhatsApp solo si el carrito incluye al menos un lote */}
             {hayLote && (

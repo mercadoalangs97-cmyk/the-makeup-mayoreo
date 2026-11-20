@@ -146,12 +146,11 @@ export default function CotizacionClient({
         </button>
 
         <div className="cot-pagos">
-          <span>💳 Tarjeta (a meses)</span>
           <span>🏦 Transferencia SPEI</span>
           <span>🏪 Efectivo en OXXO</span>
         </div>
         <p className="cot-mp">
-          El cobro lo procesa <b>Stripe</b>. Nosotros nunca vemos los datos
+          El pago es por transferencia o depósito en OXXO. Nosotros nunca vemos los datos
           de tu tarjeta y tu compra queda protegida por la plataforma.
         </p>
 

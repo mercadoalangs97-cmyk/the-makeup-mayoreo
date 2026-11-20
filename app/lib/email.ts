@@ -102,7 +102,7 @@ function envoltura(marca: string, titulo: string, sub: string, cuerpo: string): 
         ${cuerpo}
       </div>
       <div style="background:${C.cream};padding:16px 24px;color:${C.muted};font-size:12px;text-align:center;line-height:1.6">
-        The Makeup Mayoreo CDMX · Pago seguro con Stripe<br>
+        The Makeup Mayoreo CDMX · Pago por transferencia o depósito en OXXO<br>
         ¿Dudas? WhatsApp <a href="https://wa.me/${WPP}" style="color:${C.roseDk}">+52 56 5814 6140</a>
       </div>
     </div>

@@ -6,7 +6,7 @@ import { LOTES, fmx, PPU_REFERENCIA, WPP } from "../../lib/lotes";
 import { imgOpt } from "../../lib/img";
 import { gaLead } from "../../lib/analytics";
 import { NEGOCIO } from "../../lib/site";
-import { DATOS_BANCARIOS, clabeLegible } from "../../lib/pago";
+import { DATOS_BANCARIOS, clabeLegible, codigoDepositoLegible } from "../../lib/pago";
 import AvisoSalida from "../../components/AvisoSalida";
 
 export type CotData = {
@@ -54,7 +54,6 @@ export type CotData = {
 };
 
 export default function CotizacionPago({ c }: { c: CotData }) {
-  const [yendo, setYendo] = useState(false);
   const [err, setErr] = useState("");
   // El link se manda por WhatsApp, asi que muchas clientas lo abren DENTRO de
   // WhatsApp. Ese navegador embebido tumba el checkout de Mercado Pago a la
@@ -64,7 +63,8 @@ export default function CotizacionPago({ c }: { c: CotData }) {
   const [copiado, setCopiado] = useState(false);
   // Segunda vía de pago. No compite con Mercado Pago: aparece para quien no
   // logró pagar ahí, que es la mayoría (solo 1 de cada 3 lo completa).
-  const [verSpei, setVerSpei] = useState(false);
+  // (20-nov-2026) Sin pasarela: los datos para pagar se ven desde el inicio.
+  const [verSpei, setVerSpei] = useState(true);
   // "total" = pagar todo (o el resto) por transferencia; "apartado" = el 5 % para apartar (solo por transferencia).
   const [modoSpei, setModoSpei] = useState<"total" | "apartado">("total");
   const [avisando, setAvisando] = useState(false);
@@ -85,7 +85,7 @@ export default function CotizacionPago({ c }: { c: CotData }) {
       await fetch("/api/cotizacion/transferencia-aviso", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: c.id, nombre: datos.nombre, tipo: modoSpei }),
+        body: JSON.stringify({ id: c.id, nombre: datos.nombre, tipo: modoSpei, datos }),
       });
       setAviso(true);
     } catch {
@@ -197,51 +197,6 @@ export default function CotizacionPago({ c }: { c: CotData }) {
     setModoSpei("apartado");
     setVerSpei(true);
     setApartando(false);
-  }
-
-  async function pagar() {
-    if (yendo) return;
-    setYendo(true);
-    setErr("");
-    gaLead("cotizacion_pagar_" + c.id);
-    try {
-      const res = await fetch("/api/cotizacion/pagar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: c.id,
-          datos,
-          device_id: (window as unknown as { MP_DEVICE_SESSION_ID?: string }).MP_DEVICE_SESSION_ID,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.init_point) {
-        setErr(data.error || "No se pudo abrir el pago. Intenta de nuevo.");
-        setYendo(false);
-        return;
-      }
-      try {
-        sessionStorage.setItem(
-          "amarea_ga_purchase",
-          JSON.stringify({
-            id: data.orden_id || "",
-            value: c.total,
-            items: [
-              {
-                item_id: "lote",
-                item_name: c.loteNombre,
-                price: c.subtotal,
-                quantity: c.qty,
-              },
-            ],
-          })
-        );
-      } catch {}
-      window.location.href = data.init_point;
-    } catch {
-      setErr("Error de conexión. Revisa tu internet e intenta de nuevo.");
-      setYendo(false);
-    }
   }
 
   return (
@@ -575,12 +530,13 @@ export default function CotizacionPago({ c }: { c: CotData }) {
                   </span>
                 </div>
               ))}
-            <button className="cot-btn" onClick={pagar} disabled={yendo}>
-              {yendo
-                ? "Abriendo el pago…"
-                : c.apartado > 0
-                ? `Pagar el resto ${fmx(saldo)} →`
-                : `Pagar ${fmx(c.total)} →`}
+            <button
+              className="cot-btn"
+              onClick={() => { setModoSpei("total"); setAviso(false); setVerSpei(true); setTimeout(() => document.getElementById("cot-datos-pago")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }}
+            >
+              {c.apartado > 0
+                ? `Pagar el resto ${fmx(saldo)} por transferencia u OXXO →`
+                : `Pagar ${fmx(c.total)} por transferencia u OXXO →`}
             </button>
             {c.apartado === 0 && (
               <>
@@ -614,30 +570,22 @@ export default function CotizacionPago({ c }: { c: CotData }) {
               target="_blank"
               rel="noreferrer"
               href={`https://wa.me/${WPP}?text=${encodeURIComponent(
-                "Hola! Estoy intentando pagar mi cotización " +
+                "Hola! Tengo una duda para pagar mi cotización " +
                   c.id +
-                  " y no me deja. ¿Me ayudas?"
+                  ". ¿Me ayudas?"
               )}`}
               onClick={() => gaLead("cotizacion_ayuda_" + c.id)}
             >
-              ¿No te deja pagar? Escríbenos y lo resolvemos →
+              ¿Dudas para pagar? Escríbenos y te ayudamos →
             </a>
 
-            {/* ---- Transferencia SPEI ---- */}
-            <button
-              type="button"
-              className="cot-spei-abrir"
-              onClick={() => { if (verSpei && modoSpei === "total") setVerSpei(false); else { setModoSpei("total"); setAviso(false); setVerSpei(true); } }}
-            >
-              {verSpei && modoSpei === "total" ? "Ocultar" : "🏦 Prefiero pagar por transferencia"}
-            </button>
-
+            {/* ---- Transferencia SPEI o depósito en OXXO (única vía de pago) ---- */}
             {verSpei && (
-              <div className="cot-spei">
+              <div className="cot-spei" id="cot-datos-pago">
                 <p className="cot-spei-intro">
                   {modoSpei === "apartado"
                     ? `Para apartar tu lote transfiere ${fmx(anticipo)} (el 5 %) desde la app de tu banco. Lo reservamos ${DIAS_APARTADO} días en cuanto confirmemos que llegó.`
-                    : "Transfiere desde la app de tu banco. Es inmediato y funciona aunque el pago en línea te falle."}
+                    : "Paga por transferencia desde la app de tu banco o deposita en efectivo en tienda. Después nos avisas y te confirmamos por WhatsApp."}
                 </p>
 
                 <div className="cot-spei-row">
@@ -661,6 +609,21 @@ export default function CotizacionPago({ c }: { c: CotData }) {
                   <b>{DATOS_BANCARIOS.titular}</b>
                 </div>
                 <p className="cot-spei-nota">{DATOS_BANCARIOS.notaTitular}</p>
+
+                <div className="cot-spei-campo">
+                  <span>Depósito en efectivo</span>
+                  <b className="cot-spei-clabe">{codigoDepositoLegible()}</b>
+                  <button
+                    type="button"
+                    onClick={() => copiar(DATOS_BANCARIOS.codigoDeposito, "deposito")}
+                  >
+                    {copiadoQue === "deposito" ? "✓ Copiado" : "Copiar"}
+                  </button>
+                </div>
+                <p className="cot-spei-nota">
+                  En {DATOS_BANCARIOS.tiendasDeposito}: di en caja que es un
+                  depósito a <b>Nu</b> y da este código. Guarda tu ticket.
+                </p>
 
                 <div className="cot-spei-campo">
                   <span>Monto exacto</span>
@@ -693,7 +656,7 @@ export default function CotizacionPago({ c }: { c: CotData }) {
                       target="_blank"
                       rel="noreferrer"
                       href={`https://wa.me/${WPP}?text=${encodeURIComponent(
-                        (modoSpei === "apartado" ? "Hola! Ya transferí el apartado de mi cotización " : "Hola! Ya transferí mi cotización ") +
+                        (modoSpei === "apartado" ? "Hola! Ya transferí el apartado de mi cotización " : "Hola! Ya pagué mi cotización ") +
                           c.id +
                           " por " +
                           fmx(modoSpei === "apartado" ? anticipo : saldo) +
@@ -710,7 +673,7 @@ export default function CotizacionPago({ c }: { c: CotData }) {
                     onClick={avisarTransferencia}
                     disabled={avisando}
                   >
-                    {avisando ? "Avisando…" : modoSpei === "apartado" ? "Ya transferí el apartado, avisar" : "Ya transferí, avisar"}
+                    {avisando ? "Avisando…" : modoSpei === "apartado" ? "Ya transferí el apartado, avisar" : "Ya pagué, avisar"}
                   </button>
                 )}
               </div>
@@ -719,13 +682,12 @@ export default function CotizacionPago({ c }: { c: CotData }) {
         )}
 
         <div className="cot-pagos">
-          <span>💳 Tarjeta (a meses)</span>
           <span>🏦 Transferencia SPEI</span>
-          <span>🏪 Efectivo en OXXO</span>
+          <span>🏪 Depósito en OXXO y tiendas</span>
         </div>
         <p className="cot-mp">
-          El cobro lo procesa <b>Stripe</b>. Nosotros nunca vemos los datos
-          de tu tarjeta y tu compra queda protegida por la plataforma.
+          Pagas directo a nuestra cuenta. En cuanto vemos tu pago te
+          confirmamos por WhatsApp y preparamos tu envío.
         </p>
 
         <div className="cot-conf">

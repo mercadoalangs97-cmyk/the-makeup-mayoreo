@@ -25,7 +25,7 @@ const FAQS = [
   },
   {
     q: "¿Cómo puedo pagar mi maquillaje?",
-    a: "El pago es 100% seguro: tarjeta de crédito o débito procesada por Stripe con 3D Secure (y meses sin intereses en tarjetas participantes), efectivo en OXXO o transferencia SPEI.",
+    a: "Pagas por transferencia SPEI o con depósito en efectivo en OXXO (también 7-Eleven, Soriana y otras tiendas), directo a nuestra cuenta. Nos mandas tu comprobante por WhatsApp y te confirmamos.",
   },
   {
     q: "¿Venden maquillaje al mayoreo para revender?",
@@ -85,7 +85,7 @@ export default function HomeSeo() {
             <ul className="hs-bullets">
               <li>💄 Marcas importadas 100% originales</li>
               <li>🚚 Envío a todo México · gratis desde $599</li>
-              <li>🔒 Pago seguro con Stripe (tarjeta y OXXO) o transferencia SPEI</li>
+              <li>🏦 Pago por transferencia SPEI o depósito en OXXO</li>
               <li>📦 Empaque protegido y número de rastreo</li>
             </ul>
           </div>

@@ -7,7 +7,7 @@ import SiteFooter from "../components/SiteFooter";
 export const metadata: Metadata = {
   title: "Términos y condiciones · The Makeup CDMX",
   description:
-    "Términos y condiciones de compra en The Makeup / AMARÉA: productos originales, precios en MXN, pago seguro con tarjeta (Stripe), OXXO o transferencia, y envíos a todo México.",
+    "Términos y condiciones de compra en The Makeup / AMARÉA: productos originales, precios en MXN, pago por transferencia o depósito en OXXO, y envíos a todo México.",
   alternates: { canonical: `${SITE_URL}/terminos` },
 };
 
@@ -39,8 +39,8 @@ export default function Terminos() {
           Los precios están en <strong>pesos mexicanos (MXN)</strong>, con IVA
           incluido, y pueden cambiar sin previo aviso; el precio válido es el
           mostrado al momento de tu compra. El pago se procesa de forma segura a
-          través de <strong>Stripe</strong> (tarjeta de crédito/débito con
-          autenticación 3D Secure y efectivo en OXXO), o por transferencia SPEI. No almacenamos los datos de tu
+          transferencia SPEI o depósito en efectivo en OXXO y otras tiendas, a la
+          cuenta del negocio. El pedido se confirma al verificar el pago. No almacenamos los datos de tu
           tarjeta.
         </p>
 

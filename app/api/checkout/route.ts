@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
-import { randomUUID } from "node:crypto";
 import { createAdminSupabase } from "../../lib/supabase";
-import { crearCobro, stripeConfigurado } from "../../lib/stripe";
 import { compradorBloqueado, MENSAJE_BLOQUEO } from "../../lib/antifraude";
 import {
   LOTES,
@@ -12,7 +10,6 @@ import {
 import { cotizarEnvioReal, filtrarPaqueterias,
   precioEnvioAlCliente,
 } from "../../lib/skydropx";
-import { SITE_URL } from "../../lib/site";
 import { lotesAgotados } from "../../lib/disponibilidad";
 import { mayoreoDeFila, familiasEnMayoreo, precioUnitario } from "../../lib/mayoreo";
 
@@ -33,13 +30,6 @@ type ItemOrden = {
 };
 
 export async function POST(req: Request) {
-  if (!stripeConfigurado()) {
-    return NextResponse.json(
-      { error: "El pago con tarjeta no está disponible en este momento. Escríbenos por WhatsApp y te pasamos los datos para transferencia." },
-      { status: 500 }
-    );
-  }
-
   let body: {
     items?: ItemEntrada[];
     envio?: Record<string, string>;
@@ -354,64 +344,47 @@ export async function POST(req: Request) {
 
   const envioConDatos = { ...envio, ...envioExtra, costo_cobrado: envioMonto };
 
-  const ordenId = randomUUID();
-  const ahora = Date.now();
-
-  // ---- Crear orden PENDIENTE (fuente de verdad para el webhook) ----
-  const ordenRow: Record<string, unknown> = {
-    id: ordenId,
-    items: itemsOrden,
-    total,
-    status: "pending",
-    canal: "web",
-    inventario_descontado: false,
-    creado_en: ahora,
-    envio: envioConDatos,
-    cliente: envio.nombre,
-    email: envio.email,
-    wpp: envio.telefono,
-  };
-  // Solo tocamos las columnas de cupón cuando se usó uno (así el checkout
-  // sigue funcionando aunque la migración de cupón aún no se haya corrido).
-  if (cupon) {
-    ordenRow.cupon = cupon;
-    ordenRow.descuento = descuento;
+  // ---- (20-nov-2026) Sin pasarela: el carrito se vuelve una COTIZACIÓN ----
+  // La clienta paga por transferencia o depósito en OXXO desde la página de su
+  // cotización. Así entra al mismo circuito que las del bot: panel ("Me pagó
+  // por transferencia"), bot (seguimiento y confirmación) y Despacho.
+  const sb = supabase;
+  const abc = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const nuevoId = () => Array.from({ length: 6 }, () => abc[Math.floor(Math.random() * abc.length)]).join("");
+  let id = nuevoId();
+  for (let i = 0; i < 5; i++) {
+    const { data } = await sb.from("cotizaciones").select("id").eq("id", id).maybeSingle();
+    if (!data) break;
+    id = nuevoId();
   }
-  const { error: insErr } = await supabase.from("ordenes_web").insert(ordenRow);
+  const loteItem = itemsOrden.find((it) => it.tipo === "lote");
+  const subtotal = Math.round((total + descuento) * 100) / 100;
+  const { error: insErr } = await sb.from("cotizaciones").insert({
+    id,
+    lote_id: loteItem ? loteItem.ref : null,
+    qty: loteItem ? loteItem.qty : 1,
+    items: itemsOrden.map((it) => ({ tipo: it.tipo, ref: it.ref, qty: it.qty })),
+    cliente_nombre: envio.nombre.slice(0, 60),
+    envio: { ...envioConDatos, ...(cupon ? { cupon } : {}) },
+    envio_costo: envioMonto,
+    envio_paqueteria: (envioExtra.paqueteria as string) || null,
+    envio_servicio: (envioExtra.servicio as string) || null,
+    envio_servicio_code: (envioExtra.servicio_code as string) || null,
+    envio_dias: (envioExtra.dias as number) ?? null,
+    subtotal,
+    descuento,
+    descuento_motivo: cupon ? `Cupón ${cupon}` : null,
+    total: Math.round((total + envioMonto) * 100) / 100,
+    creada_en: Date.now(),
+    creada_por: "web",
+  });
   if (insErr) {
     return NextResponse.json(
-      { error: "No se pudo crear la orden: " + insErr.message },
+      { error: "No se pudo generar tu pedido: " + insErr.message },
       { status: 500 }
     );
   }
-
-  // ---- Página de pago (Stripe) ----
-  try {
-    const lineas = itemsOrden.map((it) => ({ nombre: it.nombre, precio: it.precio, qty: it.qty }));
-    if (envioMonto > 0) lineas.push({ nombre: "Envío", precio: envioMonto, qty: 1 });
-    const cobro = await crearCobro({
-      ref: ordenId,
-      lineas,
-      email: envio.email,
-      exito: `${SITE_URL}/checkout/exito?orden=${ordenId}`,
-      cancelar: `${SITE_URL}/checkout`,
-      metadata: { wpp: envio.telefono },
-    });
-    await supabase
-      .from("ordenes_web")
-      .update({ mp_preference_id: cobro.id })
-      .eq("id", ordenId);
-    // Se sigue llamando init_point para no tocar el navegador.
-    return NextResponse.json({ init_point: cobro.url, orden_id: ordenId });
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    await supabase
-      .from("ordenes_web")
-      .update({ status: "error_preferencia" })
-      .eq("id", ordenId);
-    return NextResponse.json(
-      { error: "No se pudo abrir la página de pago: " + msg },
-      { status: 502 }
-    );
-  }
+  // Se sigue llamando init_point para no tocar el navegador: ahora lleva a la
+  // página de la cotización, con los datos para pagar.
+  return NextResponse.json({ init_point: `/cotizacion/${id}`, cotizacion: id });
 }

@@ -13,7 +13,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
-  let body: { id?: string; nombre?: string; referencia?: string; tipo?: string };
+  let body: { id?: string; nombre?: string; referencia?: string; tipo?: string; datos?: Record<string, string> };
   try {
     body = await req.json();
   } catch {
@@ -44,6 +44,26 @@ export async function POST(req: Request) {
   // Si ya avisó antes, no se vuelve a notificar (evita correos repetidos si le
   // da al botón varias veces).
   const yaAviso = esApartado ? cot.apartado_pago_id === "AVISO-SPEI" : Boolean(cot.transferencia_aviso_en);
+
+  // (20-nov-2026) Sin pasarela, este aviso es el UNICO momento en que la
+  // clienta manda su direccion: se guarda en la cotizacion (solo texto de
+  // envio; el C.P., ciudad y estado no se tocan porque el envio ya se cotizo).
+  const d = body.datos || {};
+  const limpio = (v: unknown, n = 120) => String(v ?? "").trim().slice(0, n);
+  const nuevos: Record<string, string> = {};
+  for (const k of ["nombre", "email", "calle", "numero", "colonia", "referencias"]) {
+    const v = limpio(d[k]);
+    if (v) nuevos[k] = v;
+  }
+  const tel = String(d.telefono || "").replace(/\D/g, "").slice(-10);
+  if (tel.length === 10) nuevos.telefono = tel;
+  if (Object.keys(nuevos).length) {
+    const env0 = (cot.envio || {}) as Record<string, unknown>;
+    await sb
+      .from("cotizaciones")
+      .update({ envio: { ...env0, ...nuevos }, cliente_nombre: nuevos.nombre || cot.cliente_nombre })
+      .eq("id", id);
+  }
 
   if (esApartado) {
     if (!cot.apartado_pago_id) await sb.from("cotizaciones").update({ apartado_pago_id: "AVISO-SPEI" }).eq("id", id);

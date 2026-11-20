@@ -104,7 +104,7 @@ export const GUIAS: Guia[] = [
       { t: "h2", text: "4. Precio demasiado bueno para ser verdad" },
       { t: "p", html: "Un precio ridículamente bajo casi siempre es señal de imitación. El maquillaje original tiene un rango de precio razonable." },
       { t: "h2", text: "5. Compra en lugares confiables" },
-      { t: "p", html: "La forma más segura es comprar en tiendas que <strong>garanticen originalidad</strong>. En AMARÉA todo nuestro catálogo es <strong>100% original</strong> de marcas importadas —e.l.f, NYX, Maybelline, L'Oréal y Pixi— con pago seguro con tarjeta, OXXO o transferencia." },
+      { t: "p", html: "La forma más segura es comprar en tiendas que <strong>garanticen originalidad</strong>. En AMARÉA todo nuestro catálogo es <strong>100% original</strong> de marcas importadas —e.l.f, NYX, Maybelline, L'Oréal y Pixi— con pago por transferencia o depósito en OXXO." },
       { t: "cta", href: "/amarea", text: "Comprar maquillaje 100% original →" },
     ],
   },

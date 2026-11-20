@@ -178,7 +178,7 @@ fbq('init', '${META_PIXEL_ID}');fbq('track', 'PageView');`}
               },
               areaServed: "MX",
               currenciesAccepted: "MXN",
-              paymentAccepted: "Visa, Mastercard, American Express, OXXO, SPEI",
+              paymentAccepted: "Transferencia SPEI, depósito en efectivo en OXXO",
             }),
           }}
         />

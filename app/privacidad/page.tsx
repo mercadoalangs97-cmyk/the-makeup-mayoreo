@@ -44,7 +44,7 @@ export default function Privacidad() {
           </li>
           <li>
             <strong>Datos de pago:</strong> se procesan directamente por nuestra
-            plataforma de pagos (Stripe). <strong>No almacenamos</strong>{" "}
+            banco que recibe tu transferencia o depósito. <strong>No almacenamos</strong>{" "}
             los datos completos de tu tarjeta.
           </li>
           <li>
@@ -70,10 +70,6 @@ export default function Privacidad() {
           que nos ayudan a brindarte el servicio:
         </p>
         <ul className="legal-list">
-          <li>
-            <strong>Stripe</strong> — para procesar tus pagos de forma
-            segura.
-          </li>
           <li>
             <strong>Paqueterías</strong> (por ejemplo Estafeta, vía Skydropx) —
             para entregarte tu pedido.

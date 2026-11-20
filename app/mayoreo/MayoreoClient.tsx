@@ -49,7 +49,7 @@ const TABLA_PRECIOS = (() => {
 const PREGUNTAS = [
   {
     q: "¿Dónde comprar maquillaje original por mayoreo en México?",
-    a: "Con un proveedor que te diga qué marcas maneja y de dónde vienen. Nosotros importamos directo e.l.f Cosmetics, NYX Professional Makeup, Maybelline New York, L'Oréal Paris y Pixi, y vendemos en lotes surtidos desde 10 piezas con envío por Estafeta a toda la República. Todo se paga en línea con tarjeta u OXXO, por transferencia, o se coordina por WhatsApp.",
+    a: "Con un proveedor que te diga qué marcas maneja y de dónde vienen. Nosotros importamos directo e.l.f Cosmetics, NYX Professional Makeup, Maybelline New York, L'Oréal Paris y Pixi, y vendemos en lotes surtidos desde 10 piezas con envío por Estafeta a toda la República. Todo se paga por transferencia o depósito en OXXO, o se coordina por WhatsApp.",
   },
   {
     q: "¿Cuánto cuesta un lote de maquillaje para revender?",
@@ -88,9 +88,9 @@ const GARANTIAS = [
   },
   {
     icono: "🔒",
-    titulo: "Pago seguro con tarjeta (Stripe)",
+    titulo: "Pago por transferencia u OXXO",
     texto:
-      "Tarjeta, transferencia SPEI o efectivo en OXXO. Tu dinero protegido por la plataforma.",
+      "Transferencia SPEI o depósito en efectivo en OXXO, directo a nuestra cuenta. Te confirmamos por WhatsApp.",
   },
 ];
 
@@ -287,7 +287,7 @@ export default function Home({
             <span className="trust-ico">🔒</span>
             <div className="trust-txt">
               <b>Pago seguro</b>
-              <span>Tarjeta, OXXO y SPEI</span>
+              <span>Transferencia y OXXO</span>
             </div>
           </div>
           <div className="trust-item">
@@ -678,7 +678,7 @@ export default function Home({
             <div className="step-num serif">2</div>
             <div className="step-title serif">Paga seguro</div>
             <div className="step-desc">
-              Tarjeta (Stripe), SPEI u OXXO. O cierra directo por WhatsApp
+              Transferencia SPEI o depósito en OXXO. O cierra directo por WhatsApp
               si prefieres.
             </div>
           </div>

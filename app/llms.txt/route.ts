@@ -10,13 +10,13 @@ export const dynamic = "force-dynamic";
 export function GET() {
   const txt = `# ${SITE_NAME} · AMARÉA — Maquillaje original por pieza y al mayoreo en México
 
-> AMARÉA (${SITE_NAME}) es una tienda en línea mexicana de maquillaje 100% original de marcas importadas —e.l.f, NYX Professional Makeup, Maybelline, L'Oréal Paris y Pixi—. Vende por pieza a consumidoras y en lotes al mayoreo a revendedoras, con envío a toda la República Mexicana y pago 100% seguro con tarjeta (Stripe), transferencia SPEI o efectivo en OXXO.
+> AMARÉA (${SITE_NAME}) es una tienda en línea mexicana de maquillaje 100% original de marcas importadas —e.l.f, NYX Professional Makeup, Maybelline, L'Oréal Paris y Pixi—. Vende por pieza a consumidoras y en lotes al mayoreo a revendedoras, con envío a toda la República Mexicana y pago por transferencia SPEI o depósito en efectivo en OXXO.
 
 ## Qué ofrece
 - Maquillaje original por pieza: labiales, bases, correctores, sombras, rubores, máscaras de pestañas, productos para cejas y skincare.
 - Lotes de maquillaje al mayoreo (de 10 a 500 piezas) para revendedoras.
 - Envío a todo México: GRATIS en compras desde $599 MXN; en compras menores, $129 MXN. Los pedidos salen martes, miércoles y jueves.
-- Pago seguro con tarjeta (procesada por Stripe con 3D Secure), en efectivo en OXXO o por transferencia SPEI.
+- Pago por transferencia SPEI o depósito en efectivo en OXXO y otras tiendas; se confirma por WhatsApp.
 
 ## Diferenciadores
 - Productos 100% originales de marcas importadas (no imitaciones).
@@ -44,7 +44,7 @@ ${GUIAS.map((g) => `- [${g.titulo}](${SITE_URL}/guias/${g.slug}): ${g.descripcio
 ## Preguntas frecuentes
 - ¿Los productos son originales? Sí, 100% originales de marcas importadas.
 - ¿Hacen envíos a todo México? Sí, con rastreo. Gratis desde $599 MXN; si no, $129 MXN.
-- ¿Cómo se paga? Con tarjeta de crédito o débito (procesada por Stripe), en efectivo en OXXO o por transferencia SPEI.
+- ¿Cómo se paga? Por transferencia SPEI o con depósito en efectivo en OXXO (y otras tiendas). Se manda el comprobante por WhatsApp.
 - ¿Venden al mayoreo? Sí, en lotes de 10 a 500 piezas para revendedoras.
 `;
 
