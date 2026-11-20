@@ -689,6 +689,9 @@ export default function CotizacionPago({ c }: { c: CotData }) {
           Pagas directo a nuestra cuenta. En cuanto vemos tu pago te
           confirmamos por WhatsApp y preparamos tu envío.
         </p>
+        <p className="co-aviso-pasarela" style={{ marginTop: 10 }}>
+          💳 Estamos activando nuestra nueva pasarela de pago con tarjeta (lista en unos días). Mientras tanto puedes pagar por transferencia o depósito en OXXO.
+        </p>
 
         <div className="cot-conf">
           <div className="cot-conf-links">

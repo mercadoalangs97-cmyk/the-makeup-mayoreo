@@ -159,6 +159,9 @@ export default function CartDrawer() {
             <button className="btn-mp" onClick={checkoutMP}>
               Continuar al pago
             </button>
+            <p className="co-aviso-pasarela" style={{ margin: "8px 0 0" }}>
+              💳 Pago con tarjeta: lo estamos activando (unos días). Hoy puedes pagar por transferencia o en OXXO.
+            </p>
             {/* WhatsApp solo si el carrito incluye al menos un lote */}
             {hayLote && (
               <button className="btn-wpp-checkout" onClick={checkoutWPP}>

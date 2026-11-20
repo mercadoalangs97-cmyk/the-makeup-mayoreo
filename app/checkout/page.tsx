@@ -458,6 +458,7 @@ export default function CheckoutPage() {
                     ? "Cotiza y elige tu envío"
                     : `Continuar · ${fmx(totalPagar)}`}
                 </button>
+                <p className="co-aviso-pasarela">💳 Estamos activando nuestra nueva pasarela de pago con tarjeta (lista en unos días). Mientras tanto puedes pagar por transferencia o depósito en OXXO.</p>
                 <p className="co-nota">Al continuar te damos los datos para pagar por transferencia o depósito en OXXO, y nos mandas tu comprobante por WhatsApp.</p>
               </form>
 
