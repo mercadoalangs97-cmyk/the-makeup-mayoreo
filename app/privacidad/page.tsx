@@ -44,7 +44,7 @@ export default function Privacidad() {
           </li>
           <li>
             <strong>Datos de pago:</strong> se procesan directamente por nuestra
-            plataforma de pagos (Mercado Pago). <strong>No almacenamos</strong>{" "}
+            plataforma de pagos (Stripe). <strong>No almacenamos</strong>{" "}
             los datos completos de tu tarjeta.
           </li>
           <li>
@@ -71,7 +71,7 @@ export default function Privacidad() {
         </p>
         <ul className="legal-list">
           <li>
-            <strong>Mercado Pago</strong> — para procesar tus pagos de forma
+            <strong>Stripe</strong> — para procesar tus pagos de forma
             segura.
           </li>
           <li>

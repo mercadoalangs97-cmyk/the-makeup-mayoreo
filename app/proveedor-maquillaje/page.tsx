@@ -51,7 +51,7 @@ const CRITERIOS = [
   },
   {
     t: "Que puedas pagar de forma protegida",
-    d: "Pagar con Mercado Pago o tarjeta te deja con quién reclamar. Una transferencia a una cuenta personal, no.",
+    d: "Pagar con tarjeta te deja con quién reclamar. Una transferencia a una cuenta personal, no.",
   },
   {
     t: "Que te dé número de guía",
@@ -88,7 +88,7 @@ export default function ProveedorMaquillaje() {
               {Math.round(chico.precio / chico.piezas)}
             </b>{" "}
             según el volumen. Envío por Estafeta a toda la República y pago con
-            Mercado Pago, tarjeta, transferencia u OXXO.
+            tarjeta, transferencia u OXXO.
           </p>
           <div className="prov-cta">
             <Link className="btn-primary" href="/mayoreo#precios">

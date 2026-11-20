@@ -178,7 +178,7 @@ fbq('init', '${META_PIXEL_ID}');fbq('track', 'PageView');`}
               },
               areaServed: "MX",
               currenciesAccepted: "MXN",
-              paymentAccepted: "Mercado Pago, Visa, Mastercard, SPEI, OXXO",
+              paymentAccepted: "Visa, Mastercard, American Express, OXXO, SPEI",
             }),
           }}
         />

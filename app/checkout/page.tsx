@@ -454,12 +454,12 @@ export default function CheckoutPage() {
                   disabled={enviando || (modo === "cotizar" && !envioSel)}
                 >
                   {enviando
-                    ? "Redirigiendo a Mercado Pago…"
+                    ? "Abriendo el pago seguro…"
                     : modo === "cotizar" && !envioSel
                     ? "Cotiza y elige tu envío"
                     : `Ir a pagar · ${fmx(totalPagar)}`}
                 </button>
-                <p className="co-nota">🔒 Pago seguro con Mercado Pago · tarjeta, SPEI u OXXO</p>
+                <p className="co-nota">🔒 Pago seguro con Stripe · tarjeta (con meses) u OXXO</p>
               </form>
 
               {/* RESUMEN */}

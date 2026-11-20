@@ -20,8 +20,8 @@ export default function CheckoutPendiente() {
         <div className="ce-icon ce-pend">⏳</div>
         <h1 className="ce-titulo serif">Tu pago está pendiente</h1>
         <p className="ce-texto">
-          Si elegiste pago en <b>OXXO</b> o transferencia <b>SPEI</b>, completa
-          el pago con el comprobante que te dio Mercado Pago. En cuanto se
+          Si elegiste pago en <b>OXXO</b>, completa el pago con la ficha que
+          te dimos (también te llegó por correo). En cuanto se
           confirme, apartamos tu pedido y te avisamos por WhatsApp.
         </p>
         <div className="ce-acciones">

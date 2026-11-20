@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
-import { Preference } from "mercadopago";
 import { createAdminSupabase } from "../../lib/supabase";
-import { mpClient, mpConfigurado } from "../../lib/mercadopago";
-import { payerMP, deviceIdMP } from "../../lib/mpAntifraude";
+import { crearCobro, stripeConfigurado } from "../../lib/stripe";
 import { compradorBloqueado, MENSAJE_BLOQUEO } from "../../lib/antifraude";
 import {
   LOTES,
@@ -35,9 +33,9 @@ type ItemOrden = {
 };
 
 export async function POST(req: Request) {
-  if (!mpConfigurado()) {
+  if (!stripeConfigurado()) {
     return NextResponse.json(
-      { error: "Mercado Pago no está configurado en el servidor." },
+      { error: "El pago con tarjeta no está disponible en este momento. Escríbenos por WhatsApp y te pasamos los datos para transferencia." },
       { status: 500 }
     );
   }
@@ -47,7 +45,6 @@ export async function POST(req: Request) {
     envio?: Record<string, string>;
     envioServicio?: string; // servicioCode elegido (modo cotizar/lotes)
     cupon?: string; // código de descuento (opcional)
-    device_id?: string; // Device ID de Mercado Pago (security.js)
   };
   try {
     body = await req.json();
@@ -388,58 +385,24 @@ export async function POST(req: Request) {
     );
   }
 
-  // ---- Crear preferencia de Mercado Pago ----
+  // ---- Página de pago (Stripe) ----
   try {
-    const mpItems = itemsOrden.map((it) => ({
-      id: it.ref,
-      title: it.nombre,
-      quantity: it.qty,
-      unit_price: it.precio,
-      currency_id: "MXN",
-    }));
-    // Cobrar el envío como una línea más (solo AMARÉA con tarifa > 0)
-    if (envioMonto > 0) {
-      mpItems.push({
-        id: "envio",
-        title: "Envío",
-        quantity: 1,
-        unit_price: envioMonto,
-        currency_id: "MXN",
-      });
-    }
-
-    const pref = new Preference(mpClient());
-    const result = await pref.create({
-      body: {
-        items: mpItems,
-        external_reference: ordenId,
-        metadata: { orden_id: ordenId },
-        payer: payerMP(envio),
-        back_urls: {
-          success: `${SITE_URL}/checkout/exito`,
-          pending: `${SITE_URL}/checkout/pendiente`,
-          failure: `${SITE_URL}/checkout/error`,
-        },
-        auto_return: "approved",
-        notification_url: `${SITE_URL}/api/mercadopago/webhook`,
-        statement_descriptor: "THEMAKEUP",
-      },
-      requestOptions: { meliSessionId: deviceIdMP(body.device_id) },
+    const lineas = itemsOrden.map((it) => ({ nombre: it.nombre, precio: it.precio, qty: it.qty }));
+    if (envioMonto > 0) lineas.push({ nombre: "Envío", precio: envioMonto, qty: 1 });
+    const cobro = await crearCobro({
+      ref: ordenId,
+      lineas,
+      email: envio.email,
+      exito: `${SITE_URL}/checkout/exito?orden=${ordenId}`,
+      cancelar: `${SITE_URL}/checkout`,
+      metadata: { wpp: envio.telefono },
     });
-
     await supabase
       .from("ordenes_web")
-      .update({ mp_preference_id: result.id })
+      .update({ mp_preference_id: cobro.id })
       .eq("id", ordenId);
-
-    const initPoint = result.init_point || result.sandbox_init_point;
-    if (!initPoint) {
-      return NextResponse.json(
-        { error: "Mercado Pago no devolvió init_point." },
-        { status: 502 }
-      );
-    }
-    return NextResponse.json({ init_point: initPoint, orden_id: ordenId });
+    // Se sigue llamando init_point para no tocar el navegador.
+    return NextResponse.json({ init_point: cobro.url, orden_id: ordenId });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     await supabase
@@ -447,7 +410,7 @@ export async function POST(req: Request) {
       .update({ status: "error_preferencia" })
       .eq("id", ordenId);
     return NextResponse.json(
-      { error: "Error creando preferencia: " + msg },
+      { error: "No se pudo abrir la página de pago: " + msg },
       { status: 502 }
     );
   }

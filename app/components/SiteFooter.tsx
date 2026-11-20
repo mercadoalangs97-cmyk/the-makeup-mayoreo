@@ -69,7 +69,7 @@ export default function SiteFooter() {
             <div className="footer-pay">
               <span className="pay-chip">Visa</span>
               <span className="pay-chip">Mastercard</span>
-              <span className="pay-chip">Mercado Pago</span>
+              <span className="pay-chip">Stripe</span>
               <span className="pay-chip">SPEI</span>
               <span className="pay-chip">OXXO</span>
             </div>

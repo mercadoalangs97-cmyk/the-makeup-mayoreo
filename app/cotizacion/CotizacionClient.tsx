@@ -151,7 +151,7 @@ export default function CotizacionClient({
           <span>🏪 Efectivo en OXXO</span>
         </div>
         <p className="cot-mp">
-          El cobro lo procesa <b>Mercado Pago</b>. Nosotros nunca vemos los datos
+          El cobro lo procesa <b>Stripe</b>. Nosotros nunca vemos los datos
           de tu tarjeta y tu compra queda protegida por la plataforma.
         </p>
 

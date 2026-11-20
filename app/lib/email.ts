@@ -102,7 +102,7 @@ function envoltura(marca: string, titulo: string, sub: string, cuerpo: string): 
         ${cuerpo}
       </div>
       <div style="background:${C.cream};padding:16px 24px;color:${C.muted};font-size:12px;text-align:center;line-height:1.6">
-        The Makeup Mayoreo CDMX · Pago seguro con Mercado Pago<br>
+        The Makeup Mayoreo CDMX · Pago seguro con Stripe<br>
         ¿Dudas? WhatsApp <a href="https://wa.me/${WPP}" style="color:${C.roseDk}">+52 56 5814 6140</a>
       </div>
     </div>
@@ -163,7 +163,7 @@ export function htmlNegocio(o: OrdenCorreo): string {
     <table role="presentation" style="width:100%;border-collapse:collapse;margin-top:6px">
       ${totalRow("Productos", fmx(o.total))}
       ${filaEnvio}
-      ${o.mp_fee != null ? totalRow("Comisión Mercado Pago", "− " + fmx(o.mp_fee)) : ""}
+      ${o.mp_fee != null ? totalRow("Comisión de la pasarela", "− " + fmx(o.mp_fee)) : ""}
       ${o.mp_neto != null ? totalRow("Neto recibido", fmx(o.mp_neto), true) : ""}
     </table>
     <h3 style="color:${C.charcoal};font-size:15px;margin:22px 0 6px">📦 Enviar a</h3>

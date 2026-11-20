@@ -49,7 +49,7 @@ const TABLA_PRECIOS = (() => {
 const PREGUNTAS = [
   {
     q: "¿Dónde comprar maquillaje original por mayoreo en México?",
-    a: "Con un proveedor que te diga qué marcas maneja y de dónde vienen. Nosotros importamos directo e.l.f Cosmetics, NYX Professional Makeup, Maybelline New York, L'Oréal Paris y Pixi, y vendemos en lotes surtidos desde 10 piezas con envío por Estafeta a toda la República. Todo se paga en línea con Mercado Pago o se coordina por WhatsApp.",
+    a: "Con un proveedor que te diga qué marcas maneja y de dónde vienen. Nosotros importamos directo e.l.f Cosmetics, NYX Professional Makeup, Maybelline New York, L'Oréal Paris y Pixi, y vendemos en lotes surtidos desde 10 piezas con envío por Estafeta a toda la República. Todo se paga en línea con tarjeta u OXXO, por transferencia, o se coordina por WhatsApp.",
   },
   {
     q: "¿Cuánto cuesta un lote de maquillaje para revender?",
@@ -88,7 +88,7 @@ const GARANTIAS = [
   },
   {
     icono: "🔒",
-    titulo: "Pago seguro con Mercado Pago",
+    titulo: "Pago seguro con tarjeta (Stripe)",
     texto:
       "Tarjeta, transferencia SPEI o efectivo en OXXO. Tu dinero protegido por la plataforma.",
   },
@@ -287,7 +287,7 @@ export default function Home({
             <span className="trust-ico">🔒</span>
             <div className="trust-txt">
               <b>Pago seguro</b>
-              <span>Mercado Pago y SPEI</span>
+              <span>Tarjeta, OXXO y SPEI</span>
             </div>
           </div>
           <div className="trust-item">
@@ -678,7 +678,7 @@ export default function Home({
             <div className="step-num serif">2</div>
             <div className="step-title serif">Paga seguro</div>
             <div className="step-desc">
-              Mercado Pago: tarjeta, SPEI u OXXO. O cierra directo por WhatsApp
+              Tarjeta (Stripe), SPEI u OXXO. O cierra directo por WhatsApp
               si prefieres.
             </div>
           </div>
@@ -953,7 +953,7 @@ export default function Home({
                     </button>
                     <div className="modal-btns">
                       <button className="btn-mp-sm" onClick={checkoutMP}>
-                        Mercado Pago
+                        Pagar en línea
                       </button>
                       <button className="btn-wpp-sm" onClick={pedirWPP}>
                         WhatsApp

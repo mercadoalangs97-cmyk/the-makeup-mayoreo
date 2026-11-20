@@ -42,8 +42,8 @@ export default function Nosotros() {
             imitaciones.
           </li>
           <li>
-            <strong>Pago seguro:</strong> procesamos tus pagos con Mercado Pago
-            (tarjeta, SPEI y OXXO).
+            <strong>Pago seguro:</strong> procesamos tus pagos con tarjeta a
+            través de Stripe (con 3D Secure), en OXXO o por transferencia SPEI.
           </li>
           <li>
             <strong>Envíos con rastreo:</strong> empaque protegido y número de

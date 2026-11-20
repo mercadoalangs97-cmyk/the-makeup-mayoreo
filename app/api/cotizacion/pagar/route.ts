@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
-import { Preference } from "mercadopago";
 import { createAdminSupabase } from "../../../lib/supabase";
 import { compradorBloqueado, MENSAJE_BLOQUEO } from "../../../lib/antifraude";
-import { mpClient, mpConfigurado } from "../../../lib/mercadopago";
-import { payerMP, deviceIdMP } from "../../../lib/mpAntifraude";
+import { crearCobro, stripeConfigurado } from "../../../lib/stripe";
 import { itemsDeCotizacion, loteFisicoOcupado, resolverItems } from "../../../lib/cotItems";
 import { lotesAgotados } from "../../../lib/disponibilidad";
 import { SITE_URL } from "../../../lib/site";
@@ -15,9 +13,9 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
-  if (!mpConfigurado()) {
+  if (!stripeConfigurado()) {
     return NextResponse.json(
-      { error: "Mercado Pago no está configurado." },
+      { error: "El pago con tarjeta no está disponible en este momento. Puedes pagar por transferencia con los datos de esta página." },
       { status: 500 }
     );
   }
@@ -234,32 +232,17 @@ export async function POST(req: Request) {
       });
     }
 
-    const pref = new Preference(mpClient());
-    const result = await pref.create({
-      body: {
-        items: mpItems,
-        external_reference: ordenId,
-        metadata: { orden_id: ordenId, cotizacion: id },
-        // El correo es opcional: si no lo tenemos, NO mandamos la llave vacía
-        // (Mercado Pago la rechaza) y él lo captura al pagar.
-        // Comprador completo (nombre/apellido, lada aparte, dirección): el
-        // antifraude de Mercado Pago decide mejor con más datos.
-        payer: payerMP(env),
-        back_urls: {
-          success: `${SITE_URL}/checkout/exito`,
-          pending: `${SITE_URL}/checkout/pendiente`,
-          failure: `${SITE_URL}/checkout/error`,
-        },
-        auto_return: "approved",
-        notification_url: `${SITE_URL}/api/mercadopago/webhook`,
-        statement_descriptor: "THEMAKEUP",
-      },
-      requestOptions: { meliSessionId: deviceIdMP(body.device_id) },
+    const cobro = await crearCobro({
+      ref: ordenId,
+      lineas: mpItems.map((x) => ({ nombre: x.title, precio: x.unit_price, qty: x.quantity })),
+      email: env.email,
+      exito: `${SITE_URL}/checkout/exito?orden=${ordenId}`,
+      cancelar: `${SITE_URL}/cotizacion/${id}`,
+      metadata: { cotizacion: id },
     });
-
     await sb
       .from("ordenes_web")
-      .update({ mp_preference_id: result.id })
+      .update({ mp_preference_id: cobro.id })
       .eq("id", ordenId);
     await sb
       .from("cotizaciones")
@@ -274,14 +257,7 @@ export async function POST(req: Request) {
       })
       .eq("id", id);
 
-    const initPoint = result.init_point || result.sandbox_init_point;
-    if (!initPoint) {
-      return NextResponse.json(
-        { error: "Mercado Pago no devolvió el enlace de pago." },
-        { status: 502 }
-      );
-    }
-    return NextResponse.json({ init_point: initPoint, orden_id: ordenId });
+    return NextResponse.json({ init_point: cobro.url, orden_id: ordenId });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     await sb.from("ordenes_web").update({ status: "error_preferencia" }).eq("id", ordenId);

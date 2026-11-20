@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 
 // El checkout y sus pantallas de resultado no deben salir en buscadores:
 // son parte del proceso de compra, no contenido. (page.tsx es "use client",
@@ -16,13 +15,6 @@ export default function CheckoutLayout({
 }) {
   return (
     <>
-      {/* Device ID de Mercado Pago: su antifraude lo usa para detectar compras
-          robadas. Deja window.MP_DEVICE_SESSION_ID, que el checkout manda. */}
-      <Script
-        src="https://www.mercadopago.com/v2/security.js"
-        {...{ view: "checkout" }}
-        strategy="afterInteractive"
-      />
       {children}
     </>
   );
