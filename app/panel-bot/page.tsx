@@ -12,7 +12,13 @@ type Conv = {
   etapa?: string; compras?: number; total_compras?: number; origen?: string | null; creada?: string;
   // CRM (26-oct-2026)
   ultima_compra?: number | null; monto?: number | null; pagada?: boolean; apartado?: number; escalada_en?: string | null; motivo_escalacion?: string | null;
+  etiquetas?: string[] | null;
 };
+type Rapida = { t: string; x: string };
+type Etiqueta = { id: string; nombre: string; color: string };
+// Ajustes del panel (mk_config; se guardan por el bot con la acción "config").
+type Config = { modo: string; respuestas_rapidas: Rapida[]; etiquetas: Etiqueta[]; etiquetas_listas: boolean; estilo: { instrucciones: string }; reglas: string[]; reglas_propuestas: string[]; correcciones: number; bot_secret: boolean };
+type PlantillaMeta = { nombre: string; idioma: string; categoria: string; cuerpo: string; variables: number };
 type Kpis = { dias: number; conversaciones: number; nuevas: number; cotizadas: number; apartadas: number; pagadas: number; sin_atender: number; por_confirmar: number; ventas: number; n_ventas: number; ticket: number };
 type Clienta = { telefono: string; nombre: string | null; ciudad: string | null; notas: string | null; canal_id: string | null; ultimo_contacto: string | null; compras: number; total: number; ultima: number; primera?: number; detalle?: { total: number; fecha: number; que: string }[] };
 const CAMPOS = [
@@ -23,12 +29,12 @@ type CampoFicha = (typeof CAMPOS)[number][0];
 type Ficha = ({ clave: string; notas: string | null; actualizada?: string } & Partial<Record<CampoFicha, string | null>>) | null;
 type CotChat = { id: string; lote_id: string | null; total: number | null; link: string | null; creada: string; seguimientos: number; cerrada: boolean; sitio: Cot["sitio"] };
 
-// Respuestas rápidas del equipo (se agregan al texto; se pueden editar antes de mandar).
-const RAPIDAS: { t: string; x: string }[] = [
+// Respuestas rápidas mientras carga la configuración (las editables viven en Ajustes).
+const RAPIDAS: Rapida[] = [
   { t: "Pedir CP", x: "¿Me compartes tu código postal para cotizarte el envío?" },
   { t: "Datos de envío", x: "Para mandarte tu pedido necesito tu nombre completo, calle y número, colonia, código postal, ciudad y un teléfono de contacto." },
   { t: "Lo reviso", x: "Déjame revisarlo y en un momento te confirmo." },
-  { t: "Formas de pago", x: "En el link puedes pagar con tarjeta, en OXXO o por transferencia. En cuanto se refleje te aviso por aquí." },
+  { t: "Formas de pago", x: "En el link puedes pagar por transferencia o en OXXO. En cuanto se refleje te aviso por aquí." },
   { t: "Foto antes de enviar", x: "Antes de enviarlo te mando foto de tu lote ya armado." },
   { t: "Ya salió", x: "Tu pedido ya salió. Te paso la guía por aquí para que lo rastrees." },
 ];
@@ -132,7 +138,7 @@ type Msg = { id: number; direccion: "in" | "out"; tipo: string; texto: string | 
 type HiloT = { mensajes: Msg[]; conversacion: Conv | null; cotizacion: Record<string, unknown> | null; lote: Lote | null; clienta?: Ficha; claveFicha?: string; cotizaciones?: CotChat[]; compras?: Compras; cargando?: boolean };
 type Pend = { id: number; canal_id: string; texto: string; adjunto: { tipo: string; lote_id: string } | null; creado: string };
 type Lote = { id: string; nombre: string; piezas: number; precio: number; tipo: string; descripcion: string | null; fotos: { url: string }[]; estado: string; apartado_para: string | null; apartado_hasta: string | null; cotizacion_id: string | null; vendido_a: string | null; salida_registrada: boolean; creado_en: string };
-type Cot = { id: string; canal_id: string; lote_id: string | null; total: number | null; link: string | null; creada: string; seguimientos: number; cerrada: boolean; sitio: { cliente_nombre: string | null; total: number; vistas: number | null; pago_click_en: number | null; pagada: boolean | null; transferencia_aviso_en: number | null; apartado_monto: number | null } | null };
+type Cot = { id: string; canal_id: string; lote_id: string | null; total: number | null; link: string | null; creada: string; seguimientos: number; cerrada: boolean; sitio: { cliente_nombre: string | null; total: number; vistas: number | null; pago_click_en: number | null; pagada: boolean | null; transferencia_aviso_en: number | null; apartado_monto: number | null; apartado_pago_id?: string | null } | null; web?: boolean };
 
 /** Achica una imagen a máx 1600 px y la pasa a JPEG (sirve también para HEIC en Safari). */
 async function achicarFoto(f: File): Promise<Blob> {
@@ -170,7 +176,13 @@ export default function PanelBot() {
   }, []);
   const [token, setToken] = useState<string | null>(null);
   const [email, setEmail] = useState(""); const [pass, setPass] = useState(""); const [errLogin, setErrLogin] = useState("");
-  const [tab, setTab] = useState<"embudo" | "chats" | "clientas" | "lotes" | "cots">("embudo");
+  const [tab, setTab] = useState<"embudo" | "chats" | "clientas" | "lotes" | "cots" | "ajustes">("embudo");
+  const [config, setConfig] = useState<Config | null>(null);
+  const [filtroEtiqueta, setFiltroEtiqueta] = useState("");
+  // Hilo: mensaje sugerido para reactivar y selector de plantillas (ventana cerrada).
+  const [reactivarTxt, setReactivarTxt] = useState<string | null>(null);
+  const [plantillasMeta, setPlantillasMeta] = useState<PlantillaMeta[] | null>(null);
+  const [plantillaSel, setPlantillaSel] = useState<{ nombre: string; params: string[] } | null>(null);
   const [dias, setDias] = useState(45);
   const [kpis, setKpis] = useState<Kpis | null>(null);
   const [canalVer, setCanalVer] = useState<"todos" | "wa" | "tg">("todos");
@@ -306,6 +318,7 @@ export default function PanelBot() {
   const cargarLotes = useCallback(async () => { try { setLotes((await api("lotes")).lotes || []); } catch { /* idem */ } }, [api]);
   const cargarCots = useCallback(async () => { try { setCots((await api("cotizaciones")).cotizaciones || []); } catch { /* idem */ } }, [api]);
   const cargarClientas = useCallback(async () => { try { setClientas((await api("clientes")).clientes || []); } catch { /* idem */ } }, [api]);
+  const cargarConfig = useCallback(async () => { try { const d = await api("config"); if (!d.error) setConfig(d); } catch { /* idem */ } }, [api]);
 
   // Con sesión: lo último que viste se pinta YA (la lista y los chats que tenías abiertos) y luego se refresca.
   const hidratado = useRef(false);
@@ -322,8 +335,10 @@ export default function PanelBot() {
   // Carga inicial (una vez por sesión, no en cada cambio de chat como antes).
   useEffect(() => {
     if (!token) return;
-    cargarLista(); cargarLotes(); cargarCots();
-  }, [token, cargarLista, cargarLotes, cargarCots]);
+    cargarLista(); cargarLotes(); cargarCots(); cargarConfig();
+  }, [token, cargarLista, cargarLotes, cargarCots, cargarConfig]);
+  // Al cambiar de chat se cierran el mensaje de reactivar y el selector de plantillas.
+  useEffect(() => { setReactivarTxt(null); setPlantillaSel(null); }, [sel]);
   // ¿Hay panel nuevo? Cada 5 min (y al volver a la pestaña) se compara la versión; si cambió, se recarga
   // sola cuando no estás escribiendo, o te avisa.
   const [panelNuevo, setPanelNuevo] = useState(false);
@@ -505,10 +520,91 @@ export default function PanelBot() {
   async function atendida(canal: string) {
     if (await accion({ accion: "atendida", canalId: canal })) { await cargarLista(); if (sel === canal) await cargarHilo(canal); }
   }
+  /** Acción sobre el chat abierto que cambia algo en el bot: avisa, recarga el hilo y la lista. */
+  async function accionChat(canal: string, body: Record<string, unknown>, ok: string) {
+    const d = await accion({ canalId: canal, ...body });
+    if (d?.ok) { setAviso(ok + (d.mensaje && d.mensaje !== ok ? ` · ${d.mensaje}` : "")); await cargarLista(); if (selRef.current === canal) await cargarHilo(canal); }
+    return d;
+  }
+  async function resuelto(canal: string) {
+    const r = window.prompt("¿Qué decidió el equipo? (opcional)\n\nSi lo escribes, el bot se lo dice a la clienta y cumple lo que le prometió. Vacío = solo se marca resuelto.", "");
+    if (r == null) return;
+    await accionChat(canal, { accion: "resuelto", respuesta: r.trim() || null }, "✅ Tema resuelto");
+  }
+  async function reactivar(canal: string) {
+    const d = await accion({ accion: "reactivar", canalId: canal });
+    if (d?.texto) { setReactivarTxt(d.texto); setAviso(""); }
+  }
+  async function mandarReactivar(canal: string) {
+    if (!reactivarTxt?.trim()) return;
+    if (!window.confirm("¿Mandar este mensaje? La conversación pasa a tu control.")) return;
+    const d = await accionChat(canal, { accion: "reactivar", texto: reactivarTxt.trim(), enviar: true }, "⏰ Mensaje enviado");
+    if (d?.ok) setReactivarTxt(null);
+  }
+  async function reiniciar(canal: string) {
+    if (!window.confirm("¿Reiniciar esta conversación?\n\nEl bot la atiende de cero: olvida la cotización, el lote y lo anotado y ya no lee los mensajes anteriores (siguen aquí para el equipo). No borra cotizaciones del sitio.")) return;
+    await accionChat(canal, { accion: "reiniciar" }, "🗑 Conversación reiniciada");
+  }
+  async function borrarPrueba(canal: string) {
+    if (!window.confirm("¿Borrar esta conversación de PRUEBA por completo?\n\nSe borran sus mensajes, propuestas y cotizaciones del bot. No se puede deshacer.")) return;
+    const d = await accion({ accion: "borrar-prueba", canalId: canal });
+    if (d?.ok) { setAviso("🗑 Conversación de prueba borrada"); hilosRef.current.delete(canal); setSel(null); await cargarLista(true); }
+  }
+  async function ponerEtiqueta(canal: string, id: string) {
+    const cv = convs.find((c) => c.canal_id === canal) || hilo?.conversacion;
+    const ya = cv?.etiquetas || [];
+    const nuevas = ya.includes(id) ? ya.filter((x) => x !== id) : [...ya, id];
+    const d = await accion({ accion: "etiquetas", canalId: canal, etiquetas: nuevas });
+    if (d?.ok) {
+      setConvs((l) => l.map((c) => (c.canal_id === canal ? { ...c, etiquetas: nuevas } : c)));
+      setHilo((h) => (h && h.conversacion?.canal_id === canal ? { ...h, conversacion: { ...h.conversacion, etiquetas: nuevas } } : h));
+      cargarLista(true);
+    }
+  }
+  async function abrirPlantillas() {
+    setPlantillaSel({ nombre: "", params: [] });
+    if (plantillasMeta) return;
+    const d = await accion({ accion: "plantillas" });
+    if (d?.plantillas) setPlantillasMeta(d.plantillas);
+  }
+  async function mandarPlantilla(canal: string) {
+    const p = plantillasMeta?.find((x) => x.nombre === plantillaSel?.nombre);
+    if (!p || !plantillaSel) return;
+    const params = Array.from({ length: p.variables }, (_, i) => (plantillaSel.params[i] || "").trim());
+    if (params.some((x) => !x)) { setAviso("❌ Llena todas las variables de la plantilla"); return; }
+    const texto = p.cuerpo.replace(/\{\{(\d+)\}\}/g, (m, n) => params[Number(n) - 1] ?? m);
+    if (!window.confirm(`¿Mandar la plantilla «${p.nombre}» por WhatsApp? Meta la cobra.\n\n${texto}`)) return;
+    const d = await accionChat(canal, { accion: "plantilla", nombre: p.nombre, params }, "📨 Plantilla enviada");
+    if (d?.ok) setPlantillaSel(null);
+  }
   async function guardarNotas() {
     if (!sel) return;
     const d = await accion({ accion: "nota", canalId: sel, telefono: hilo?.conversacion?.telefono, nombre: hilo?.conversacion?.nombre, notas });
     if (d?.ok) setAviso("✅ Notas guardadas");
+  }
+  // (23-nov-2026) Confirmar / rechazar pago y confirmar apartado desde el panel:
+  // mismo camino que los botones de Telegram (registra en el sitio, le avisa a
+  // la clienta y devuelve la conversación al bot).
+  async function pagoAccion(cotId: string, op: "confirmar" | "rechazar" | "apartado", canalId: string, total?: number | null) {
+    const preg = op === "confirmar"
+      ? `¿Ya revisaste en el banco que llegó el pago de la ${cotId}${total ? ` por ${fmx(total)}` : ""}?\n\nSe registra la venta, sale en Despacho y se le avisa a la clienta.`
+      : op === "rechazar"
+      ? `¿Rechazar el comprobante de la ${cotId}? Se le pide a la clienta que lo mande de nuevo.`
+      : `¿Confirmar el APARTADO de la ${cotId}? El lote queda apartado 5 días.`;
+    if (!window.confirm(preg)) return;
+    const f = (hilo?.clienta || {}) as Record<string, unknown>;
+    const datos: Record<string, string> = {};
+    for (const k of ["nombre", "telefono", "email", "calle", "numero", "colonia", "referencias"]) { const v = String(f[k] ?? "").trim(); if (v) datos[k] = v; }
+    if (!datos.telefono && hilo?.conversacion?.telefono) datos.telefono = String(hilo.conversacion.telefono);
+    const d = await accion({ accion: "pago", op, cotId, canalId, datos });
+    if (d?.ok) {
+      setAviso("✅ " + (d.texto || "Listo"));
+      if (sel) await cargarHilo(sel);
+      await cargarLista();
+      if (tab === "cots") { try { const r = await api("cotizaciones"); setCots(r.cotizaciones || []); } catch { /* */ } }
+    } else if (d?.faltan?.length) {
+      window.alert(`No se pudo registrar: faltan datos de envío (${d.faltan.join(", ")}).\n\nLlénalos en la Ficha de la clienta, guarda, y vuelve a confirmar.`);
+    }
   }
   async function loteAccion(id: string, acc: string, extra: Record<string, unknown> = {}) {
     if (acc === "vendido" && !window.confirm(`¿Marcar ${id} como vendido?`)) return;
@@ -531,8 +627,12 @@ export default function PanelBot() {
     return convs
       .filter((c) => !f || (c.nombre ?? "").toLowerCase().includes(f) || (c.telefono ?? "").includes(f) || c.canal_id.includes(f) || (c.cotizacion_id ?? "").toLowerCase().includes(f) || (c.lote_id ?? "").toLowerCase().includes(f))
       .filter((c) => canalVer === "todos" || c.canal_id.startsWith(canalVer + ":"))
+      .filter((c) => !filtroEtiqueta || (c.etiquetas || []).includes(filtroEtiqueta))
       .filter((c) => filtroEtapa === "todas" ? true : filtroEtapa === "sin responder" ? sinResponderDesde(c) != null : filtroEtapa === "sin leer" ? sinLeer(c) : c.etapa === filtroEtapa);
-  }, [convs, filtro, filtroEtapa, sinLeer, canalVer]);
+  }, [convs, filtro, filtroEtapa, sinLeer, canalVer, filtroEtiqueta]);
+  const etiquetasCat = config?.etiquetas ?? [];
+  const etiquetaDe = (id: string) => etiquetasCat.find((e) => e.id === id);
+  const rapidas = config?.respuestas_rapidas ?? RAPIDAS;
   const conteo = (f: (typeof FILTROS)[number]) => f === "todas" ? convs.length : f === "sin responder" ? nSinResp : f === "sin leer" ? nSinLeer : convs.filter((c) => c.etapa === f).length;
   // Embudo: mismas conversaciones, con búsqueda, canal y "solo sin responder".
   const tablero = useMemo(() => {
@@ -586,6 +686,7 @@ export default function PanelBot() {
           <button className={tab === "clientas" ? "on" : ""} onClick={() => { setTab("clientas"); cargarClientas(); }}>Clientes</button>
           <button className={tab === "lotes" ? "on" : ""} onClick={() => { setTab("lotes"); cargarLotes(); }}>Lotes</button>
           <button className={tab === "cots" ? "on" : ""} onClick={() => { setTab("cots"); cargarCots(); }}>Cotizaciones</button>
+          <button className={tab === "ajustes" ? "on" : ""} onClick={() => { setTab("ajustes"); cargarConfig(); }}>⚙️ Ajustes</button>
         </nav>
         <span className="pb-modo">
           <button className={"campana" + (nSinResp ? " alerta" : "")} title={nSinResp ? `${nSinResp} conversación(es) esperando respuesta` : "Nadie está esperando respuesta"}
@@ -624,6 +725,12 @@ export default function PanelBot() {
                 ))}
               </div>
             )}
+            {etiquetasCat.length > 0 && (
+              <select className="pb-sel-etq" value={filtroEtiqueta} onChange={(e) => setFiltroEtiqueta(e.target.value)} title="Filtrar por etiqueta">
+                <option value="">Etiqueta: todas</option>
+                {etiquetasCat.map((e) => <option key={e.id} value={e.id}>{e.nombre} ({convs.filter((c) => (c.etiquetas || []).includes(e.id)).length})</option>)}
+              </select>
+            )}
             <div className="pb-filtros">
               {FILTROS.map((f) => {
                 const n = conteo(f);
@@ -645,6 +752,7 @@ export default function PanelBot() {
                     {c.estado === "escalada" && <span className="etq" style={{ background: "#e0a000" }}>EN TU CONTROL</span>}
                     {c.estado === "pausada" && <span className="etq" style={{ background: "#6b7280" }}>pausada</span>}
                     {(c.compras ?? 0) > 0 && <span className="etq" style={{ background: "#16a34a" }}>🛍 {c.compras} · {fmx(c.total_compras)}</span>}
+                    {(c.etiquetas || []).map((id) => { const t = etiquetaDe(id); return t ? <span key={id} className="etq" style={{ background: t.color }}>{t.nombre}</span> : null; })}
                     {" "}{c.telefono || c.canal_id}{c.cotizacion_id ? ` · ${c.cotizacion_id}` : ""}{c.lote_id ? ` · ${c.lote_id}` : ""}
                     {pendsDe(c.canal_id).length ? ` · ⏳ ${pendsDe(c.canal_id).length} por aprobar` : ""}
                     {qv != null && qv > 0 && qv < 6 * 3600_000 && (c.etapa === "cotizada" || c.etapa === "apartada" || c.estado === "escalada") ? <span className="etq" style={{ background: "#b45309" }}>⏳ ventana cierra en {duracion(qv)}</span> : null}
@@ -680,14 +788,19 @@ export default function PanelBot() {
                     </div>
                     <div className="acciones">
                       {cv?.estado !== "escalada" && <button onClick={() => estado(sel, "escalada")} title="El bot se calla; tú contestas">🙋 Tomar control</button>}
-                      {cv?.estado !== "bot" && <button onClick={() => { if (window.confirm("¿Devolver al bot?\n\nEl bot va a contestar en unos minutos lo que la clienta dejó pendiente y seguirá atendiéndola. Si alguien le prometió algo (fotos, tonos), mejor contesta tú.")) estado(sel, "bot"); }} title="El bot vuelve y contesta lo que quedó pendiente">🤖 Devolver al bot</button>}
+                      {cv?.estado === "escalada" && <button onClick={() => { if (window.confirm("¿Devolver al bot?\n\nEl bot leyó todo lo que pasó mientras lo llevabas (lo que escribió la clienta, lo que le dijiste y lo que hiciste) y contesta en unos minutos solo lo que quedó pendiente. Si le prometiste algo que el bot no sabe (fotos, tonos), mejor contesta tú.")) estado(sel, "bot"); }} title="El bot vuelve con todo el contexto y contesta lo que quedó pendiente">🤖 Devolver al bot</button>}
+                      {cv?.estado === "pausada" && <button onClick={() => { if (window.confirm("¿Reanudar el bot en esta conversación?\n\nContesta lo que la clienta dejó pendiente mientras estuvo pausada, con todo el contexto.")) estado(sel, "bot"); }} title="El bot vuelve a contestar">▶️ Reanudar</button>}
+                      {Boolean((cv?.resumen as { escalacion?: { abierta?: boolean } } | null)?.escalacion?.abierta) && <button onClick={() => resuelto(sel)} title="Lo que el bot le avisó al equipo ya quedó: el bot lo cumple con la clienta">✅ Resuelto</button>}
                       <button className="ver-ficha" onClick={() => setVerFicha(true)}>👤 Ficha</button>
                       <details className="pb-mas">
                         <summary>Más ▾</summary>
                         <div>
-                          {cv?.estado !== "pausada" && <button onClick={() => estado(sel, "pausada")}>⏸ Pausar</button>}
+                          {cv?.estado !== "pausada" && <button onClick={() => estado(sel, "pausada")} title="Nadie le contesta; el bot sigue leyendo para retomar con contexto">⏸ Pausar</button>}
                           <button onClick={() => atendida(sel)} title="Ya no necesita respuesta (p. ej. un «gracias»): quita la campana">👌 Atendida</button>
-                          <button onClick={() => accion({ accion: "seguimiento", canalId: sel })} title="El bot le escribe para retomar la cotización (solo si la atiende el bot)">Seguimiento</button>
+                          <button onClick={() => accionChat(sel, { accion: "seguimiento" }, "📨 Seguimiento pedido")} title="El bot le escribe ya para retomar la cotización (solo si la atiende el bot)">📨 Seguimiento ahora</button>
+                          {!cerrada && <button onClick={() => reactivar(sel)} title="El bot sugiere un mensaje corto para reabrir la plática; lo editas y lo mandas tú">⏰ Reactivar</button>}
+                          <button onClick={() => reiniciar(sel)} title="El bot empieza de cero con esta clienta (no borra mensajes)">🗑 Reiniciar</button>
+                          {((cv?.etiquetas || []).includes("prueba") || sel.startsWith("tg:")) && <button className="peligro" onClick={() => borrarPrueba(sel)} title="Borra por completo una conversación de prueba">🗑 Borrar prueba</button>}
                         </div>
                       </details>
                     </div>
@@ -698,6 +811,8 @@ export default function PanelBot() {
                       <button onClick={() => atendida(sel)}>👌 No necesita respuesta</button>
                     </div>
                   )}
+                  {cv?.estado === "pausada" && <div className="pb-banda gris">⏸ Pausada: nadie le contesta, pero el bot sigue leyendo (guarda comprobantes y datos). Al reanudar contesta con todo el contexto.</div>}
+                  {cv?.estado === "escalada" && <div className="pb-banda gris">🙋 En control del equipo: el bot no escribe, pero lee todo para retomar cuando lo devuelvas.</div>}
                   <div className="pb-msgs" onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); adjuntar(e.dataTransfer.files?.[0]); }}>
                     {hilo.cargando && !hilo.mensajes.length && <p className="pb-vacio">Cargando mensajes…</p>}
                     {hilo.mensajes.map((m) => {
@@ -746,14 +861,52 @@ export default function PanelBot() {
                     <div className="pb-cerrada">
                       ⏳ La ventana de 24 h de WhatsApp está cerrada{cv?.ultimo_cliente_en ? ` (escribió por última vez el ${hora(cv.ultimo_cliente_en)})` : ""}. WhatsApp solo deja mandar plantillas aprobadas:
                       los seguimientos y avisos de pago/guía salen solos. En cuanto la clienta vuelva a escribir, se abre otra vez.
-                      <div style={{ marginTop: 8 }}>
+                      <div style={{ marginTop: 8, display: "flex", gap: 6, flexWrap: "wrap" }}>
                         <button disabled={ocupado} title="Manda la plantilla de saludo a esta clienta" onClick={saludar}>👋 Mandar saludo</button>
+                        {sel.startsWith("wa:") && <button disabled={ocupado} title="Elegir otra plantilla aprobada por Meta" onClick={abrirPlantillas}>📨 Mandar plantilla</button>}
                       </div>
+                      {plantillaSel && (
+                        <div className="pb-plantilla">
+                          {!plantillasMeta && <p className="nota">Cargando las plantillas aprobadas en Meta…</p>}
+                          {plantillasMeta && (() => {
+                            const p = plantillasMeta.find((x) => x.nombre === plantillaSel.nombre);
+                            const nombre1 = (cv?.nombre || "").trim().split(/\s+/)[0] || "";
+                            return (
+                              <>
+                                <select value={plantillaSel.nombre} onChange={(e) => { const n = plantillasMeta.find((x) => x.nombre === e.target.value); setPlantillaSel({ nombre: e.target.value, params: n ? Array.from({ length: n.variables }, (_, i) => (i === 0 ? nombre1 : "")) : [] }); }}>
+                                  <option value="">Elige una plantilla aprobada…</option>
+                                  {plantillasMeta.map((x) => <option key={x.nombre} value={x.nombre}>{x.nombre} · {x.categoria === "UTILITY" ? "servicio" : "marketing"}</option>)}
+                                </select>
+                                {p && <div className="cuerpo">{p.cuerpo}</div>}
+                                {p && Array.from({ length: p.variables }, (_, i) => (
+                                  <label key={i}><span>{`{{${i + 1}}}`}{i === 0 ? " (normalmente su nombre)" : ""}</span>
+                                    <input value={plantillaSel.params[i] || ""} onChange={(e) => setPlantillaSel((x) => { if (!x) return x; const params = [...x.params]; params[i] = e.target.value; return { ...x, params }; })} />
+                                  </label>
+                                ))}
+                                <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
+                                  <button disabled={ocupado || !p} onClick={() => mandarPlantilla(sel)}>Mandar</button>
+                                  <button onClick={() => setPlantillaSel(null)}>Cancelar</button>
+                                </div>
+                              </>
+                            );
+                          })()}
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="pb-caja">
+                      {reactivarTxt != null && (
+                        <div className="pb-reactivar">
+                          <small>⏰ Mensaje para reactivar (edítalo si quieres; al mandarlo pasa a tu control)</small>
+                          <textarea rows={3} value={reactivarTxt} onChange={(e) => setReactivarTxt(e.target.value)} />
+                          <div style={{ display: "flex", gap: 6 }}>
+                            <button disabled={ocupado || !reactivarTxt.trim()} onClick={() => mandarReactivar(sel)}>Mandar</button>
+                            <button onClick={() => setReactivarTxt(null)}>Cancelar</button>
+                          </div>
+                        </div>
+                      )}
                       <div className="pb-rapidas">
-                        {RAPIDAS.map((r) => <button key={r.t} className="chip" title={r.x} onClick={() => setTexto((t) => (t.trim() ? t.trimEnd() + "\n" : "") + r.x)}>{r.t}</button>)}
+                        {rapidas.map((r, i) => <button key={i} className="chip" title={r.x} onClick={() => setTexto((t) => (t.trim() ? t.trimEnd() + "\n" : "") + r.x)}>{r.t}</button>)}
                       </div>
                       <div className="pb-escribir">
                         <input ref={fileRef} type="file" accept="image/*,application/pdf,.pdf" hidden onChange={(e) => adjuntar(e.target.files?.[0])} />
@@ -810,6 +963,9 @@ export default function PanelBot() {
                       <small>{hora(q.creada)} · {estadoCot(q.sitio)}{q.lote_id ? ` · ${q.lote_id}` : ""} · seguimientos {q.seguimientos}/3</small>
                       <div className="btns">
                         <a className="btn" href={link} target="_blank">Ver</a>
+                        {!q.sitio?.pagada && <button className="primario" disabled={ocupado} onClick={() => pagoAccion(q.id, "confirmar", sel || "", q.sitio?.total ?? q.total)}>✅ Confirmar pago</button>}
+                        {!q.sitio?.pagada && q.sitio?.transferencia_aviso_en ? <button disabled={ocupado} onClick={() => pagoAccion(q.id, "rechazar", sel || "")}>❌ Rechazar</button> : null}
+                        {!q.sitio?.pagada && q.sitio?.apartado_pago_id === "AVISO-SPEI" && !Number(q.sitio?.apartado_monto) ? <button disabled={ocupado} onClick={() => pagoAccion(q.id, "apartado", sel || "")}>🔒 Confirmar apartado</button> : null}
                         {!q.sitio?.pagada && !cerradaSel && <button disabled={ocupado} onClick={async () => { if (!window.confirm(`¿Mandarle el link de la ${q.id}? La conversación pasa a tu control.`)) return; const d = await accion({ accion: "enviar", canalId: sel, texto: `Te dejo tu cotización para que la revises y pagues cuando gustes: ${link}` }); if (d?.ok) { await cargarHilo(sel); await cargarLista(); } }}>Mandar link</button>}
                       </div>
                     </div>
@@ -821,6 +977,15 @@ export default function PanelBot() {
                 <h4>Compras {hilo.compras ? `· ${hilo.compras.n} · ${fmx(hilo.compras.total)}` : ""}</h4>
                 {!hilo.compras && <p className="nota">Sin compras registradas con este teléfono.</p>}
                 {hilo.compras?.detalle.map((d, i) => <div key={i} className="compra">{new Date(d.fecha).toLocaleDateString("es-MX", { timeZone: "America/Mexico_City", day: "numeric", month: "short", year: "2-digit" })} · {fmx(d.total)} · {d.que}</div>)}
+              </div>
+
+              <div className="bloque">
+                <h4>Etiquetas</h4>
+                {config && !config.etiquetas_listas && <p className="nota">⚠️ Para guardar etiquetas falta correr <code>sql/02-panel-etiquetas.sql</code> (repo del bot) en Supabase.</p>}
+                <div className="pb-etiq">
+                  {etiquetasCat.map((t) => { const on = (hilo.conversacion?.etiquetas || []).includes(t.id); return <button key={t.id} className={on ? "on" : ""} disabled={ocupado} style={on ? { background: t.color, borderColor: t.color, color: "#fff" } : { borderColor: t.color, color: t.color }} onClick={() => ponerEtiqueta(sel, t.id)}>{t.nombre}</button>; })}
+                </div>
+                <p className="nota">Para filtrar la lista. Las editas en ⚙️ Ajustes. Con «🧪 Prueba» se puede borrar el chat (Más ▾).</p>
               </div>
 
               <div className="bloque">
@@ -987,17 +1152,18 @@ export default function PanelBot() {
       {tab === "cots" && (
         <section className="pb-cots">
           <table>
-            <thead><tr><th>Código</th><th>Clienta</th><th>Total</th><th>Estado</th><th>Lote</th><th>Seg.</th><th>Creada</th></tr></thead>
+            <thead><tr><th>Código</th><th>Clienta</th><th>Total</th><th>Estado</th><th>Lote</th><th>Seg.</th><th>Creada</th><th>Pago</th></tr></thead>
             <tbody>
               {cots.map((c) => (
                 <tr key={c.id} className={c.sitio?.pagada ? "pagada" : c.cerrada ? "cerrada" : ""}>
                   <td><a href={c.link || `/cotizacion/${c.id}`} target="_blank">{c.id}</a></td>
-                  <td><button className="link" onClick={() => { setTab("chats"); setSel(c.canal_id); }}>{c.sitio?.cliente_nombre || c.canal_id}</button></td>
+                  <td>{c.canal_id ? <button className="link" onClick={() => { setTab("chats"); setSel(c.canal_id); }}>{c.sitio?.cliente_nombre || c.canal_id}</button> : <span>{c.sitio?.cliente_nombre || "—"} <small>(página)</small></span>}</td>
                   <td>{fmx(c.sitio?.total ?? c.total)}</td>
                   <td>{estadoCot(c.sitio)}</td>
                   <td>{c.lote_id || "catálogo"}</td>
                   <td>{c.seguimientos}/3</td>
                   <td>{hora(c.creada)}</td>
+                  <td>{!c.sitio?.pagada && <button disabled={ocupado} onClick={() => pagoAccion(c.id, "confirmar", c.canal_id || "", c.sitio?.total ?? c.total)}>✅ Confirmar pago</button>}</td>
                 </tr>
               ))}
             </tbody>
@@ -1005,8 +1171,111 @@ export default function PanelBot() {
           {!cots.length && <p className="pb-vacio">El bot aún no ha cotizado.</p>}
         </section>
       )}
+      {tab === "ajustes" && (config ? <Ajustes config={config} accion={accion} recargar={cargarConfig} ocupado={ocupado} /> : <p className="pb-vacio">Cargando ajustes…</p>)}
       <style jsx global>{estilos}</style>
     </main>
+  );
+}
+
+/* ====================== Ajustes (modelo UVDTF) ====================== */
+
+function Ajustes({ config, accion, recargar, ocupado }: { config: Config; accion: (b: Record<string, unknown>) => Promise<Record<string, unknown> | null>; recargar: () => Promise<void>; ocupado: boolean }) {
+  const [estilo, setEstilo] = useState(config.estilo.instrucciones);
+  const [rapidas, setRapidas] = useState<Rapida[]>(config.respuestas_rapidas);
+  const [nueva, setNueva] = useState<Rapida>({ t: "", x: "" });
+  const [etiq, setEtiq] = useState<Etiqueta[]>(config.etiquetas);
+  const [nuevaRegla, setNuevaRegla] = useState("");
+  const [salud, setSalud] = useState<Record<string, unknown> | null>(null);
+  const [msg, setMsg] = useState("");
+  useEffect(() => { setEstilo(config.estilo.instrucciones); setRapidas(config.respuestas_rapidas); setEtiq(config.etiquetas); }, [config]);
+  const guardar = async (clave: string, valor: unknown, ok: string) => { const d = await accion({ accion: "config", clave, valor }); if (d?.ok) { setMsg("✅ " + ok); await recargar(); } };
+  const regla = async (op: string, texto: string, ok: string) => { const d = await accion({ accion: "regla", op, texto }); if (d?.ok) { setMsg("✅ " + ok); await recargar(); } };
+  const mover = (i: number, d: number) => setRapidas((l) => { const n = [...l]; const j = i + d; if (j < 0 || j >= n.length) return l; [n[i], n[j]] = [n[j], n[i]]; return n; });
+  return (
+    <section className="pb-ajustes">
+      {msg && <div className="pb-aviso">{msg}</div>}
+      <div className="pb-caja-aj">
+        <h3>Estado del bot</h3>
+        <p>Modo <b>{config.modo}</b>{config.bot_secret ? "" : " · ⚠️ falta BOT_SECRET en el sitio: el panel no puede hablar con el bot"}.</p>
+        <button disabled={ocupado} onClick={async () => { setSalud(null); const d = await accion({ accion: "salud" }); if (d) setSalud(d); }}>Revisar conexión con el bot</button>
+        {salud && (
+          <ul className="pb-salud">
+            <li>✅ El bot contestó</li>
+            <li>Modo: {String(salud.modo)}</li>
+            <li>WhatsApp: {salud.whatsapp ? "conectado" : "apagado (solo Telegram)"}</li>
+            <li>Base de datos: {salud.base ? "conectada" : "SIN base"}</li>
+            <li>IA: {String(salud.ia)}</li>
+            <li>Catálogo del sitio: {String(salud.catalogo)}</li>
+          </ul>
+        )}
+      </div>
+
+      <div className="pb-caja-aj">
+        <h3>Cómo habla</h3>
+        <p>Indicaciones de estilo para el bot (mandan sobre sus reglas de forma). Ej.: «Usa más el nombre de la clienta», «No uses la palabra súper». Vacío = como está.</p>
+        <textarea rows={5} value={estilo} onChange={(e) => setEstilo(e.target.value)} placeholder="Escribe aquí cómo quieres que hable…" />
+        <button className="primario" disabled={ocupado || estilo === config.estilo.instrucciones} onClick={() => guardar("estilo", { instrucciones: estilo }, "Estilo guardado")}>Guardar estilo</button>
+      </div>
+
+      <div className="pb-caja-aj">
+        <h3>Reglas aprendidas (mandan sobre el prompt)</h3>
+        <p>Cuando editas o descartas una propuesta del bot, se guarda la corrección ({config.correcciones} guardadas). «Proponer» saca reglas generales; solo las que apruebes entran al bot.</p>
+        <div className="pb-lista-aj">
+          {config.reglas.map((r) => <div key={r}><span>{r}</span><button disabled={ocupado} onClick={() => regla("quitar", r, "Regla quitada")}>✕</button></div>)}
+          {!config.reglas.length && <small>Sin reglas todavía.</small>}
+        </div>
+        {config.reglas_propuestas.length > 0 && (
+          <>
+            <b className="sub">Propuestas por aprobar</b>
+            <div className="pb-lista-aj prop">
+              {config.reglas_propuestas.map((r) => <div key={r}><span>{r}</span><button disabled={ocupado} title="Aprobar" onClick={() => regla("aprobar", r, "Regla aprobada")}>✓</button><button disabled={ocupado} title="Rechazar" onClick={() => regla("rechazar", r, "Rechazada")}>✕</button></div>)}
+            </div>
+          </>
+        )}
+        <div className="fila"><input placeholder="Nueva regla: Cuando pidan X, responde Y" value={nuevaRegla} onChange={(e) => setNuevaRegla(e.target.value)} /><button disabled={ocupado || !nuevaRegla.trim()} onClick={async () => { await regla("agregar", nuevaRegla.trim(), "Regla agregada"); setNuevaRegla(""); }}>Agregar</button></div>
+        <button disabled={ocupado} onClick={async () => { const d = await accion({ accion: "reglas-proponer" }); if (d) { setMsg(d.error ? "ℹ️ " + String(d.error) : `🧠 ${Number(d.nuevas) || 0} regla(s) nueva(s) por aprobar`); await recargar(); } }}>🧠 Proponer reglas de las correcciones</button>
+      </div>
+
+      <div className="pb-caja-aj">
+        <h3>Respuestas rápidas</h3>
+        <p>Los botones de arriba de la caja para escribir. El nombre es lo que se ve en el botón.</p>
+        <div className="pb-lista-aj">
+          {rapidas.map((r, i) => (
+            <div key={i}>
+              <input className="corto" value={r.t} onChange={(e) => setRapidas((l) => l.map((x, j) => (j === i ? { ...x, t: e.target.value } : x)))} />
+              <textarea rows={2} value={r.x} onChange={(e) => setRapidas((l) => l.map((x, j) => (j === i ? { ...x, x: e.target.value } : x)))} />
+              <button title="Subir" onClick={() => mover(i, -1)}>↑</button>
+              <button title="Quitar" onClick={() => setRapidas((l) => l.filter((_, j) => j !== i))}>✕</button>
+            </div>
+          ))}
+        </div>
+        <div className="fila"><input className="corto" placeholder="Nombre" value={nueva.t} onChange={(e) => setNueva({ ...nueva, t: e.target.value })} /><input placeholder="Texto que se pega" value={nueva.x} onChange={(e) => setNueva({ ...nueva, x: e.target.value })} /><button disabled={!nueva.x.trim()} onClick={() => { setRapidas((l) => [...l, { t: nueva.t.trim() || nueva.x.trim().slice(0, 24), x: nueva.x.trim() }]); setNueva({ t: "", x: "" }); }}>Agregar</button></div>
+        <button className="primario" disabled={ocupado} onClick={() => guardar("respuestas_rapidas", rapidas, "Respuestas rápidas guardadas")}>Guardar respuestas rápidas</button>
+      </div>
+
+      <div className="pb-caja-aj">
+        <h3>Etiquetas de chat</h3>
+        {!config.etiquetas_listas && <p>⚠️ Falta correr <code>sql/02-panel-etiquetas.sql</code> (repo del bot) en Supabase para poder ponerlas en los chats.</p>}
+        <div className="pb-lista-aj">
+          {etiq.map((t, i) => (
+            <div key={t.id}>
+              <input type="color" value={t.color} className="color" onChange={(e) => setEtiq((l) => l.map((x, j) => (j === i ? { ...x, color: e.target.value } : x)))} />
+              <input value={t.nombre} onChange={(e) => setEtiq((l) => l.map((x, j) => (j === i ? { ...x, nombre: e.target.value } : x)))} />
+              {t.id !== "prueba" && <button title="Quitar" onClick={() => setEtiq((l) => l.filter((_, j) => j !== i))}>✕</button>}
+            </div>
+          ))}
+        </div>
+        <div className="fila">
+          <button onClick={() => setEtiq((l) => [...l, { id: `e${Date.now().toString(36)}`, nombre: "Nueva", color: "#64748b" }])}>+ Etiqueta</button>
+          <button className="primario" disabled={ocupado} onClick={() => guardar("etiquetas", etiq, "Etiquetas guardadas")}>Guardar etiquetas</button>
+        </div>
+      </div>
+
+      <div className="pb-caja-aj">
+        <h3>Plantillas de WhatsApp</h3>
+        <p>Con la ventana de 24 h cerrada solo se puede escribir con una plantilla aprobada por Meta. En el chat, «📨 Mandar plantilla» enseña las aprobadas en el número de The Makeup (las nuevas se dan de alta en Meta).</p>
+      </div>
+    </section>
   );
 }
 
@@ -1078,6 +1347,26 @@ const estilos = `
   .pb-hilo { grid-template-rows: auto auto 1fr auto; }
   .pb-banda { background: #fee2e2; color: #9f1239; padding: 8px 14px; font-size: 14px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; border-bottom: 1px solid #fecdd3; }
   .pb-banda button { padding: 4px 10px; font-size: 13px; }
+  .pb-banda.gris { background: #f3f0ec; color: #5b4a44; border-bottom-color: #e7ded6; }
+  .pb-sel-etq { font: inherit; font-size: 13px; padding: 6px 8px; border: 1px solid #d4b8a8; border-radius: 10px; background: #fff; }
+  .pb-etiq { display: flex; flex-wrap: wrap; gap: 5px; } .pb-etiq button { padding: 3px 10px; font-size: 12px; border-radius: 999px; background: #fff; }
+  .pb-mas button.peligro { border-color: #e11d48; color: #be123c; }
+  .pb-reactivar { padding: 8px 14px 0; display: grid; gap: 6px; } .pb-reactivar small { color: #8a7068; }
+  .pb-plantilla { margin-top: 10px; display: grid; gap: 6px; background: #fff; border: 1px solid #fed7aa; border-radius: 10px; padding: 10px; color: #2c2420; }
+  .pb-plantilla select { font: inherit; font-size: 14px; padding: 8px; border: 1px solid #d4b8a8; border-radius: 10px; background: #fff; }
+  .pb-plantilla .cuerpo { white-space: pre-wrap; font-size: 13px; background: #faf6f0; border-radius: 8px; padding: 8px; }
+  .pb-plantilla label { display: grid; gap: 2px; } .pb-plantilla label span { font-size: 12px; color: #8a7068; } .pb-plantilla .nota { font-size: 12px; color: #8a7068; margin: 0; }
+  .pb-ajustes { padding: 14px; display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 12px; align-items: start; }
+  .pb-ajustes > .pb-aviso { grid-column: 1 / -1; border-radius: 10px; }
+  .pb-caja-aj { background: #fff; border: 1px solid #f2e0d8; border-radius: 12px; padding: 12px 14px; display: grid; gap: 8px; font-size: 14px; }
+  .pb-caja-aj h3 { margin: 0; font-size: 16px; } .pb-caja-aj p { margin: 0; color: #8a7068; font-size: 13px; } .pb-caja-aj .sub { font-size: 13px; }
+  .pb-caja-aj button.primario:not(:disabled) { background: #c9807a; color: #fff; }
+  .pb-caja-aj .fila { display: flex; gap: 6px; flex-wrap: wrap; } .pb-caja-aj .fila input { flex: 1; min-width: 120px; }
+  .pb-lista-aj { display: grid; gap: 6px; } .pb-lista-aj > div { display: flex; gap: 6px; align-items: center; } .pb-lista-aj > div > span { flex: 1; }
+  .pb-lista-aj.prop > div { background: #fffbeb; border-radius: 8px; padding: 4px 6px; }
+  .pb-lista-aj button { padding: 4px 9px; font-size: 13px; flex: none; } .pb-lista-aj textarea { font-size: 14px; flex: 1; }
+  .pb-caja-aj input.corto { max-width: 130px; flex: none; } .pb-caja-aj input.color { width: 42px; padding: 2px; flex: none; height: 36px; }
+  .pb-salud { margin: 0; padding-left: 18px; font-size: 13px; }
   .pb-dia { text-align: center; font-size: 12px; color: #8a7068; margin: 8px 0 2px; }
   .pb-grupo { display: grid; }
   .pb-caja { background: #fff; border-top: 1px solid #f2e0d8; }
@@ -1156,5 +1445,7 @@ const estilos = `
     .pb-hilo-top .volver { padding: 2px 10px; font-size: 16px; }
     .pb-rapidas { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; } .pb-rapidas .chip { white-space: nowrap; flex: none; }
     .pb-banda { padding: 6px 10px; font-size: 13px; }
+    .pb-ajustes { grid-template-columns: 1fr; padding: 10px; }
+    .pb-lista-aj > div { flex-wrap: wrap; } .pb-caja-aj input.corto { max-width: none; flex: 1; }
   }
 `;

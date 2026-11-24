@@ -9,6 +9,8 @@ import { createAdminSupabase, createServerSupabase } from "../../../lib/supabase
 // (los mismos usuarios del panel de inventario).
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+// "Proponer reglas" y "Reactivar" esperan a la IA del bot (hasta ~55 s).
+export const maxDuration = 60;
 
 type Usuario = { id: string; email?: string | null };
 const sesiones = new Map<string, { u: Usuario; hasta: number }>();
@@ -45,6 +47,26 @@ async function usuario(req: Request): Promise<Usuario | null> {
 const j = (data: unknown, status = 200) => NextResponse.json(data, { status });
 
 type Sb = ReturnType<typeof createAdminSupabase>;
+
+/** Respuestas rápidas iniciales (las de antes, fijas en el panel). Se editan en Ajustes. */
+const RAPIDAS_DEFAULT = [
+  { t: "Pedir CP", x: "¿Me compartes tu código postal para cotizarte el envío?" },
+  { t: "Datos de envío", x: "Para mandarte tu pedido necesito tu nombre completo, calle y número, colonia, código postal, ciudad y un teléfono de contacto." },
+  { t: "Lo reviso", x: "Déjame revisarlo y en un momento te confirmo." },
+  { t: "Formas de pago", x: "En el link puedes pagar por transferencia o en OXXO. En cuanto se refleje te aviso por aquí." },
+  { t: "Foto antes de enviar", x: "Antes de enviarlo te mando foto de tu lote ya armado." },
+  { t: "Ya salió", x: "Tu pedido ya salió. Te paso la guía por aquí para que lo rastrees." },
+];
+/** Etiquetas iniciales. «Prueba» siempre existe: con ella se puede borrar una conversación de prueba. */
+const ETIQUETA_PRUEBA = { id: "prueba", nombre: "🧪 Prueba", color: "#64748b" };
+const ETIQUETAS_DEFAULT = [
+  { id: "vip", nombre: "⭐ VIP", color: "#db2777" },
+  { id: "revendedora", nombre: "Revendedora", color: "#16a34a" },
+  { id: "contra-entrega", nombre: "Contra entrega", color: "#ea580c" },
+  { id: "seguimiento", nombre: "Dar seguimiento", color: "#3b82f6" },
+  ETIQUETA_PRUEBA,
+];
+const faltaColumna = (msg: string | undefined) => /etiquetas/.test(msg || "") && /column|does not exist|schema cache/i.test(msg || "");
 const tel10 = (v: unknown) => String(v ?? "").replace(/\D/g, "").slice(-10);
 
 /** Campos de la ficha de la clienta que el equipo puede editar desde el panel (el bot también los llena). */
@@ -183,8 +205,17 @@ export async function GET(req: Request) {
       const { count: nPend } = await sb.from("mk_pendientes").select("id", { count: "exact", head: true });
       const marca = [dias, mc?.[0]?.actualizada, mp?.[0]?.id, nPend, mo?.[0]?.fecha_pago, mt?.[0]?.transferencia_aviso_en, ma?.[0]?.apartado_en].join("|");
       if (url.searchParams.get("marca") === marca) return j({ sinCambios: true, marca });
+      // `etiquetas` es de sql/02 del bot: si todavía no se corre, se lee sin ella.
+      const campos = "canal_id,canal,nombre,telefono,estado,cotizacion_id,lote_id,ultimo_cliente_en,ultimo_bot_en,origen,creada,resumen->noInteresadaEn,resumen->interes,resumen->escalacion,resumen->comprobante";
+      type FilaConv = { canal_id: string; canal: string; nombre: string | null; telefono: string | null; estado: string; cotizacion_id: string | null; lote_id: string | null; ultimo_cliente_en: string | null; ultimo_bot_en: string | null; origen: string | null; creada: string | null; noInteresadaEn: unknown; interes: unknown; escalacion: unknown; comprobante: unknown; etiquetas?: string[] | null };
+      const leerConvs = async (): Promise<{ data: FilaConv[] | null }> => {
+        const q1 = await sb.from("mk_conversaciones").select(campos + ",etiquetas").gte("actualizada", desde).order("ultimo_cliente_en", { ascending: false, nullsFirst: false }).limit(dias ? 500 : 1000);
+        if (!q1.error || !faltaColumna(q1.error.message)) return { data: q1.data as unknown as FilaConv[] | null };
+        const q2 = await sb.from("mk_conversaciones").select(campos).gte("actualizada", desde).order("ultimo_cliente_en", { ascending: false, nullsFirst: false }).limit(dias ? 500 : 1000);
+        return { data: q2.data as unknown as FilaConv[] | null };
+      };
       const [{ data: conv }, { data: pend }, { data: modo }] = await Promise.all([
-        sb.from("mk_conversaciones").select("canal_id,canal,nombre,telefono,estado,cotizacion_id,lote_id,ultimo_cliente_en,ultimo_bot_en,origen,creada,resumen->noInteresadaEn,resumen->interes,resumen->escalacion,resumen->comprobante").gte("actualizada", desde).order("ultimo_cliente_en", { ascending: false, nullsFirst: false }).limit(dias ? 500 : 1000),
+        leerConvs(),
         sb.from("mk_pendientes").select("id,canal_id,texto,adjunto,creado").order("id"),
         sb.from("mk_config").select("valor").eq("clave", "modo").maybeSingle(),
       ]);
@@ -250,7 +281,7 @@ export async function GET(req: Request) {
       const t = tel10(conv?.telefono);
       const idsCot = [...new Set([...(cbs || []).map((c) => c.id), ...(conv?.cotizacion_id ? [conv.cotizacion_id] : [])])];
       const [{ data: sitioCots }, { data: lote }, { data: fichas }] = await Promise.all([
-        idsCot.length ? sb.from("cotizaciones").select("id,total,vistas,pago_click_en,pagada,orden_id,transferencia_aviso_en,apartado_monto,envio_paqueteria,cliente_nombre").in("id", idsCot) : Promise.resolve({ data: [] as Record<string, unknown>[] }),
+        idsCot.length ? sb.from("cotizaciones").select("id,total,vistas,pago_click_en,pagada,orden_id,transferencia_aviso_en,apartado_monto,apartado_pago_id,envio_paqueteria,cliente_nombre").in("id", idsCot) : Promise.resolve({ data: [] as Record<string, unknown>[] }),
         conv?.lote_id ? sb.from("mk_lotes").select("id,nombre,piezas,precio,estado,fotos,apartado_hasta").eq("id", conv.lote_id).maybeSingle() : Promise.resolve({ data: null }),
         sb.from("mk_clientes").select("clave,nombre,telefono,email,calle,numero,colonia,cp,municipio,estado,referencias,notas,actualizada").or(`clave.eq.${t || "x"},clave.eq.${canal}`).limit(2),
       ]);
@@ -296,6 +327,24 @@ export async function GET(req: Request) {
       const clientes = [...porTel.values()].sort((a, b) => b.compras - a.compras || (b.ultimo_contacto || "").localeCompare(a.ultimo_contacto || ""));
       return j({ clientes });
     }
+    if (q === "config") {
+      // Ajustes del panel (los escribe el bot por la acción "config"; aquí solo se leen).
+      const { data } = await sb.from("mk_config").select("clave,valor").in("clave", ["modo", "respuestas_rapidas", "etiquetas", "estilo", "reglas", "reglas_propuestas", "correcciones"]);
+      const cfg = new Map((data || []).map((r) => [r.clave as string, r.valor as unknown]));
+      const etiquetas = (cfg.get("etiquetas") as typeof ETIQUETAS_DEFAULT | undefined) ?? ETIQUETAS_DEFAULT;
+      const { error: sinCol } = await sb.from("mk_conversaciones").select("etiquetas").limit(1);
+      return j({
+        modo: cfg.get("modo") || "copiloto",
+        respuestas_rapidas: (cfg.get("respuestas_rapidas") as typeof RAPIDAS_DEFAULT | undefined) ?? RAPIDAS_DEFAULT,
+        etiquetas: etiquetas.some((e) => e.id === "prueba") ? etiquetas : [...etiquetas, ETIQUETA_PRUEBA],
+        etiquetas_listas: !sinCol,
+        estilo: { instrucciones: String((cfg.get("estilo") as { instrucciones?: string } | undefined)?.instrucciones ?? "") },
+        reglas: (cfg.get("reglas") as string[] | undefined) ?? [],
+        reglas_propuestas: (cfg.get("reglas_propuestas") as string[] | undefined) ?? [],
+        correcciones: ((cfg.get("correcciones") as unknown[] | undefined) ?? []).length,
+        bot_secret: Boolean(process.env.BOT_SECRET),
+      });
+    }
     if (q === "lotes") {
       const { data } = await sb.from("mk_lotes").select("*").order("creado_en", { ascending: false }).limit(300);
       return j({ lotes: data || [] });
@@ -304,9 +353,21 @@ export async function GET(req: Request) {
       const desde = new Date(Date.now() - 45 * 86400_000).toISOString();
       const { data: cb } = await sb.from("mk_cotizaciones").select("*").gte("creada", desde).order("creada", { ascending: false }).limit(200);
       const ids = (cb || []).map((c) => c.id);
-      const { data: sitio } = ids.length ? await sb.from("cotizaciones").select("id,cliente_nombre,total,vistas,pago_click_en,pagada,orden_id,transferencia_aviso_en,apartado_monto,envio").in("id", ids) : { data: [] };
+      const campos = "id,cliente_nombre,total,vistas,pago_click_en,pagada,orden_id,transferencia_aviso_en,apartado_monto,apartado_pago_id,envio,creada_en,creada_por,lote_id";
+      const [{ data: sitio }, { data: web }] = await Promise.all([
+        ids.length ? sb.from("cotizaciones").select(campos).in("id", ids) : Promise.resolve({ data: [] as Record<string, unknown>[] }),
+        // (23-nov-2026) Las del carrito de la página (sin pasarela) también se cobran aquí.
+        sb.from("cotizaciones").select(campos).eq("creada_por", "web").gte("creada_en", Date.now() - 45 * 86400_000).order("creada_en", { ascending: false }).limit(200),
+      ]);
       const porId = new Map((sitio || []).map((c) => [c.id, c]));
-      return j({ cotizaciones: (cb || []).map((c) => ({ ...c, sitio: porId.get(c.id) || null })) });
+      const delBot = (cb || []).map((c) => ({ ...c, sitio: porId.get(c.id) || null }));
+      const yaEstan = new Set(delBot.map((c) => c.id));
+      const deLaWeb = (web || []).filter((c) => !yaEstan.has(String(c.id))).map((c) => ({
+        id: String(c.id), canal_id: "", lote_id: (c.lote_id as string) || null, total: Number(c.total) || 0, link: null,
+        creada: new Date(Number(c.creada_en) || Date.now()).toISOString(), seguimientos: 0, cerrada: false, web: true, sitio: c,
+      }));
+      const todas = [...delBot, ...deLaWeb].sort((a, b) => Date.parse(String(b.creada)) - Date.parse(String(a.creada)));
+      return j({ cotizaciones: todas });
     }
     return j({ error: "q desconocida" }, 400);
   } catch (e) {
@@ -382,7 +443,13 @@ export async function POST(req: Request) {
     if (error) return j({ error: error.message }, 500);
     return j({ ok: true });
   }
-  const rutas: Record<string, string> = { enviar: "/admin/enviar", pendiente: "/admin/pendiente", estado: "/admin/estado", modo: "/admin/modo", lote: "/admin/lote", seguimiento: "/admin/seguimiento", saludo: "/admin/saludo", borrar: "/admin/borrar", atendida: "/admin/atendida" };
+  const rutas: Record<string, string> = {
+    enviar: "/admin/enviar", pendiente: "/admin/pendiente", estado: "/admin/estado", modo: "/admin/modo", lote: "/admin/lote", seguimiento: "/admin/seguimiento", saludo: "/admin/saludo", borrar: "/admin/borrar", atendida: "/admin/atendida", pago: "/admin/pago",
+    // (23-nov-2026) Control del bot, etiquetas, plantillas y ajustes (modelo UVDTF).
+    resuelto: "/admin/resuelto", reiniciar: "/admin/reiniciar", "borrar-prueba": "/admin/borrar-prueba", etiquetas: "/admin/etiquetas",
+    config: "/admin/config", regla: "/admin/regla", "reglas-proponer": "/admin/reglas-proponer", reactivar: "/admin/reactivar",
+    plantillas: "/admin/plantillas", plantilla: "/admin/plantilla", salud: "/admin/salud",
+  };
   const ruta = rutas[accion];
   if (!ruta) return j({ error: "acción desconocida" }, 400);
   if (!process.env.BOT_SECRET) return j({ error: "Falta BOT_SECRET en el servidor" }, 503);
@@ -391,7 +458,7 @@ export async function POST(req: Request) {
       method: "POST",
       headers: { "content-type": "application/json", "x-bot-secret": process.env.BOT_SECRET },
       body: JSON.stringify({ ...body, por: "panel", usuario: u.email || u.id, autor: nombreDe(u.email) }),
-      signal: AbortSignal.timeout(30_000),
+      signal: AbortSignal.timeout(accion === "reglas-proponer" || accion === "reactivar" ? 55_000 : 30_000),
     });
     const txt = await r.text();
     let data: unknown = {};
